@@ -833,45 +833,50 @@ const App: React.FC = () => {
                   
                   <button
                     onClick={() => {
-                      // Exporter les résultats finaux avec différenciation
-                      const finalResults = {
-                        summary: {
-                          totalAccounts: totalCount,
-                          modifiedAccounts: modifiedCount,
-                          correctionDoublons: step2Count,
-                          suggestionsHorsCncj: step4Count,
-                          doubleModifications: doubleModifiedCount,
-                          unmodifiedAccounts: totalCount - modifiedCount
-                        },
-                        accounts: finalSummaryData.map(row => ({
-                          title: row.title,
-                          originalCode: row.originalCode,
-                          correctedCode: row.correctedCode === row.originalCode ? null : row.correctedCode,
-                          suggestedCode: row.suggestedCode === '-' ? null : row.suggestedCode,
-                          wasModified: row.wasModified,
-                          modificationSource: row.modificationSource === 'step2+step4' ? 'double modification' : 
-                                           row.modificationSource === 'step2' ? 'correction doublons' : 
-                                           row.modificationSource === 'step4' ? 'suggestions hors CNCJ' : null,
-                          progression: row.modificationSource === 'step2+step4' ? 
-                            `${row.originalCode} → ${row.correctedCode} → ${row.suggestedCode}` :
-                            row.modificationSource === 'step2' ? 
-                            `${row.originalCode} → ${row.correctedCode}` :
-                            row.modificationSource === 'step4' ? 
-                            `${row.originalCode} → ${row.suggestedCode}` : null
-                        }))
-                      };
+                      // Exporter les résultats finaux en CSV avec titre, code d'origine et code final
+                      const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
                       
-                      const blob = new Blob([JSON.stringify(finalResults, null, 2)], { type: 'application/json' });
+                      const csvRows = finalSummaryData
+                        .filter(row => {
+                          if (state.finalFilter === 'all') return true;
+                          return row.modificationSource === state.finalFilter;
+                        })
+                        .map(row => {
+                          // Déterminer le code final selon la même logique que le tableau
+                          let finalCode;
+                          if (row.modificationSource === 'step2+step4') {
+                            finalCode = row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode;
+                          } else if (row.modificationSource === 'step2') {
+                            finalCode = row.correctedCode;
+                          } else if (row.modificationSource === 'step4') {
+                            finalCode = row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode;
+                          } else {
+                            finalCode = row.originalCode;
+                          }
+                          
+                          return [
+                            row.title,
+                            row.originalCode,
+                            finalCode
+                          ];
+                        });
+                      
+                      const csvContent = [
+                        csvHeaders.join(','),
+                        ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+                      ].join('\n');
+                      
+                      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = 'recapitulatif-final-comptes.json';
+                      a.download = 'correspondances-comptes.csv';
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
                     className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                   >
-                    📥 Exporter le récapitulatif
+                    📥 Exporter les correspondances
                   </button>
                 </div>
               </div>
