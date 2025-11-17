@@ -16,6 +16,7 @@ interface AppState {
   replacementCodes: { [key: string]: string };
   cncjConflictResult: ProcessingResult | null;
   cncjConflictSuggestions: { [key: string]: string | 'error' };
+  finalFilter: 'all' | 'step2' | 'step4' | 'step2+step4';
 }
 
 type AppAction = 
@@ -31,7 +32,8 @@ type AppAction =
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
-  | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } };
+  | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } }
+  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step2' | 'step4' | 'step2+step4' };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -44,7 +46,8 @@ const initialState: AppState = {
   currentStep: 'step1',
   replacementCodes: {},
   cncjConflictResult: null,
-  cncjConflictSuggestions: {}
+  cncjConflictSuggestions: {},
+  finalFilter: 'all'
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -81,6 +84,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, cncjConflictResult: action.payload };
     case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
       return { ...state, cncjConflictSuggestions: action.payload };
+    case 'SET_FINAL_FILTER':
+      return { ...state, finalFilter: action.payload };
     default:
       return state;
   }
@@ -700,6 +705,63 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Boutons de filtrage */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="mb-4 flex justify-center space-x-2">
+                    {(() => {
+                      const totalCount = finalSummaryData.length;
+                      const step2Count = finalSummaryData.filter(row => row.modificationSource === 'step2').length;
+                      const step4Count = finalSummaryData.filter(row => row.modificationSource === 'step4').length;
+                      const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step2+step4').length;
+                      
+                      return (
+                        <>
+                          <button
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'all' })}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              state.finalFilter === 'all' 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            Tous ({totalCount})
+                          </button>
+                          <button
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step2' })}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              state.finalFilter === 'step2' 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            Doublons corrigés ({step2Count})
+                          </button>
+                          <button
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step4' })}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              state.finalFilter === 'step4' 
+                                ? 'bg-orange-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            Suggestions CNCJ ({step4Count})
+                          </button>
+                          <button
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step2+step4' })}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              state.finalFilter === 'step2+step4' 
+                                ? 'bg-purple-600 text-white' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            Double modification ({doubleModifiedCount})
+                          </button>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
                 {/* Tableau récapitulatif */}
                 <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <table className="w-full border-collapse">
@@ -713,7 +775,12 @@ const App: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {finalSummaryData.map((row) => (
+                      {finalSummaryData
+                        .filter(row => {
+                          if (state.finalFilter === 'all') return true;
+                          return row.modificationSource === state.finalFilter;
+                        })
+                        .map((row) => (
                         <tr key={row.id} className={getRowStyle(row.modificationSource)}>
                           <td className="border border-gray-300 px-4 py-2">
                             <div className="flex items-center space-x-2">
