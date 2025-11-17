@@ -25,14 +25,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // État pour le glisser-déposé des corrections
   const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
   
-  // État pour les résultats d'import avec vérification de doublons
-  const [importResults, setImportResults] = useState<Array<{
-    accountNumber: string;
-    title: string;
-    replacementCode: string;
-    isDuplicate: boolean;
-    found: boolean;
-  }>>([]);
   
   const processCorrectionsFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
@@ -76,13 +68,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       // Skip header and process each line
       let processedCount = 0;
-      const results: Array<{
-        accountNumber: string;
-        title: string;
-        replacementCode: string;
-        isDuplicate: boolean;
-        found: boolean;
-      }> = [];
+      let duplicateCodeCount = 0;
       
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -111,24 +97,31 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           const existingCodes = Object.values(replacementCodes);
           const isDuplicate = existingCodes.includes(replacementCode);
           
-          results.push({
-            accountNumber,
-            title,
-            replacementCode,
-            isDuplicate,
-            found: !!duplicateAccount
-          });
+          // Check if replacement code conflicts with original client codes
+          const allOriginalCodes = new Set([
+            ...uniqueClients.map(acc => acc.number),
+            ...matches.map(acc => acc.number), 
+            ...unmatchedClients.map(acc => acc.number)
+          ]);
+          const conflictsWithOriginal = allOriginalCodes.has(replacementCode);
           
+          // Apply the code immediately if duplicate account is found
           if (duplicateAccount) {
+            onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
             processedCount++;
+            
+            if (isDuplicate || conflictsWithOriginal) {
+              duplicateCodeCount++;
+            }
           }
         }
       }
       
-      // Store import results for display
-      setImportResults(results);
-      
-      // Set success state
+      // Set success state with detailed feedback
+      const message = duplicateCodeCount > 0 
+        ? `${processedCount} codes appliqués (${duplicateCodeCount} en doublon)`
+        : `${processedCount} codes appliqués`;
+        
       setCorrectionsFileInfo({
         name: file.name,
         size: formatFileSize(file.size),
@@ -158,21 +151,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   const handleClearCorrectionsFile = useCallback(() => {
     setCorrectionsFileInfo(null);
-    setImportResults([]);
   }, []);
 
-  const applyNonDuplicates = useCallback(() => {
-    importResults.filter(r => !r.isDuplicate && r.found).forEach(r => {
-      const account = duplicates.find(d => 
-        d.number === r.accountNumber && 
-        d.title && d.title.toLowerCase().trim() === r.title.toLowerCase()
-      );
-      if (account) {
-        onReplacementCodeChange?.(account.id, r.replacementCode);
-      }
-    });
-    setImportResults([]);
-  }, [importResults, duplicates, onReplacementCodeChange]);
 
   if (loading) {
     return (
@@ -270,30 +250,93 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           </h3>
           <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
             <div className="space-y-3">
-              {duplicates.map((account) => (
-                <div key={account.id} className="border border-red-200 rounded-lg p-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
-                    <div className="font-mono bg-red-100 px-2 py-1 rounded">
-                      {account.number}
+              {(() => {
+                // Optimisation: calculer les détections de doublons une seule fois
+                const codeOccurrences: { [key: string]: string[] } = {};
+                Object.entries(replacementCodes).forEach(([accountId, code]) => {
+                  const trimmedCode = code?.trim();
+                  if (trimmedCode) {
+                    if (!codeOccurrences[trimmedCode]) {
+                      codeOccurrences[trimmedCode] = [];
+                    }
+                    codeOccurrences[trimmedCode].push(accountId);
+                  }
+                });
+                
+                // Obtenir tous les codes clients originaux (sauf les doublons)
+                const allOriginalCodes = new Set([
+                  ...uniqueClients.map(acc => acc.number),
+                  ...matches.map(acc => acc.number), 
+                  ...unmatchedClients.map(acc => acc.number)
+                ]);
+                
+                return duplicates.map((account) => {
+                  const currentCode = replacementCodes[account.id]?.trim();
+                  const isEmpty = !currentCode;
+                  const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
+                  const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+                  const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
+                  
+                  let rowColorClass, numberColorClass, titleColorClass, inputColorClass, focusRingClass;
+                  
+                  if (isEmpty) {
+                    // Code vide - style neutre
+                    rowColorClass = 'bg-gray-50 border-gray-200';
+                    numberColorClass = 'bg-gray-100';
+                    titleColorClass = 'bg-gray-50';
+                    inputColorClass = 'border-gray-300 bg-gray-50';
+                    focusRingClass = 'focus:ring-gray-400';
+                  } else if (isDuplicateCode) {
+                    // Code en doublon - rouge foncé
+                    rowColorClass = 'bg-red-100 border-red-400';
+                    numberColorClass = 'bg-red-200';
+                    titleColorClass = 'bg-red-100';
+                    inputColorClass = 'border-red-400 bg-red-100';
+                    focusRingClass = 'focus:ring-red-400';
+                  } else {
+                    // Code unique - vert
+                    rowColorClass = 'bg-green-50 border-green-300';
+                    numberColorClass = 'bg-green-100';
+                    titleColorClass = 'bg-green-50';
+                    inputColorClass = 'border-green-300 bg-green-50';
+                    focusRingClass = 'focus:ring-green-400';
+                  }
+                  
+                  return (
+                    <div key={account.id} className={`border ${rowColorClass} rounded-lg p-3`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
+                        <div className={`font-mono ${numberColorClass} px-2 py-1 rounded`}>
+                          {account.number}
+                        </div>
+                        <div className={`${titleColorClass} px-2 py-1 rounded`}>
+                          {account.title || 'Sans titre'}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <label className="text-xs text-gray-600 whitespace-nowrap">
+                          Code remplacement:
+                        </label>
+                        <div className="relative flex items-center">
+                          <input
+                            type="text"
+                            value={replacementCodes[account.id] || ''}
+                            onChange={(e) => onReplacementCodeChange?.(account.id, e.target.value)}
+                            placeholder="Nouveau code"
+                            className={`w-32 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 ${focusRingClass} ${inputColorClass}`}
+                          />
+                          {isDuplicateCode && (
+                            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-red-50 px-2 py-1 rounded">
-                      {account.title || 'Sans titre'}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <label className="text-xs text-gray-600 whitespace-nowrap">
-                      Code remplacement:
-                    </label>
-                    <input
-                      type="text"
-                      value={replacementCodes[account.id] || ''}
-                      onChange={(e) => onReplacementCodeChange?.(account.id, e.target.value)}
-                      placeholder="Nouveau code"
-                      className="w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
@@ -479,72 +522,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 </div>
             )}
             
-            {/* Affichage des résultats d'import avec vérification de doublons */}
-            {importResults.length > 0 && (
-              <div className="mt-6 space-y-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                    📊 Résultats de l'import ({importResults.length} lignes)
-                  </h4>
-                  
-                  <div className="mb-4 text-sm">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
-                      ✅ {importResults.filter(r => !r.isDuplicate && r.found).length} codes uniques applicables
-                    </span>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
-                      ⚠️ {importResults.filter(r => r.isDuplicate).length} codes en doublon
-                    </span>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      ❌ {importResults.filter(r => !r.found).length} comptes non trouvés
-                    </span>
-                  </div>
-                  
-                  <div className="max-h-60 overflow-y-auto space-y-2">
-                    {importResults.map((result, index) => (
-                      <div 
-                        key={index}
-                        className={`p-3 rounded-lg border text-sm ${
-                          !result.found 
-                            ? 'bg-gray-50 border-gray-300 text-gray-600'
-                            : result.isDuplicate 
-                              ? 'bg-red-50 border-red-300 text-red-700'
-                              : 'bg-green-50 border-green-300 text-green-700'
-                        }`}
-                      >
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="font-mono text-xs">{result.accountNumber}</div>
-                          <div className="truncate">{result.title}</div>
-                          <div className="font-semibold">{result.replacementCode}</div>
-                        </div>
-                        <div className="mt-1 text-xs">
-                          {!result.found 
-                            ? '❌ Compte non trouvé'
-                            : result.isDuplicate 
-                              ? '⚠️ Code déjà utilisé'
-                              : '✅ Code unique'
-                          }
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-4 flex gap-3 justify-center">
-                    <button
-                      onClick={applyNonDuplicates}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      ✅ Appliquer les codes uniques ({importResults.filter(r => !r.isDuplicate && r.found).length})
-                    </button>
-                    <button
-                      onClick={() => setImportResults([])}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      ❌ Annuler
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
         </div>
       )}
     </div>
