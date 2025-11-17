@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { ProcessingResult, FileMetadata, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
@@ -49,6 +49,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       mapping[account.id] = account;
     });
     return mapping;
+  }, [originalClientAccounts]);
+
+  // Réinitialiser le fichier de corrections quand de nouveaux fichiers sont chargés
+  useEffect(() => {
+    setCorrectionsFileInfo(null);
   }, [originalClientAccounts]);
   
   

@@ -107,6 +107,13 @@ const App: React.FC = () => {
   const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => {
     dispatch({ type: 'CLEAR_ERRORS' });
     
+    // Réinitialiser toutes les étapes et données de traitement quand de nouveaux fichiers sont chargés
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
+    dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
+    dispatch({ type: 'SET_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: {} });
+    
     if (source === 'client') {
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
