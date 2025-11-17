@@ -117,11 +117,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         }
       }
       
-      // Set success state with detailed feedback
-      const message = duplicateCodeCount > 0 
-        ? `${processedCount} codes appliqués (${duplicateCodeCount} en doublon)`
-        : `${processedCount} codes appliqués`;
-        
+      // Set success state
       setCorrectionsFileInfo({
         name: file.name,
         size: formatFileSize(file.size),
