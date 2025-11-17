@@ -12,6 +12,7 @@ interface ResultsDisplayProps {
   onReplacementCodeChange?: (accountId: string, code: string) => void;
   conflictType?: 'duplicates' | 'cncj-conflicts';
   suggestions?: { [key: string]: string | 'error' };
+  cncjCodes?: Set<string>;
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -21,7 +22,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   replacementCodes = {}, 
   onReplacementCodeChange,
   conflictType = 'duplicates',
-  suggestions = {}
+  suggestions = {},
+  cncjCodes
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -293,6 +295,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
                   const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
                   
+                  // Validation CNCJ : vérifier si le code existe dans les codes CNCJ
+                  const isCncjCode = conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(currentCode);
+                  
                   let rowColorClass, numberColorClass, titleColorClass, inputColorClass, focusRingClass;
                   
                   if (isEmpty) {
@@ -302,6 +307,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     titleColorClass = 'bg-gray-50';
                     inputColorClass = 'border-gray-300 bg-gray-50';
                     focusRingClass = 'focus:ring-gray-400';
+                  } else if (isCncjCode) {
+                    // Code CNCJ - rouge vif avec croix
+                    rowColorClass = 'bg-red-100 border-red-500';
+                    numberColorClass = 'bg-red-200';
+                    titleColorClass = 'bg-red-100';
+                    inputColorClass = 'border-red-500 bg-red-100';
+                    focusRingClass = 'focus:ring-red-500';
                   } else if (isDuplicateCode) {
                     // Code en doublon - rouge foncé
                     rowColorClass = 'bg-red-100 border-red-400';
@@ -341,6 +353,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                             className={`w-32 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 ${focusRingClass} ${inputColorClass}`}
                           />
                           {isDuplicateCode && (
+                            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                          {isCncjCode && (
                             <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -454,7 +473,107 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             📥 Exporter les résultats
           </button>
         )}
-      </div>
+
+        {showOnly === 'duplicates' && conflictType === 'duplicates' && (
+          <div className="w-full max-w-2xl">
+            <DropZone
+              dragState={dragState}
+              disabled={false}
+              loading={correctionsFileInfo?.loadStatus === 'loading'}
+              fileInfo={correctionsFileInfo}
+              onDragOver={handlers.handleDragOver}
+              onDragLeave={handlers.handleDragLeave}
+              onDrop={handlers.handleDrop}
+              onClick={!correctionsFileInfo ? handlers.handleButtonClick : undefined}
+              onKeyDown={(e) => handlers.handleKeyDown(e, !correctionsFileInfo ? handlers.handleButtonClick : undefined)}
+              ariaLabel={!correctionsFileInfo ? "Zone de dépôt pour les corrections. Glissez-déposez un fichier CSV ou cliquez pour parcourir" : `Fichier de corrections: ${correctionsFileInfo?.name}`}
+            >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handlers.handleFileChange}
+                      className="hidden"
+                    />
+                    
+                    {!correctionsFileInfo && (
+                      <div className="space-y-2">
+                        <div className="mx-auto w-8 h-8 text-gray-400">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <p className="font-medium text-xs sm:text-sm">Glissez-déposez votre fichier de corrections CSV</p>
+                          <p className="text-xs">ou cliquez pour parcourir</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {correctionsFileInfo?.loadStatus === 'loading' && (
+                      <div className="space-y-2">
+                        <div className="mx-auto w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-sm text-blue-600">Import des corrections...</p>
+                      </div>
+                    )}
+                    
+                    {correctionsFileInfo && (correctionsFileInfo.loadStatus === 'success' || correctionsFileInfo.loadStatus === 'error') && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              correctionsFileInfo.loadStatus === 'success' ? 'bg-green-100 text-green-600' :
+                              'bg-red-100 text-red-600'
+                            }`}>
+                              {correctionsFileInfo.loadStatus === 'success' ? (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="text-left flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{correctionsFileInfo?.name}</p>
+                              <p className="text-xs text-gray-500">{correctionsFileInfo?.size}</p>
+                            </div>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={handleClearCorrectionsFile}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        <div className={`text-sm ${
+                          correctionsFileInfo.loadStatus === 'success' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {correctionsFileInfo.loadStatus === 'success' ? 'Corrections importées avec succès' : 'Échec de l\'import'}
+                        </div>
+                        
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={handlers.handleButtonClick}
+                            className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+                          >
+                            Changer le fichier
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </DropZone>
+                </div>
+            )}
+            
+                    </div>
       )}
     </div>
   );

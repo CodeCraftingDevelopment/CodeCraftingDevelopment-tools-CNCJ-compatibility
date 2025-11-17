@@ -323,6 +323,11 @@ const App: React.FC = () => {
     });
   }, [state.result, state.replacementCodes]);
 
+  // Créer un Set des codes CNCJ pour la validation en temps réel (optimisé avec useMemo)
+  const cncjCodes = useMemo(() => {
+    return new Set(state.cncjAccounts.map(acc => acc.number));
+  }, [state.cncjAccounts]);
+
   // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
   const canProceed = state.clientAccounts.length > 0 && 
                     state.cncjAccounts.length > 0 && 
@@ -457,6 +462,7 @@ const App: React.FC = () => {
             onReplacementCodeChange={handleReplacementCodeChange}
             conflictType="cncj-conflicts"
             suggestions={state.cncjConflictSuggestions}
+            cncjCodes={cncjCodes}
           />
           
           <div className="mt-6 text-center space-x-4">
