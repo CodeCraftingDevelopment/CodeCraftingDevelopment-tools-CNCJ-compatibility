@@ -2,7 +2,7 @@ import React, { useReducer, useCallback, useMemo } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { Account, ProcessingResult, FileMetadata, AppState } from './types/accounts';
-import { processAccounts } from './utils/accountUtils';
+import { processAccounts, mergeIdenticalAccounts } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
 
@@ -113,25 +113,30 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: {} });
     
     if (source === 'client') {
+      // Fusionner les comptes identiques (même numéro ET titre) avant de les stocker
+      const mergedAccounts = mergeIdenticalAccounts(accounts);
+      console.log(`Fusion de ${accounts.length} comptes clients en ${mergedAccounts.length} comptes uniques`);
+      
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
-        dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: accounts });
+        dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: mergedAccounts });
+        
+        // Process if we have both files and both are fully loaded (not loading)
+        if (state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
+          processClientAccounts(mergedAccounts, state.cncjAccounts);
+        }
       }
     } else {
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: accounts });
-      }
-    }
-
-    // Process if we have both files and both are fully loaded (not loading)
-    if (fileInfo.loadStatus !== 'loading') {
-      if (source === 'client' && state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
-        processClientAccounts(accounts, state.cncjAccounts);
-      } else if (source === 'cncj' && state.clientAccounts.length > 0 && state.clientFileInfo?.loadStatus !== 'loading') {
-        processClientAccounts(state.clientAccounts, accounts);
+        
+        // Process if we have both files and both are fully loaded (not loading)
+        if (state.clientAccounts.length > 0 && state.clientFileInfo?.loadStatus !== 'loading') {
+          processClientAccounts(state.clientAccounts, accounts);
+        }
       }
     }
   }, [state.cncjAccounts, state.clientAccounts, state.cncjFileInfo, state.clientFileInfo, processClientAccounts]);

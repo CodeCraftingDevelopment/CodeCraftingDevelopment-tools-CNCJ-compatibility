@@ -39,19 +39,35 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
   });
 };
 
-export const findDuplicates = (accounts: Account[]): Account[] => {
+export const mergeIdenticalAccounts = (accounts: Account[]): Account[] => {
   const seen = new Map<string, Account>();
-  const duplicates: Account[] = [];
+  const merged: Account[] = [];
   
   accounts.forEach(account => {
-    if (seen.has(account.number)) {
-      duplicates.push(account);
-    } else {
-      seen.set(account.number, account);
+    // Créer une clé unique basée sur le numéro ET le titre
+    const key = `${account.number}-${account.title || ''}`;
+    
+    if (!seen.has(key)) {
+      // Première occurrence : garder ce compte comme représentant
+      seen.set(key, account);
+      merged.push(account);
     }
+    // Si la clé existe déjà, on ignore ce compte (fusionné dans le premier)
   });
   
-  return duplicates;
+  return merged;
+};
+
+export const findDuplicates = (accounts: Account[]): Account[] => {
+  // Compter les occurrences de chaque numéro de compte
+  const numberCounts = new Map<string, number>();
+  
+  accounts.forEach(account => {
+    numberCounts.set(account.number, (numberCounts.get(account.number) || 0) + 1);
+  });
+  
+  // Retourner TOUS les comptes qui ont des doublons (count > 1)
+  return accounts.filter(account => numberCounts.get(account.number)! > 1);
 };
 
 export const compareAccounts = (
@@ -80,11 +96,16 @@ export const processAccounts = (
   clientAccounts: Account[], 
   cncjAccounts: Account[]
 ): ProcessingResult => {
-  const duplicates = findDuplicates(clientAccounts);
-  const uniqueClients = clientAccounts.filter(acc => 
+  // Étape 1 : Fusionner les comptes identiques (même numéro ET titre)
+  const mergedAccounts = mergeIdenticalAccounts(clientAccounts);
+  
+  // Étape 2 : Détecter les doublons sur les comptes fusionnés
+  const duplicates = findDuplicates(mergedAccounts);
+  const uniqueClients = mergedAccounts.filter(acc => 
     !duplicates.some(dup => dup.id === acc.id)
   );
   
+  // Étape 3 : Comparer avec les comptes CNCJ
   const { matches, unmatchedClients } = compareAccounts(uniqueClients, cncjAccounts);
   
   return {
