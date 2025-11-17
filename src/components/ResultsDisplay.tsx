@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { ProcessingResult, FileMetadata, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
@@ -16,6 +16,7 @@ interface ResultsDisplayProps {
   suggestions?: { [key: string]: string | 'error' };
   cncjCodes?: Set<string>;
   mergedClientAccounts?: Account[];
+  originalClientAccounts?: Account[];
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -27,7 +28,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   conflictType = 'duplicates',
   suggestions = {},
   cncjCodes,
-  mergedClientAccounts
+  mergedClientAccounts,
+  originalClientAccounts
 }) => {
   // État pour le filtre des lignes corrigées (step3 uniquement)
   const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
@@ -37,6 +39,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   
   // État pour le glisser-déposé des corrections
   const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
+  
+  // Créer un mapping des comptes originaux par ID pour une recherche rapide
+  const originalAccountsById = useMemo(() => {
+    const mapping: { [key: string]: Account } = {};
+    originalClientAccounts?.forEach(account => {
+      mapping[account.id] = account;
+    });
+    return mapping;
+  }, [originalClientAccounts]);
   
   
   const processCorrectionsFile = useCallback(async (file: File) => {
@@ -333,12 +344,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   .map((account, index) => {
                     const replacementCode = replacementCodes[account.id]?.trim();
                     const isCorrected = !!replacementCode;
+                    const originalAccount = originalAccountsById[account.id];
                     return (
                       <tr key={account.id} className={`border-b ${isCorrected ? 'bg-green-100 border-l-4 border-green-500' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                         <td className="px-4 py-3">
                           <div className="space-y-1">
-                            <div className="font-mono text-gray-900">{account.number}</div>
-                            <div className="text-gray-600 text-xs">{account.title || 'Sans titre'}</div>
+                            <div className="font-mono text-gray-900">{originalAccount?.number || account.number}</div>
+                            <div className="text-gray-600 text-xs">{originalAccount?.title || account.title || 'Sans titre'}</div>
                           </div>
                         </td>
                         <td className="px-4 py-3">

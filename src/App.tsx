@@ -537,6 +537,7 @@ const App: React.FC = () => {
             replacementCodes={state.replacementCodes}
             onReplacementCodeChange={undefined}
             mergedClientAccounts={mergedClientAccounts}
+            originalClientAccounts={state.clientAccounts}
           />
           
           <div className="mt-6 text-center space-x-4">
