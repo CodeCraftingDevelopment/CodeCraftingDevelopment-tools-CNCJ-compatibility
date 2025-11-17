@@ -239,7 +239,7 @@ const App: React.FC = () => {
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            ⚠️ Vérification des doublons comptes clients
+            📋 Vérification des doublons comptes clients
           </h2>
           
           <ResultsDisplay 

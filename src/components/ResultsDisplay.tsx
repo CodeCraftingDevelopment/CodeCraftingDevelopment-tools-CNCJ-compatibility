@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { ProcessingResult } from '../types/accounts';
 
 interface ResultsDisplayProps {
@@ -16,6 +16,59 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   replacementCodes = {}, 
   onReplacementCodeChange 
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Déclarer les variables avant le useCallback
+  const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
+
+  const handleImportCorrections = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lines = content.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        alert('Le fichier CSV est vide ou invalide');
+        return;
+      }
+
+      // Skip header and process each line
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Parse CSV line (handle quoted values)
+        const match = line.match(/^"?([^"]*)"?,\s*"?([^"]*)"?,?/);
+        if (match) {
+          const accountNumber = match[1].trim();
+          const replacementCode = match[2].trim();
+          
+          // Find the duplicate account by number
+          const duplicateAccount = duplicates.find(d => d.number === accountNumber);
+          if (duplicateAccount && replacementCode) {
+            onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
+          }
+        }
+      }
+      
+      alert('Import des corrections terminé');
+    };
+    
+    reader.onerror = () => {
+      alert('Erreur lors de la lecture du fichier');
+    };
+    
+    reader.readAsText(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [duplicates, onReplacementCodeChange]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -33,18 +86,18 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     );
   }
 
-  const { duplicates, uniqueClients, matches, unmatchedClients } = result;
-
   return (
     <div className="space-y-6">
       {/* Résumé */}
       {showOnly === 'duplicates' ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-600">{duplicates.length}</div>
-            <div className="text-gray-600">Doublons détectés</div>
+        duplicates.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600">{duplicates.length}</div>
+              <div className="text-gray-600">Doublons détectés</div>
+            </div>
           </div>
-        </div>
+        )
       ) : (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
@@ -53,10 +106,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <div className="text-2xl font-bold text-blue-600">{uniqueClients.length}</div>
               <div className="text-gray-600">Comptes clients uniques</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{duplicates.length}</div>
-              <div className="text-gray-600">Doublons détectés</div>
-            </div>
+            {duplicates.length > 0 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{duplicates.length}</div>
+                <div className="text-gray-600">Doublons détectés</div>
+              </div>
+            )}
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{matches.length}</div>
               <div className="text-gray-600">Correspondances CNCJ</div>
@@ -163,33 +218,71 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Actions */}
       <div className="flex gap-4 justify-center">
-        <button
-          onClick={() => {
-            const data = showOnly === 'duplicates' 
-              ? { 
-                  duplicates: duplicates.map(d => ({ 
-                    number: d.number, 
-                    title: d.title,
-                    replacementCode: replacementCodes[d.id] || null
-                  })) 
+        {(showOnly === 'all' || (showOnly === 'duplicates' && duplicates.length > 0)) && (
+          <>
+            <button
+              onClick={() => {
+                if (showOnly === 'duplicates') {
+                  // Export CSV pour les doublons
+                  const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
+                  const csvRows = duplicates.map(d => [
+                    d.number,
+                    d.title || '',
+                    replacementCodes[d.id] || ''
+                  ]);
+                  
+                  const csvContent = [
+                    csvHeaders.join(','),
+                    ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+                  ].join('\n');
+                  
+                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'doublons-comptes.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } else {
+                  // Export JSON pour les résultats complets
+                  const data = {
+                    duplicates: duplicates.map(d => d.number),
+                    matches: matches.map(m => m.number),
+                    unmatched: unmatchedClients.map(u => u.number)
+                  };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'resultats-comptes.json';
+                  a.click();
+                  URL.revokeObjectURL(url);
                 }
-              : {
-                  duplicates: duplicates.map(d => d.number),
-                  matches: matches.map(m => m.number),
-                  unmatched: unmatchedClients.map(u => u.number)
-                };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = showOnly === 'duplicates' ? 'doublons-comptes.json' : 'resultats-comptes.json';
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          📥 {showOnly === 'duplicates' ? 'Exporter les doublons' : 'Exporter les résultats'}
-        </button>
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📥 {showOnly === 'duplicates' ? 'Exporter les doublons' : 'Exporter les résultats'}
+            </button>
+
+            {showOnly === 'duplicates' && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImportCorrections}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  📤 Importer les corrections
+                </button>
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
