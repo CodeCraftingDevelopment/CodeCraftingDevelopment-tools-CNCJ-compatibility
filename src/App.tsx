@@ -342,6 +342,51 @@ const App: React.FC = () => {
     });
   }, [state.result, state.replacementCodes]);
 
+  // Calculer si tous les conflits CNCJ sont résolus (optimisé avec useMemo)
+  const allCncjConflictsResolved = useMemo(() => {
+    if (!state.cncjConflictResult || state.cncjConflictResult.duplicates.length === 0) return true;
+    
+    // Obtenir les IDs des comptes en conflit CNCJ pour filtrer les codes
+    const conflictIds = new Set(state.cncjConflictResult.duplicates.map(d => d.id));
+    
+    // Calculer les occurrences de codes SEULEMENT pour les conflits CNCJ
+    const codeOccurrences: { [key: string]: string[] } = {};
+    Object.entries(state.replacementCodes).forEach(([accountId, code]) => {
+      if (!conflictIds.has(accountId)) return;
+      const trimmedCode = code?.trim();
+      if (trimmedCode) {
+        if (!codeOccurrences[trimmedCode]) {
+          codeOccurrences[trimmedCode] = [];
+        }
+        codeOccurrences[trimmedCode].push(accountId);
+      }
+    });
+    
+    // Obtenir tous les codes CNCJ (sauf les conflits en cours de résolution)
+    const cncjConflictCodes = new Set(state.cncjConflictResult.duplicates.map(d => d.number));
+    const otherCncjCodes = state.cncjAccounts
+      .filter(acc => !cncjConflictCodes.has(acc.number))
+      .map(acc => acc.number);
+    
+    // Obtenir tous les codes clients fusionnés (sauf les conflits CNCJ)
+    const otherClientCodes = mergedClientAccounts
+      .filter(acc => !conflictIds.has(acc.id))
+      .map(acc => acc.number);
+    
+    const allOtherCodes = new Set([...otherCncjCodes, ...otherClientCodes]);
+    
+    // Vérifier que tous les conflits CNCJ ont un code valide et unique
+    return state.cncjConflictResult.duplicates.every((account) => {
+      const currentCode = state.replacementCodes[account.id]?.trim();
+      const isEmpty = !currentCode;
+      const isDuplicateWithOthers = currentCode && allOtherCodes.has(currentCode);
+      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+      const isDuplicateCode = isDuplicateWithOthers || isDuplicateWithReplacement;
+      
+      return !isEmpty && !isDuplicateCode;
+    });
+  }, [state.cncjConflictResult, state.replacementCodes, state.cncjAccounts, mergedClientAccounts]);
+
   // Créer un Set des codes CNCJ pour la validation en temps réel (optimisé avec useMemo)
   const cncjCodes = useMemo(() => {
     return new Set(state.cncjAccounts.map(acc => acc.number));
@@ -528,6 +573,45 @@ const App: React.FC = () => {
             >
               ← Retour
             </button>
+            
+            {/* Bouton Suivant - s'affiche uniquement si tous les conflits CNCJ sont résolus */}
+            {allCncjConflictsResolved && (
+              <button
+                onClick={() => {
+                  // Exporter les résultats finaux
+                  const finalResults = {
+                    originalClients: state.clientAccounts.map(acc => ({
+                      number: acc.number,
+                      title: acc.title
+                    })),
+                    finalAccounts: mergedClientAccounts.map(acc => ({
+                      number: acc.number,
+                      title: acc.title,
+                      wasCorrected: state.replacementCodes[acc.id]?.trim() !== undefined
+                    })),
+                    corrections: Object.entries(state.replacementCodes).map(([accountId, newCode]) => {
+                      const originalAccount = state.clientAccounts.find(acc => acc.id === accountId);
+                      return {
+                        originalNumber: originalAccount?.number,
+                        title: originalAccount?.title,
+                        newNumber: newCode.trim()
+                      };
+                    }).filter(correction => correction.newNumber)
+                  };
+                  
+                  const blob = new Blob([JSON.stringify(finalResults, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'resultats-finaux-comptes.json';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Terminé ✅
+              </button>
+            )}
           </div>
         </div>
 
