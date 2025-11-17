@@ -13,6 +13,7 @@ type DragState = 'idle' | 'drag-over';
 
 interface FileUploaderProps {
   onFileLoaded: (accounts: Account[], source: 'client' | 'cncj') => void;
+  onFileCleared: (source: 'client' | 'cncj') => void;
   onError: (errors: string[]) => void;
   label: string;
   source: 'client' | 'cncj';
@@ -29,6 +30,7 @@ const formatFileSize = (bytes: number): string => {
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
   onFileLoaded,
+  onFileCleared,
   onError,
   label,
   source,
@@ -144,7 +146,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, []);
+    onFileCleared(source);
+  }, [onFileCleared, source]);
 
   const downloadTemplate = useCallback(() => {
     const csvContent = "Numéro de compte,Titre\r\n12345678,Compte exemple\r\n87654321,Autre compte";
@@ -165,15 +168,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   }, []);
 
   return (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-2">
+    <div className="mb-4 w-full">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
         <label className="block text-sm font-medium text-gray-700">
           {label}
         </label>
         <button
           type="button"
           onClick={downloadTemplate}
-          className="text-xs text-blue-600 hover:text-blue-800 underline"
+          className="mt-1 sm:mt-0 text-xs text-blue-600 hover:text-blue-800 underline"
         >
           Télécharger le template CSV
         </button>
@@ -191,7 +194,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           }
         }}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+          relative border-2 border-dashed rounded-lg px-3 py-4 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           ${dragState === 'drag-over' 
             ? 'border-blue-400 bg-blue-50' 
             : loadStatus === 'success'
@@ -222,13 +225,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         {/* Content based on state */}
         {loadStatus === 'idle' && !selectedFile && (
           <div className="space-y-2">
-            <div className="mx-auto w-12 h-12 text-gray-400">
+            <div className="mx-auto w-10 h-10 text-gray-400">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div className="text-sm text-gray-600">
-              <p className="font-medium">Glissez-déposez votre fichier CSV ici</p>
+              <p className="font-medium text-xs sm:text-sm">Glissez-déposez votre fichier CSV</p>
               <p className="text-xs">ou cliquez pour parcourir</p>
             </div>
           </div>
@@ -242,31 +245,31 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         )}
         
         {selectedFile && (loadStatus === 'success' || loadStatus === 'warning' || loadStatus === 'error') && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* File info */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   loadStatus === 'success' ? 'bg-green-100 text-green-600' :
                   loadStatus === 'warning' ? 'bg-orange-100 text-orange-600' :
                   'bg-red-100 text-red-600'
                 }`}>
                   {loadStatus === 'success' ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : loadStatus === 'warning' ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">{fileInfo?.name}</p>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{fileInfo?.name}</p>
                   <p className="text-xs text-gray-500">
                     {fileInfo?.size} {fileInfo?.rowCount && `• ${fileInfo.rowCount} comptes`}
                   </p>
@@ -278,7 +281,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 onClick={handleClearFile}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>

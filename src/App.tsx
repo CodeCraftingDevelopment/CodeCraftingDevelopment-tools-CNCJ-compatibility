@@ -1,6 +1,5 @@
-import React, { useReducer, useCallback } from 'react';
+import React, { useReducer, useCallback, useState } from 'react';
 import { FileUploader } from './components/FileUploader';
-import { ResultsDisplay } from './components/ResultsDisplay';
 import { Account, ProcessingResult } from './types/accounts';
 import { processAccounts } from './utils/accountUtils';
 
@@ -81,16 +80,38 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
   }, []);
 
+  const handleFileCleared = useCallback((source: 'client' | 'cncj') => {
+    if (source === 'client') {
+      dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
+    } else {
+      dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+    }
+  }, []);
+
+  const [resetKey, setResetKey] = useState(0);
+
   const resetData = useCallback(() => {
+    console.log('resetData called');
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
+    setResetKey(prev => prev + 1);
   }, []);
+
+  const handleNext = useCallback(() => {
+    console.log('Navigation vers l\'étape suivante');
+    // Logique pour l'étape suivante à implémenter
+  }, []);
+
+  // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
+  const canProceed = state.clientAccounts.length > 0 && 
+                    state.cncjAccounts.length > 0 && 
+                    state.errors.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -101,28 +122,21 @@ const App: React.FC = () => {
           </p>
         </div>
 
-        {/* Errors */}
-        {state.errors.length > 0 && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-red-800 mb-2">
-              Erreurs détectées :
-            </h3>
-            <ul className="list-disc list-inside text-sm text-red-700">
-              {state.errors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {/* File Upload Section */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-blue-100 text-blue-800 rounded-full text-lg font-bold">
+              Step 1
+            </span>
+          </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             📁 Chargement des fichiers
           </h2>
           
           <FileUploader
+            key={`client-${resetKey}`}
             onFileLoaded={handleFileLoaded}
+            onFileCleared={handleFileCleared}
             onError={handleError}
             label="📋 Fichier des comptes clients"
             source="client"
@@ -130,7 +144,9 @@ const App: React.FC = () => {
           />
           
           <FileUploader
+            key={`cncj-${resetKey}`}
             onFileLoaded={handleFileLoaded}
+            onFileCleared={handleFileCleared}
             onError={handleError}
             label="🏛️ Fichier des comptes CNCJ"
             source="cncj"
@@ -139,7 +155,7 @@ const App: React.FC = () => {
 
           {/* Reset Button */}
           {(state.clientAccounts.length > 0 || state.cncjAccounts.length > 0) && (
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center space-x-4">
               <button
                 onClick={resetData}
                 disabled={state.loading}
@@ -147,25 +163,22 @@ const App: React.FC = () => {
               >
                 🔄 Réinitialiser
               </button>
+              
+              {/* Next Button - affiché uniquement si les deux fichiers sont chargés sans erreurs */}
+              {canProceed && (
+                <button
+                  onClick={handleNext}
+                  disabled={state.loading}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  Suivant →
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Results Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📊 Résultats du traitement
-          </h2>
-          <ResultsDisplay result={state.result} loading={state.loading} />
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>
-            Format CSV attendu : deux colonnes - numéros de comptes (numériques) et titres (texte)
-          </p>
-        </div>
-      </div>
+              </div>
     </div>
   );
 };
