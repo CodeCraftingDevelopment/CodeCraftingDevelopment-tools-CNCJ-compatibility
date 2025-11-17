@@ -292,17 +292,24 @@ const App: React.FC = () => {
       return;
     }
 
-    // Étape 1 : Traiter les conflits CNCJ avec les comptes fusionnés
-    const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
-    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+    // Ne recalculer les conflits CNCJ que si ce n'a pas déjà été fait
+    // Cela préserve les modifications manuelles de l'utilisateur lors de la navigation retour-avant
+    if (!state.cncjConflictResult) {
+      console.log('Premier passage à step4 - calcul des conflits CNCJ');
+      // Étape 1 : Traiter les conflits CNCJ avec les comptes fusionnés
+      const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
+      dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
 
-    // Étape 2 : Générer les suggestions d'auto-correction
-    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
-    dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
+      // Étape 2 : Générer les suggestions d'auto-correction
+      const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
+      dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
+    } else {
+      console.log('Retour à step4 - conservation des conflits CNCJ existants et des modifications manuelles');
+    }
 
     // Étape 3 : Naviguer vers step 4
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
-  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts]);
+  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
