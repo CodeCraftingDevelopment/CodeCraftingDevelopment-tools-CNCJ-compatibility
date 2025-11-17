@@ -771,7 +771,7 @@ const App: React.FC = () => {
                         <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code suggéré (CNCJ)</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Progression</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Code final</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -797,21 +797,23 @@ const App: React.FC = () => {
                             {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
-                          <td className="border border-gray-300 px-4 py-2 font-mono text-xs">
+                          <td className="border border-gray-300 px-4 py-2 font-mono">
                             {row.modificationSource === 'step2+step4' ? (
-                              <span className="text-purple-700">
-                                {row.originalCode} → {row.correctedCode} → {row.suggestedCode}
+                              <span className="text-purple-700 font-bold">
+                                {row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode}
                               </span>
                             ) : row.modificationSource === 'step2' ? (
-                              <span className="text-blue-700">
-                                {row.originalCode} → {row.correctedCode}
+                              <span className="text-blue-700 font-bold">
+                                {row.correctedCode}
                               </span>
                             ) : row.modificationSource === 'step4' ? (
-                              <span className="text-orange-700">
-                                {row.originalCode} → {row.suggestedCode}
+                              <span className="text-orange-700 font-bold">
+                                {row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode}
                               </span>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-gray-700">
+                                {row.originalCode}
+                              </span>
                             )}
                           </td>
                         </tr>
