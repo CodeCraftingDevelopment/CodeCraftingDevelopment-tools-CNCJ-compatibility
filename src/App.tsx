@@ -245,8 +245,28 @@ const App: React.FC = () => {
 
   // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
   const processCncjConflicts = useCallback((mergedClientAccounts: Account[], cncjAccounts: Account[]): ProcessingResult => {
-    // Utiliser la même logique que processAccounts mais avec les comptes fusionnés
-    return processAccounts(mergedClientAccounts, cncjAccounts);
+    // Créer un Set des codes CNCJ pour une recherche rapide
+    const cncjCodes = new Set(cncjAccounts.map(acc => acc.number));
+    
+    // Identifier les comptes clients qui sont en conflit avec les codes CNCJ
+    const conflicts: Account[] = [];
+    const nonConflicts: Account[] = [];
+    
+    mergedClientAccounts.forEach(clientAccount => {
+      if (cncjCodes.has(clientAccount.number)) {
+        conflicts.push(clientAccount);
+      } else {
+        nonConflicts.push(clientAccount);
+      }
+    });
+    
+    // Retourner un résultat compatible avec l'interface existante
+    return {
+      duplicates: conflicts, // Les conflits CNCJ sont traités comme des "doublons"
+      uniqueClients: nonConflicts,
+      matches: [], // Pas de correspondances pertinentes pour cette étape
+      unmatchedClients: [] // Pas de non-correspondances pertinentes pour cette étape
+    };
   }, []);
 
   const handleDuplicatesNext = useCallback(() => {
