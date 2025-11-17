@@ -599,9 +599,21 @@ const App: React.FC = () => {
           
           {/* Préparer les données pour le récapitulatif */}
           {(() => {
+            // Optimisation: créer des Sets pour les recherches rapides
+            const step2Ids = new Set(state.result?.duplicates?.map(d => d.id) || []);
+            const step4Ids = new Set(state.cncjConflictResult?.duplicates?.map(d => d.id) || []);
+            
             const finalSummaryData = state.clientAccounts.map(account => {
               const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
               const suggestedCode = state.cncjConflictSuggestions[account.id];
+              
+              // Déterminer la source de la modification
+              let modificationSource = null;
+              if (step4Ids.has(account.id)) {
+                modificationSource = 'step4';
+              } else if (step2Ids.has(account.id)) {
+                modificationSource = 'step2';
+              }
               
               return {
                 id: account.id,
@@ -609,18 +621,39 @@ const App: React.FC = () => {
                 originalCode: account.number,
                 correctedCode: mergedAccount?.number || account.number,
                 suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
-                wasModified: state.replacementCodes[account.id] !== undefined
+                wasModified: state.replacementCodes[account.id] !== undefined,
+                modificationSource
               };
             });
 
             const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
+            const step2Count = finalSummaryData.filter(row => row.modificationSource === 'step2').length;
+            const step4Count = finalSummaryData.filter(row => row.modificationSource === 'step4').length;
             const totalCount = finalSummaryData.length;
+
+            // Fonction pour obtenir le style de ligne selon la source
+            const getRowStyle = (source: string | null) => {
+              switch (source) {
+                case 'step2': return 'bg-blue-50 border-l-4 border-blue-400';
+                case 'step4': return 'bg-orange-50 border-l-4 border-orange-400';
+                default: return '';
+              }
+            };
+
+            // Fonction pour obtenir le badge selon la source
+            const getSourceBadge = (source: string | null) => {
+              switch (source) {
+                case 'step2': return '<span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">Step 2</span>';
+                case 'step4': return '<span class="inline-block px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full font-medium">Step 4</span>';
+                default: return '';
+              }
+            };
 
             return (
               <div className="space-y-4">
-                {/* Statistiques */}
+                {/* Statistiques détaillées */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-4 gap-4 text-sm">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{totalCount}</div>
                       <div className="text-gray-600">Total comptes</div>
@@ -630,8 +663,26 @@ const App: React.FC = () => {
                       <div className="text-gray-600">Comptes modifiés</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-600">{totalCount - modifiedCount}</div>
-                      <div className="text-gray-600">Comptes inchangés</div>
+                      <div className="text-2xl font-bold text-blue-600">{step2Count}</div>
+                      <div className="text-gray-600">Modifs Step 2</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">{step4Count}</div>
+                      <div className="text-gray-600">Modifs Step 4</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Légende */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center justify-center space-x-6 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 bg-blue-50 border-l-4 border-blue-400 rounded"></div>
+                      <span className="text-gray-700">Step 2 - Doublons</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 bg-orange-50 border-l-4 border-orange-400 rounded"></div>
+                      <span className="text-gray-700">Step 4 - Conflits CNCJ</span>
                     </div>
                   </div>
                 </div>
@@ -641,6 +692,7 @@ const App: React.FC = () => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-100">
+                        <th className="border border-gray-300 px-4 py-2 text-left">Source</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
@@ -649,7 +701,20 @@ const App: React.FC = () => {
                     </thead>
                     <tbody>
                       {finalSummaryData.map((row) => (
-                        <tr key={row.id} className={row.wasModified ? 'bg-green-50' : ''}>
+                        <tr key={row.id} className={getRowStyle(row.modificationSource)}>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {row.modificationSource ? (
+                              <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${
+                                row.modificationSource === 'step2' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {row.modificationSource === 'step2' ? 'Step 2' : 'Step 4'}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-xs">-</span>
+                            )}
+                          </td>
                           <td className="border border-gray-300 px-4 py-2">{row.title}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">
@@ -673,11 +738,13 @@ const App: React.FC = () => {
                   
                   <button
                     onClick={() => {
-                      // Exporter les résultats finaux
+                      // Exporter les résultats finaux avec différenciation
                       const finalResults = {
                         summary: {
                           totalAccounts: totalCount,
                           modifiedAccounts: modifiedCount,
+                          step2Modifications: step2Count,
+                          step4Modifications: step4Count,
                           unmodifiedAccounts: totalCount - modifiedCount
                         },
                         accounts: finalSummaryData.map(row => ({
@@ -685,7 +752,8 @@ const App: React.FC = () => {
                           originalCode: row.originalCode,
                           correctedCode: row.correctedCode === row.originalCode ? null : row.correctedCode,
                           suggestedCode: row.suggestedCode === '-' ? null : row.suggestedCode,
-                          wasModified: row.wasModified
+                          wasModified: row.wasModified,
+                          modificationSource: row.modificationSource
                         }))
                       };
                       
