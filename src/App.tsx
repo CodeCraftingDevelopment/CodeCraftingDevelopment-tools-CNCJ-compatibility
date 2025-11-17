@@ -18,6 +18,8 @@ type AppAction =
   | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
+  | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
+  | { type: 'CLEAR_CNCJ_REPLACEMENT_CODES' }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } }
   | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step2' | 'step4' | 'step2+step4' };
@@ -32,6 +34,7 @@ const initialState: AppState = {
   errors: [],
   currentStep: 'step1',
   replacementCodes: {},
+  cncjReplacementCodes: {},
   cncjConflictResult: null,
   cncjConflictSuggestions: {},
   finalFilter: 'all'
@@ -78,6 +81,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_REPLACEMENT_CODES':
       return { ...state, replacementCodes: {} };
+    case 'SET_CNCJ_REPLACEMENT_CODE':
+      return { 
+        ...state, 
+        cncjReplacementCodes: { 
+          ...state.cncjReplacementCodes, 
+          [action.payload.accountId]: action.payload.code 
+        } 
+      };
+    case 'CLEAR_CNCJ_REPLACEMENT_CODES':
+      return { ...state, cncjReplacementCodes: {} };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
     case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
@@ -338,6 +351,10 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
+  const handleCncjReplacementCodeChange = useCallback((accountId: string, code: string) => {
+    dispatch({ type: 'SET_CNCJ_REPLACEMENT_CODE', payload: { accountId, code } });
+  }, []);
+
   // Utiliser le hook personnalisé pour la validation des étapes
   const { allDuplicatesResolved, allCncjConflictsResolved } = useStepValidation({
     result: state.result,
@@ -524,8 +541,8 @@ const App: React.FC = () => {
             result={state.cncjConflictResult} 
             loading={state.loading} 
             showOnly="duplicates"
-            replacementCodes={state.replacementCodes}
-            onReplacementCodeChange={handleReplacementCodeChange}
+            replacementCodes={state.cncjReplacementCodes}
+            onReplacementCodeChange={handleCncjReplacementCodeChange}
             conflictType="cncj-conflicts"
             suggestions={state.cncjConflictSuggestions}
             cncjCodes={cncjCodes}
