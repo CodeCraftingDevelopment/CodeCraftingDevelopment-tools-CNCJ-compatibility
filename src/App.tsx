@@ -569,7 +569,8 @@ const App: React.FC = () => {
             📋 Vérification des doublons comptes clients
           </h2>
           
-          <ResultsDisplay 
+          <ResultsDisplay
+              key={state.currentStep} 
             result={state.result} 
             loading={state.loading} 
             showOnly="duplicates"
@@ -608,7 +609,8 @@ const App: React.FC = () => {
             📋 Révision des corrections ({duplicateCorrectionsCount} corrections doublons appliquées)
           </h2>
           
-          <ResultsDisplay 
+          <ResultsDisplay
+              key={state.currentStep} 
             result={state.result} 
             loading={state.loading} 
             showOnly="review"
@@ -647,7 +649,8 @@ const App: React.FC = () => {
             🚫 Codes clients réservés (homologués CNCJ)
           </h2>
           
-          <ResultsDisplay 
+          <ResultsDisplay
+              key={state.currentStep} 
             result={state.cncjConflictResult} 
             loading={state.loading} 
             showOnly="duplicates"
