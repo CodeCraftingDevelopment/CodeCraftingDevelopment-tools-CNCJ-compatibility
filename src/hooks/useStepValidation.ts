@@ -5,6 +5,7 @@ interface UseStepValidationProps {
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
   replacementCodes: { [key: string]: string };
+  cncjReplacementCodes: { [key: string]: string };
   cncjAccounts: Account[];
   mergedClientAccounts: Account[];
 }
@@ -13,6 +14,7 @@ export const useStepValidation = ({
   result,
   cncjConflictResult,
   replacementCodes,
+  cncjReplacementCodes,
   cncjAccounts,
   mergedClientAccounts
 }: UseStepValidationProps) => {
@@ -62,7 +64,7 @@ export const useStepValidation = ({
     const codeOccurrences: { [key: string]: string[] } = {};
     
     // Calculer les occurrences de codes SEULEMENT pour les conflits CNCJ
-    Object.entries(replacementCodes).forEach(([accountId, code]) => {
+    Object.entries(cncjReplacementCodes).forEach(([accountId, code]) => {
       if (!conflictIds.has(accountId)) return;
       const trimmedCode = code?.trim();
       if (trimmedCode) {
@@ -88,7 +90,7 @@ export const useStepValidation = ({
     
     // Vérifier que tous les conflits CNCJ ont un code valide et unique
     return cncjConflictResult.duplicates.every((account) => {
-      const currentCode = replacementCodes[account.id]?.trim();
+      const currentCode = cncjReplacementCodes[account.id]?.trim();
       const isEmpty = !currentCode;
       const isDuplicateWithOthers = currentCode && allOtherCodes.has(currentCode);
       const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
@@ -96,7 +98,7 @@ export const useStepValidation = ({
       
       return !isEmpty && !isDuplicateCode;
     });
-  }, [cncjConflictResult, replacementCodes, cncjAccounts, mergedClientAccounts]);
+  }, [cncjConflictResult, cncjReplacementCodes, cncjAccounts, mergedClientAccounts]);
 
   return {
     allDuplicatesResolved,

@@ -34,6 +34,7 @@ export interface AppState {
   errors: string[];
   currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
   replacementCodes: { [key: string]: string };
+  cncjReplacementCodes: { [key: string]: string };
   cncjConflictResult: ProcessingResult | null;
   cncjConflictSuggestions: { [key: string]: string | 'error' };
   finalFilter: 'all' | 'step2' | 'step4' | 'step2+step4';

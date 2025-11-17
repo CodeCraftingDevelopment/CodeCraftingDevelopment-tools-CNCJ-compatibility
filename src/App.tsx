@@ -360,6 +360,7 @@ const App: React.FC = () => {
     result: state.result,
     cncjConflictResult: state.cncjConflictResult,
     replacementCodes: state.replacementCodes,
+    cncjReplacementCodes: state.cncjReplacementCodes,
     cncjAccounts: state.cncjAccounts,
     mergedClientAccounts
   });
