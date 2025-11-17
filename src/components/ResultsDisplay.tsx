@@ -4,9 +4,10 @@ import { ProcessingResult } from '../types/accounts';
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
   loading?: boolean;
+  showOnly?: 'duplicates' | 'all';
 }
 
-export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading = false }) => {
+export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading = false, showOnly = 'all' }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -29,35 +30,44 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
   return (
     <div className="space-y-6">
       {/* Résumé */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      {showOnly === 'duplicates' ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{uniqueClients.length}</div>
-            <div className="text-gray-600">Comptes clients uniques</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{duplicates.length}</div>
+            <div className="text-3xl font-bold text-red-600">{duplicates.length}</div>
             <div className="text-gray-600">Doublons détectés</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{matches.length}</div>
-            <div className="text-gray-600">Correspondances CNCJ</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{unmatchedClients.length}</div>
-            <div className="text-gray-600">Sans correspondance</div>
+        </div>
+      ) : (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{uniqueClients.length}</div>
+              <div className="text-gray-600">Comptes clients uniques</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{duplicates.length}</div>
+              <div className="text-gray-600">Doublons détectés</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{matches.length}</div>
+              <div className="text-gray-600">Correspondances CNCJ</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{unmatchedClients.length}</div>
+              <div className="text-gray-600">Sans correspondance</div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Doublons */}
-      {duplicates.length > 0 && (
+      {duplicates.length > 0 ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-red-900 mb-3">
             ⚠️ Doublons détectés ({duplicates.length})
           </h3>
-          <div className="max-h-40 overflow-y-auto">
+          <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
             <div className="space-y-2">
               {duplicates.map((account) => (
                 <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
@@ -72,10 +82,19 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
             </div>
           </div>
         </div>
-      )}
+      ) : showOnly === 'duplicates' ? (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-green-900 mb-3">
+            ✅ Aucun doublon détecté
+          </h3>
+          <p className="text-green-700">
+            Tous les comptes clients sont uniques. Aucune action n'est requise.
+          </p>
+        </div>
+      ) : null}
 
       {/* Correspondances */}
-      {matches.length > 0 && (
+      {showOnly === 'all' && matches.length > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-green-900 mb-3">
             ✅ Comptes avec correspondance CNCJ ({matches.length})
@@ -98,7 +117,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
       )}
 
       {/* Sans correspondance */}
-      {unmatchedClients.length > 0 && (
+      {showOnly === 'all' && unmatchedClients.length > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-orange-900 mb-3">
             ❌ Comptes sans correspondance CNCJ ({unmatchedClients.length})
@@ -124,22 +143,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
       <div className="flex gap-4 justify-center">
         <button
           onClick={() => {
-            const data = {
-              duplicates: duplicates.map(d => d.number),
-              matches: matches.map(m => m.number),
-              unmatched: unmatchedClients.map(u => u.number)
-            };
+            const data = showOnly === 'duplicates' 
+              ? { duplicates: duplicates.map(d => ({ number: d.number, title: d.title })) }
+              : {
+                  duplicates: duplicates.map(d => d.number),
+                  matches: matches.map(m => m.number),
+                  unmatched: unmatchedClients.map(u => u.number)
+                };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'resultats-comptes.json';
+            a.download = showOnly === 'duplicates' ? 'doublons-comptes.json' : 'resultats-comptes.json';
             a.click();
             URL.revokeObjectURL(url);
           }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          📥 Exporter les résultats
+          📥 {showOnly === 'duplicates' ? 'Exporter les doublons' : 'Exporter les résultats'}
         </button>
       </div>
     </div>

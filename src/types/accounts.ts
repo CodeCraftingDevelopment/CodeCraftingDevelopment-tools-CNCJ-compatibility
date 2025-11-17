@@ -16,3 +16,10 @@ export interface FileUploadResult {
   accounts: Account[];
   errors: string[];
 }
+
+export interface FileMetadata {
+  name: string;
+  size: string;
+  rowCount: number;
+  loadStatus: 'idle' | 'loading' | 'success' | 'warning' | 'error';
+}

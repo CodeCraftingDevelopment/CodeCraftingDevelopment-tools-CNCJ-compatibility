@@ -1,30 +1,40 @@
-import React, { useReducer, useCallback, useState } from 'react';
+import React, { useReducer, useCallback } from 'react';
 import { FileUploader } from './components/FileUploader';
-import { Account, ProcessingResult } from './types/accounts';
+import { ResultsDisplay } from './components/ResultsDisplay';
+import { Account, ProcessingResult, FileMetadata } from './types/accounts';
 import { processAccounts } from './utils/accountUtils';
 
 interface AppState {
   clientAccounts: Account[];
   cncjAccounts: Account[];
+  clientFileInfo: FileMetadata | null;
+  cncjFileInfo: FileMetadata | null;
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
+  currentStep: 'upload' | 'results';
 }
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CNCJ_ACCOUNTS'; payload: Account[] }
+  | { type: 'SET_CLIENT_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_CNCJ_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
-  | { type: 'CLEAR_ERRORS' };
+  | { type: 'CLEAR_ERRORS' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' };
 
 const initialState: AppState = {
   clientAccounts: [],
   cncjAccounts: [],
+  clientFileInfo: null,
+  cncjFileInfo: null,
   result: null,
   loading: false,
-  errors: []
+  errors: [],
+  currentStep: 'upload'
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -33,6 +43,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, clientAccounts: action.payload };
     case 'SET_CNCJ_ACCOUNTS':
       return { ...state, cncjAccounts: action.payload };
+    case 'SET_CLIENT_FILE_INFO':
+      return { ...state, clientFileInfo: action.payload };
+    case 'SET_CNCJ_FILE_INFO':
+      return { ...state, cncjFileInfo: action.payload };
     case 'SET_RESULT':
       return { ...state, result: action.payload, loading: false };
     case 'SET_LOADING':
@@ -41,6 +55,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, errors: action.payload };
     case 'CLEAR_ERRORS':
       return { ...state, errors: [] };
+    case 'SET_CURRENT_STEP':
+      return { ...state, currentStep: action.payload };
     default:
       return state;
   }
@@ -48,23 +64,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-
-  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'cncj') => {
-    dispatch({ type: 'CLEAR_ERRORS' });
-    
-    if (source === 'client') {
-      dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: accounts });
-    } else {
-      dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: accounts });
-    }
-
-    // Process if we have both files
-    if (source === 'client' && state.cncjAccounts.length > 0) {
-      processClientAccounts(accounts, state.cncjAccounts);
-    } else if (source === 'cncj' && state.clientAccounts.length > 0) {
-      processClientAccounts(state.clientAccounts, accounts);
-    }
-  }, [state.cncjAccounts, state.clientAccounts]);
 
   const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[]) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -76,6 +75,33 @@ const App: React.FC = () => {
     }, 500);
   }, []);
 
+  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => {
+    dispatch({ type: 'CLEAR_ERRORS' });
+    
+    if (source === 'client') {
+      dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
+      // Only update accounts if not in loading state
+      if (fileInfo.loadStatus !== 'loading') {
+        dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: accounts });
+      }
+    } else {
+      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
+      // Only update accounts if not in loading state
+      if (fileInfo.loadStatus !== 'loading') {
+        dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: accounts });
+      }
+    }
+
+    // Process if we have both files and both are fully loaded (not loading)
+    if (fileInfo.loadStatus !== 'loading') {
+      if (source === 'client' && state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
+        processClientAccounts(accounts, state.cncjAccounts);
+      } else if (source === 'cncj' && state.clientAccounts.length > 0 && state.clientFileInfo?.loadStatus !== 'loading') {
+        processClientAccounts(state.clientAccounts, accounts);
+      }
+    }
+  }, [state.cncjAccounts, state.clientAccounts, state.cncjFileInfo, state.clientFileInfo, processClientAccounts]);
+
   const handleError = useCallback((errors: string[]) => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
   }, []);
@@ -83,31 +109,39 @@ const App: React.FC = () => {
   const handleFileCleared = useCallback((source: 'client' | 'cncj') => {
     if (source === 'client') {
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
+      dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
     } else {
       dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
     }
   }, []);
-
-  const [resetKey, setResetKey] = useState(0);
 
   const resetData = useCallback(() => {
     console.log('resetData called');
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+    dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
-    setResetKey(prev => prev + 1);
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' });
   }, []);
 
   const handleNext = useCallback(() => {
     console.log('Navigation vers l\'étape suivante');
-    // Logique pour l'étape suivante à implémenter
-  }, []);
+    if (!state.result) {
+      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
+      return;
+    }
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' });
+  }, [state.result]);
 
   // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
   const canProceed = state.clientAccounts.length > 0 && 
                     state.cncjAccounts.length > 0 && 
-                    state.errors.length === 0;
+                    state.errors.length === 0 &&
+                    !state.loading &&
+                    state.result !== null;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -122,8 +156,8 @@ const App: React.FC = () => {
           </p>
         </div>
 
-        {/* File Upload Section */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
+        {/* Upload Section - Always rendered */}
+        <div style={{display: state.currentStep === 'upload' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-blue-100 text-blue-800 rounded-full text-lg font-bold">
               Step 1
@@ -134,23 +168,23 @@ const App: React.FC = () => {
           </h2>
           
           <FileUploader
-            key={`client-${resetKey}`}
             onFileLoaded={handleFileLoaded}
             onFileCleared={handleFileCleared}
             onError={handleError}
             label="📋 Fichier des comptes clients"
             source="client"
             disabled={state.loading}
+            fileInfo={state.clientFileInfo}
           />
           
           <FileUploader
-            key={`cncj-${resetKey}`}
             onFileLoaded={handleFileLoaded}
             onFileCleared={handleFileCleared}
             onError={handleError}
             label="🏛️ Fichier des comptes CNCJ"
             source="cncj"
             disabled={state.loading}
+            fileInfo={state.cncjFileInfo}
           />
 
           {/* Reset Button */}
@@ -176,6 +210,29 @@ const App: React.FC = () => {
               )}
             </div>
           )}
+        </div>
+
+        {/* Results Section - Always rendered */}
+        <div style={{display: state.currentStep === 'results' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
+              Step 2
+            </span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            ⚠️ Vérification des doublons
+          </h2>
+          
+          <ResultsDisplay result={state.result} loading={state.loading} showOnly="duplicates" />
+          
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' })}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Retour
+            </button>
+          </div>
         </div>
 
               </div>
