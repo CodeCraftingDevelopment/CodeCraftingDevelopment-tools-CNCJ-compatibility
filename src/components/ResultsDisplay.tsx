@@ -58,10 +58,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
             ⚠️ Doublons détectés ({duplicates.length})
           </h3>
           <div className="max-h-40 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="space-y-2">
               {duplicates.map((account) => (
-                <div key={account.id} className="text-sm font-mono bg-red-100 px-2 py-1 rounded">
-                  {account.number}
+                <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="font-mono bg-red-100 px-2 py-1 rounded">
+                    {account.number}
+                  </div>
+                  <div className="bg-red-50 px-2 py-1 rounded">
+                    {account.title || 'Sans titre'}
+                  </div>
                 </div>
               ))}
             </div>
@@ -76,10 +81,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
             ✅ Comptes avec correspondance CNCJ ({matches.length})
           </h3>
           <div className="max-h-40 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="space-y-2">
               {matches.map((account) => (
-                <div key={account.id} className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
-                  {account.number}
+                <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="font-mono bg-green-100 px-2 py-1 rounded">
+                    {account.number}
+                  </div>
+                  <div className="bg-green-50 px-2 py-1 rounded">
+                    {account.title || 'Sans titre'}
+                  </div>
                 </div>
               ))}
             </div>
@@ -94,10 +104,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
             ❌ Comptes sans correspondance CNCJ ({unmatchedClients.length})
           </h3>
           <div className="max-h-40 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="space-y-2">
               {unmatchedClients.map((account) => (
-                <div key={account.id} className="text-sm font-mono bg-orange-100 px-2 py-1 rounded">
-                  {account.number}
+                <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="font-mono bg-orange-100 px-2 py-1 rounded">
+                    {account.number}
+                  </div>
+                  <div className="bg-orange-50 px-2 py-1 rounded">
+                    {account.title || 'Sans titre'}
+                  </div>
                 </div>
               ))}
             </div>

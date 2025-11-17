@@ -162,7 +162,7 @@ const App: React.FC = () => {
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>
-            Format CSV attendu : une colonne contenant les numéros de comptes (numériques uniquement)
+            Format CSV attendu : deux colonnes - numéros de comptes (numériques) et titres (texte)
           </p>
         </div>
       </div>

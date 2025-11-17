@@ -16,22 +16,28 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
           
           // Handle different CSV formats
           let accountNumber = '';
+          let accountTitle = '';
+          
           if (typeof row === 'string') {
             accountNumber = row.trim();
           } else if (Array.isArray(row)) {
             accountNumber = row[0]?.toString().trim() || '';
+            accountTitle = row[1]?.toString().trim() || '';
           } else if (row.account) {
             accountNumber = row.account.toString().trim();
+            accountTitle = row.title?.toString().trim() || '';
           } else {
-            // Try first column
-            const firstKey = Object.keys(row)[0];
-            accountNumber = row[firstKey]?.toString().trim() || '';
+            // Try first two columns
+            const keys = Object.keys(row);
+            accountNumber = row[keys[0]]?.toString().trim() || '';
+            accountTitle = row[keys[1]]?.toString().trim() || '';
           }
           
           if (accountNumber && /^\d+$/.test(accountNumber)) {
             accounts.push({
               id: `${accountNumber}-${index}`,
               number: accountNumber,
+              title: accountTitle || undefined,
               source: 'client' // Will be updated by caller
             });
           } else if (accountNumber) {

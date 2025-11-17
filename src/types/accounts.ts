@@ -1,6 +1,7 @@
 export interface Account {
   id: string;
   number: string;
+  title?: string;
   source: 'client' | 'cncj';
 }
 

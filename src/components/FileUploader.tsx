@@ -69,7 +69,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         />
       </div>
       <p className="mt-1 text-xs text-gray-500">
-        Format CSV attendu: une colonne avec les numéros de comptes (numériques)
+        Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)
       </p>
     </div>
   );
