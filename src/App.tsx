@@ -12,7 +12,7 @@ interface AppState {
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
-  currentStep: 'step1' | 'step2' | 'step3' | 'step4';
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
   replacementCodes: { [key: string]: string };
   cncjConflictResult: ProcessingResult | null;
   cncjConflictSuggestions: { [key: string]: string | 'error' };
@@ -27,7 +27,7 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
@@ -577,42 +577,134 @@ const App: React.FC = () => {
             {/* Bouton Suivant - s'affiche uniquement si tous les conflits CNCJ sont résolus */}
             {allCncjConflictsResolved && (
               <button
-                onClick={() => {
-                  // Exporter les résultats finaux
-                  const finalResults = {
-                    originalClients: state.clientAccounts.map(acc => ({
-                      number: acc.number,
-                      title: acc.title
-                    })),
-                    finalAccounts: mergedClientAccounts.map(acc => ({
-                      number: acc.number,
-                      title: acc.title,
-                      wasCorrected: state.replacementCodes[acc.id]?.trim() !== undefined
-                    })),
-                    corrections: Object.entries(state.replacementCodes).map(([accountId, newCode]) => {
-                      const originalAccount = state.clientAccounts.find(acc => acc.id === accountId);
-                      return {
-                        originalNumber: originalAccount?.number,
-                        title: originalAccount?.title,
-                        newNumber: newCode.trim()
-                      };
-                    }).filter(correction => correction.newNumber)
-                  };
-                  
-                  const blob = new Blob([JSON.stringify(finalResults, null, 2)], { type: 'application/json' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'resultats-finaux-comptes.json';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
+                onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'stepFinal' })}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
-                Terminé ✅
+                Suivant →
               </button>
             )}
           </div>
+        </div>
+
+        {/* Final Summary Section - Step Final */}
+        <div style={{display: state.currentStep === 'stepFinal' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
+              Récapitulatif Final
+            </span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            📊 Résumé des corrections appliquées
+          </h2>
+          
+          {/* Préparer les données pour le récapitulatif */}
+          {(() => {
+            const finalSummaryData = state.clientAccounts.map(account => {
+              const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
+              const suggestedCode = state.cncjConflictSuggestions[account.id];
+              
+              return {
+                id: account.id,
+                title: account.title || 'Sans titre',
+                originalCode: account.number,
+                correctedCode: mergedAccount?.number || account.number,
+                suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
+                wasModified: state.replacementCodes[account.id] !== undefined
+              };
+            });
+
+            const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
+            const totalCount = finalSummaryData.length;
+
+            return (
+              <div className="space-y-4">
+                {/* Statistiques */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{totalCount}</div>
+                      <div className="text-gray-600">Total comptes</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{modifiedCount}</div>
+                      <div className="text-gray-600">Comptes modifiés</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-600">{totalCount - modifiedCount}</div>
+                      <div className="text-gray-600">Comptes inchangés</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tableau récapitulatif */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Code suggéré (CNCJ)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {finalSummaryData.map((row) => (
+                        <tr key={row.id} className={row.wasModified ? 'bg-green-50' : ''}>
+                          <td className="border border-gray-300 px-4 py-2">{row.title}</td>
+                          <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
+                          <td className="border border-gray-300 px-4 py-2 font-mono">
+                            {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Boutons d'action */}
+                <div className="mt-6 text-center space-x-4">
+                  <button
+                    onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' })}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    ← Retour
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      // Exporter les résultats finaux
+                      const finalResults = {
+                        summary: {
+                          totalAccounts: totalCount,
+                          modifiedAccounts: modifiedCount,
+                          unmodifiedAccounts: totalCount - modifiedCount
+                        },
+                        accounts: finalSummaryData.map(row => ({
+                          title: row.title,
+                          originalCode: row.originalCode,
+                          correctedCode: row.correctedCode === row.originalCode ? null : row.correctedCode,
+                          suggestedCode: row.suggestedCode === '-' ? null : row.suggestedCode,
+                          wasModified: row.wasModified
+                        }))
+                      };
+                      
+                      const blob = new Blob([JSON.stringify(finalResults, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'recapitulatif-final-comptes.json';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    📥 Exporter le récapitulatif
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
               </div>
