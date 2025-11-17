@@ -214,30 +214,62 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="flex justify-center mb-6">
           <button
             onClick={() => {
-              // Export CSV pour les doublons
-              const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
-              const csvRows = duplicates.map(d => [
-                d.number,
-                d.title || '',
-                replacementCodes[d.id] || ''
-              ]);
-              
-              const csvContent = [
-                csvHeaders.join(','),
-                ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
-              ].join('\n');
-              
-              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = 'doublons-comptes.csv';
-              a.click();
-              URL.revokeObjectURL(url);
+              // Export CSV pour les doublons (step 2) ou suggestions (step 3)
+              if (conflictType === 'cncj-conflicts') {
+                // Export CSV pour les suggestions CNCJ
+                const csvHeaders = ['Numéro compte', 'Titre', 'Code original', 'Suggestion', 'Statut'];
+                const csvRows = duplicates.map(d => {
+                  const suggestion = suggestions[d.id];
+                  const status = suggestion === 'error' ? 'Erreur (contrainte dizaine)' : 'Valide';
+                  const suggestionText = suggestion === 'error' ? 'N/A' : suggestion;
+                  
+                  return [
+                    d.number,
+                    d.title || '',
+                    d.number,
+                    suggestionText,
+                    status
+                  ];
+                });
+                
+                const csvContent = [
+                  csvHeaders.join(','),
+                  ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'suggestions-cncj-conflicts.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              } else {
+                // Export CSV pour les doublons (step 2)
+                const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
+                const csvRows = duplicates.map(d => [
+                  d.number,
+                  d.title || '',
+                  replacementCodes[d.id] || ''
+                ]);
+                
+                const csvContent = [
+                  csvHeaders.join(','),
+                  ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'doublons-comptes.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            📥 Exporter les doublons
+            📥 {conflictType === 'cncj-conflicts' ? 'Exporter les suggestions' : 'Exporter les doublons'}
           </button>
         </div>
       )}
