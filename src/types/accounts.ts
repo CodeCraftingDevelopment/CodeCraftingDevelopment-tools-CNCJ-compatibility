@@ -21,5 +21,20 @@ export interface FileMetadata {
   name: string;
   size: string;
   rowCount: number;
-  loadStatus: 'idle' | 'loading' | 'success' | 'warning' | 'error';
+  loadStatus: 'success' | 'warning' | 'error' | 'loading';
+}
+
+export interface AppState {
+  clientAccounts: Account[];
+  cncjAccounts: Account[];
+  clientFileInfo: FileMetadata | null;
+  cncjFileInfo: FileMetadata | null;
+  result: ProcessingResult | null;
+  loading: boolean;
+  errors: string[];
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
+  replacementCodes: { [key: string]: string };
+  cncjConflictResult: ProcessingResult | null;
+  cncjConflictSuggestions: { [key: string]: string | 'error' };
+  finalFilter: 'all' | 'step2' | 'step4' | 'step2+step4';
 }

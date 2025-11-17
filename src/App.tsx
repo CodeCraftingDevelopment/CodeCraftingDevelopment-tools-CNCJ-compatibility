@@ -1,23 +1,10 @@
 import React, { useReducer, useCallback, useMemo } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { ResultsDisplay } from './components/ResultsDisplay';
-import { Account, ProcessingResult, FileMetadata } from './types/accounts';
+import { Account, ProcessingResult, FileMetadata, AppState } from './types/accounts';
 import { processAccounts } from './utils/accountUtils';
-
-interface AppState {
-  clientAccounts: Account[];
-  cncjAccounts: Account[];
-  clientFileInfo: FileMetadata | null;
-  cncjFileInfo: FileMetadata | null;
-  result: ProcessingResult | null;
-  loading: boolean;
-  errors: string[];
-  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
-  replacementCodes: { [key: string]: string };
-  cncjConflictResult: ProcessingResult | null;
-  cncjConflictSuggestions: { [key: string]: string | 'error' };
-  finalFilter: 'all' | 'step2' | 'step4' | 'step2+step4';
-}
+import { cleanupFutureSteps } from './utils/stepCleanup';
+import { useStepValidation } from './hooks/useStepValidation';
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -50,53 +37,6 @@ const initialState: AppState = {
   finalFilter: 'all'
 };
 
-// Fonction pour nettoyer les données des étapes futures lors d'une navigation vers l'arrière
-const cleanupFutureSteps = (state: AppState, targetStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal'): AppState => {
-  let newState = { ...state, currentStep: targetStep };
-  
-  // Définir les données à nettoyer pour chaque étape de destination
-  switch (targetStep) {
-    case 'step1':
-      // Retour à step1 : nettoyer les données de traitement mais préserver le result
-      return {
-        ...newState,
-        replacementCodes: {},
-        cncjConflictResult: null,
-        cncjConflictSuggestions: {},
-        finalFilter: 'all'
-      };
-      
-    case 'step2':
-      // Retour à step2 : nettoyer les données des étapes 3, 4 et finale
-      return {
-        ...newState,
-        cncjConflictResult: null,
-        cncjConflictSuggestions: {},
-        finalFilter: 'all'
-      };
-      
-    case 'step3':
-      // Retour à step3 : nettoyer les données des étapes 4 et finale
-      return {
-        ...newState,
-        finalFilter: 'all'
-      };
-      
-    case 'step4':
-      // Retour à step4 : nettoyer les données de l'étape finale
-      return {
-        ...newState,
-        finalFilter: 'all'
-      };
-      
-    case 'stepFinal':
-      // Pas de nettoyage nécessaire pour l'étape finale
-      return newState;
-      
-    default:
-      return newState;
-  }
-};
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
@@ -393,89 +333,14 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
-  // Calculer si tous les doublons sont résolus (optimisé avec useMemo)
-  const allDuplicatesResolved = useMemo(() => {
-    if (!state.result || state.result.duplicates.length === 0) return true;
-    
-    // Obtenir les IDs des comptes doublons pour filtrer les codes
-    const duplicateIds = new Set(state.result.duplicates.map(d => d.id));
-    
-    // Calculer les occurrences de codes SEULEMENT pour les doublons
-    const codeOccurrences: { [key: string]: string[] } = {};
-    Object.entries(state.replacementCodes).forEach(([accountId, code]) => {
-      if (!duplicateIds.has(accountId)) return;
-      const trimmedCode = code?.trim();
-      if (trimmedCode) {
-        if (!codeOccurrences[trimmedCode]) {
-          codeOccurrences[trimmedCode] = [];
-        }
-        codeOccurrences[trimmedCode].push(accountId);
-      }
-    });
-    
-    // Obtenir tous les codes clients originaux (sauf les doublons)
-    const allOriginalCodes = new Set([
-      ...state.result.uniqueClients.map(acc => acc.number),
-      ...state.result.matches.map(acc => acc.number), 
-      ...state.result.unmatchedClients.map(acc => acc.number)
-    ]);
-    
-    // Vérifier que tous les doublons ont un code valide et unique
-    return state.result.duplicates.every((account) => {
-      const currentCode = state.replacementCodes[account.id]?.trim();
-      const isEmpty = !currentCode;
-      const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
-      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
-      const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
-      
-      return !isEmpty && !isDuplicateCode;
-    });
-  }, [state.result, state.replacementCodes]);
-
-  // Calculer si tous les conflits CNCJ sont résolus (optimisé avec useMemo)
-  const allCncjConflictsResolved = useMemo(() => {
-    if (!state.cncjConflictResult || state.cncjConflictResult.duplicates.length === 0) return true;
-    
-    // Obtenir les IDs des comptes en conflit CNCJ pour filtrer les codes
-    const conflictIds = new Set(state.cncjConflictResult.duplicates.map(d => d.id));
-    
-    // Calculer les occurrences de codes SEULEMENT pour les conflits CNCJ
-    const codeOccurrences: { [key: string]: string[] } = {};
-    Object.entries(state.replacementCodes).forEach(([accountId, code]) => {
-      if (!conflictIds.has(accountId)) return;
-      const trimmedCode = code?.trim();
-      if (trimmedCode) {
-        if (!codeOccurrences[trimmedCode]) {
-          codeOccurrences[trimmedCode] = [];
-        }
-        codeOccurrences[trimmedCode].push(accountId);
-      }
-    });
-    
-    // Obtenir tous les codes CNCJ (sauf les conflits en cours de résolution)
-    const cncjConflictCodes = new Set(state.cncjConflictResult.duplicates.map(d => d.number));
-    const otherCncjCodes = state.cncjAccounts
-      .filter(acc => !cncjConflictCodes.has(acc.number))
-      .map(acc => acc.number);
-    
-    // Obtenir tous les codes clients fusionnés (sauf les conflits CNCJ)
-    const otherClientCodes = mergedClientAccounts
-      .filter(acc => !conflictIds.has(acc.id))
-      .map(acc => acc.number);
-    
-    const allOtherCodes = new Set([...otherCncjCodes, ...otherClientCodes]);
-    
-    // Vérifier que tous les conflits CNCJ ont un code valide et unique
-    return state.cncjConflictResult.duplicates.every((account) => {
-      const currentCode = state.replacementCodes[account.id]?.trim();
-      const isEmpty = !currentCode;
-      const isDuplicateWithOthers = currentCode && allOtherCodes.has(currentCode);
-      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
-      const isDuplicateCode = isDuplicateWithOthers || isDuplicateWithReplacement;
-      
-      return !isEmpty && !isDuplicateCode;
-    });
-  }, [state.cncjConflictResult, state.replacementCodes, state.cncjAccounts, mergedClientAccounts]);
+  // Utiliser le hook personnalisé pour la validation des étapes
+  const { allDuplicatesResolved, allCncjConflictsResolved } = useStepValidation({
+    result: state.result,
+    cncjConflictResult: state.cncjConflictResult,
+    replacementCodes: state.replacementCodes,
+    cncjAccounts: state.cncjAccounts,
+    mergedClientAccounts
+  });
 
   // Créer un Set des codes CNCJ pour la validation en temps réel (optimisé avec useMemo)
   const cncjCodes = useMemo(() => {

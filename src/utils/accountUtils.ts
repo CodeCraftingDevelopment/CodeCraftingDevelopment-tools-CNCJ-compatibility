@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { Account, FileUploadResult, ProcessingResult } from '../types/accounts';
+import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
 
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
   return new Promise((resolve) => {
@@ -14,26 +15,10 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
             return;
           }
           
-          // Handle different CSV formats
-          let accountNumber = '';
-          let accountTitle = '';
+          const format = detectCSVFormat(row);
+          const { accountNumber, accountTitle } = extractAccountData(row, format);
           
-          if (typeof row === 'string') {
-            accountNumber = row.trim();
-          } else if (Array.isArray(row)) {
-            accountNumber = row[0]?.toString().trim() || '';
-            accountTitle = row[1]?.toString().trim() || '';
-          } else if (row.account) {
-            accountNumber = row.account.toString().trim();
-            accountTitle = row.title?.toString().trim() || '';
-          } else {
-            // Try first two columns
-            const keys = Object.keys(row);
-            accountNumber = row[keys[0]]?.toString().trim() || '';
-            accountTitle = row[keys[1]]?.toString().trim() || '';
-          }
-          
-          if (accountNumber && /^\d+$/.test(accountNumber)) {
+          if (isValidAccountNumber(accountNumber)) {
             accounts.push({
               id: `${accountNumber}-${index}`,
               number: accountNumber,

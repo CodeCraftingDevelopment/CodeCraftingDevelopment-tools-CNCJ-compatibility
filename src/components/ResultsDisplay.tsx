@@ -1,10 +1,10 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
-import { ProcessingResult, FileMetadata, Account } from '../types/accounts';
+import React, { useEffect } from 'react';
+import { ProcessingResult, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { useCorrectionsImport } from '../hooks/useCorrectionsImport';
 import { DropZone } from './DropZone';
-import { formatFileSize } from '../utils/fileUtils';
-
-type FilterType = 'all' | 'corrected' | 'uncorrected';
+import { DuplicateRow } from './DuplicateRow';
+import { ReviewView } from './ReviewView';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -33,141 +33,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   originalClientAccounts,
   duplicateIdsFromStep2
 }) => {
-  // État pour le filtre des lignes corrigées (step3 uniquement)
-  const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
-  
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
   
-  // État pour le glisser-déposé des corrections
-  const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
+  // Utiliser le hook personnalisé pour les corrections
+  const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
+    duplicates,
+    uniqueClients,
+    matches,
+    unmatchedClients,
+    replacementCodes: replacementCodes || {},
+    onReplacementCodeChange
+  });
   
-  // Créer un mapping des comptes originaux par ID pour une recherche rapide
-  const originalAccountsById = useMemo(() => {
-    const mapping: { [key: string]: Account } = {};
-    originalClientAccounts?.forEach(account => {
-      mapping[account.id] = account;
-    });
-    return mapping;
-  }, [originalClientAccounts]);
-
   // Réinitialiser le fichier de corrections quand de nouveaux fichiers sont chargés
   useEffect(() => {
-    setCorrectionsFileInfo(null);
-  }, [originalClientAccounts]);
+    handleClearCorrectionsFile();
+  }, [originalClientAccounts, handleClearCorrectionsFile]);
   
-  
-  const processCorrectionsFile = useCallback(async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      return;
-    }
-
-    // Set loading state
-    setCorrectionsFileInfo({
-      name: file.name,
-      size: formatFileSize(file.size),
-      rowCount: 0,
-      loadStatus: 'loading'
-    });
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      if (lines.length < 2) {
-        setCorrectionsFileInfo({
-          name: file.name,
-          size: formatFileSize(file.size),
-          rowCount: 0,
-          loadStatus: 'error'
-        });
-        return;
-      }
-
-      // Valider les en-têtes
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-      if (!headers.includes('Code remplacement')) {
-        setCorrectionsFileInfo({
-          name: file.name,
-          size: formatFileSize(file.size),
-          rowCount: 0,
-          loadStatus: 'error'
-        });
-        return;
-      }
-
-      // Skip header and process each line
-      let processedCount = 0;
-      let duplicateCodeCount = 0;
-      
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        // Parse CSV line (handle quoted values)
-        // Format: Numéro compte, Titre, Code remplacement (recherche par numéro ET titre)
-        const match = line.match(/^"?([^"]*)"?,\s*"?([^"]*)"?,\s*"?([^"]*)"?,?/);
-        if (match) {
-          const accountNumber = match[1].trim();
-          const title = match[2].trim();
-          const replacementCode = match[3].trim(); // Utiliser la 3ème colonne "Code remplacement"
-          
-          // Validate that both account number and title are provided
-          if (!accountNumber || !title || !replacementCode) {
-            continue;
-          }
-          
-          // Find the duplicate account by number AND title (case-insensitive for title)
-          const duplicateAccount = duplicates.find(d => 
-            d.number === accountNumber && 
-            d.title && d.title.toLowerCase().trim() === title.toLowerCase()
-          );
-          
-          // Check if replacement code already exists in current codes
-          const existingCodes = Object.values(replacementCodes);
-          const isDuplicate = existingCodes.includes(replacementCode);
-          
-          // Check if replacement code conflicts with original client codes
-          const allOriginalCodes = new Set([
-            ...uniqueClients.map(acc => acc.number),
-            ...matches.map(acc => acc.number), 
-            ...unmatchedClients.map(acc => acc.number)
-          ]);
-          const conflictsWithOriginal = allOriginalCodes.has(replacementCode);
-          
-          // Apply the code immediately if duplicate account is found
-          if (duplicateAccount) {
-            onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
-            processedCount++;
-            
-            if (isDuplicate || conflictsWithOriginal) {
-              duplicateCodeCount++;
-            }
-          }
-        }
-      }
-      
-      // Set success state
-      setCorrectionsFileInfo({
-        name: file.name,
-        size: formatFileSize(file.size),
-        rowCount: processedCount,
-        loadStatus: 'success'
-      });
-    };
-    
-    reader.onerror = () => {
-      setCorrectionsFileInfo({
-        name: file.name,
-        size: formatFileSize(file.size),
-        rowCount: 0,
-        loadStatus: 'error'
-      });
-    };
-    
-    reader.readAsText(file);
-  }, [duplicates, onReplacementCodeChange]);
   
   const { dragState, fileInputRef, handlers } = useDragAndDrop({
     disabled: false,
@@ -176,10 +59,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   });
 
 
-  const handleClearCorrectionsFile = useCallback(() => {
-    setCorrectionsFileInfo(null);
-  }, []);
-
+  
 
   if (loading) {
     return (
@@ -287,111 +167,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Review Table - Tableau des corrections */}
       {showOnly === 'review' && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          {/* Boutons de filtrage */}
-          <div className="mb-4 flex justify-center space-x-2">
-            {(() => {
-              const totalCount = (mergedClientAccounts || []).length;
-              const correctedCount = (mergedClientAccounts || []).filter(acc => {
-                const isCorrected = !!replacementCodes[acc.id]?.trim();
-                const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(acc.id);
-                return isDuplicateFromStep2 && isCorrected;
-              }).length;
-              const uncorrectedCount = totalCount - correctedCount;
-              
-              return (
-                <>
-                  <button
-                    onClick={() => setCorrectionFilter('all')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      correctionFilter === 'all' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    Tous ({totalCount})
-                  </button>
-                  <button
-                    onClick={() => setCorrectionFilter('corrected')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      correctionFilter === 'corrected' 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    Corrigés ({correctedCount})
-                  </button>
-                  <button
-                    onClick={() => setCorrectionFilter('uncorrected')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      correctionFilter === 'uncorrected' 
-                        ? 'bg-gray-600 text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    Non corrigés ({uncorrectedCount})
-                  </button>
-                </>
-              );
-            })()}
-          </div>
-          
-          <div className="overflow-x-auto max-h-96 overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 border-b border-gray-300">
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Données d'origine</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Valeur corrigée</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(mergedClientAccounts || [])
-                  .filter(account => {
-                    if (correctionFilter === 'all') return true;
-                    const isCorrected = !!replacementCodes[account.id]?.trim();
-                    const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
-                    if (correctionFilter === 'corrected') {
-                      return isDuplicateFromStep2 && isCorrected;
-                    } else { // non corrigés
-                      return !(isDuplicateFromStep2 && isCorrected);
-                    }
-                  })
-                  .sort((a, b) => a.number.localeCompare(b.number))
-                  .map((account, index) => {
-                    const replacementCode = replacementCodes[account.id]?.trim();
-                    const isCorrected = !!replacementCode;
-                    const originalAccount = originalAccountsById[account.id];
-                    const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
-                    const shouldHighlight = isDuplicateFromStep2 && isCorrected;
-                    return (
-                      <tr key={account.id} className={`border-b ${shouldHighlight ? 'bg-green-100 border-l-4 border-green-500' : isDuplicateFromStep2 ? 'bg-blue-50 border-l-4 border-blue-300' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                        <td className="px-4 py-3">
-                          <div className="space-y-1">
-                            <div className="font-mono text-gray-900">{originalAccount?.number || account.number}</div>
-                            <div className="text-gray-600 text-xs">{originalAccount?.title || account.title || 'Sans titre'}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <div className={`font-mono ${shouldHighlight ? 'text-green-700 font-bold bg-green-200' : isDuplicateFromStep2 ? 'text-blue-700 font-bold bg-blue-100' : 'text-gray-700 bg-gray-100'} px-3 py-2 rounded flex-1`}>
-                              {replacementCode || account.number}
-                            </div>
-                            {isCorrected && (
-                              <div className="text-green-600">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ReviewView
+          mergedClientAccounts={mergedClientAccounts || []}
+          originalClientAccounts={originalClientAccounts || []}
+          replacementCodes={replacementCodes || {}}
+          duplicateIdsFromStep2={duplicateIdsFromStep2 || new Set()}
+        />
       )}
 
       {/* Doublons */}
@@ -424,101 +205,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 
                 return duplicates.map((account) => {
                   const currentCode = replacementCodes[account.id]?.trim();
-                  const isEmpty = !currentCode;
-                  const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
-                  const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+                  const isDuplicateWithOriginal = !!currentCode && allOriginalCodes.has(currentCode);
+                  const isDuplicateWithReplacement = !!currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
                   const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
                   
                   // Validation CNCJ : vérifier si le code existe dans les codes CNCJ
-                  const isCncjCode = conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(currentCode);
-                  
-                  let rowColorClass, numberColorClass, titleColorClass, inputColorClass, focusRingClass;
-                  
-                  if (isEmpty) {
-                    // Code vide - style neutre
-                    rowColorClass = 'bg-gray-50 border-gray-200';
-                    numberColorClass = 'bg-gray-100';
-                    titleColorClass = 'bg-gray-50';
-                    inputColorClass = 'border-gray-300 bg-gray-50';
-                    focusRingClass = 'focus:ring-gray-400';
-                  } else if (isCncjCode) {
-                    // Code CNCJ - rouge vif avec croix
-                    rowColorClass = 'bg-red-100 border-red-500';
-                    numberColorClass = 'bg-red-200';
-                    titleColorClass = 'bg-red-100';
-                    inputColorClass = 'border-red-500 bg-red-100';
-                    focusRingClass = 'focus:ring-red-500';
-                  } else if (isDuplicateCode) {
-                    // Code en doublon - rouge foncé
-                    rowColorClass = 'bg-red-100 border-red-400';
-                    numberColorClass = 'bg-red-200';
-                    titleColorClass = 'bg-red-100';
-                    inputColorClass = 'border-red-400 bg-red-100';
-                    focusRingClass = 'focus:ring-red-400';
-                  } else {
-                    // Code unique - vert
-                    rowColorClass = 'bg-green-50 border-green-300';
-                    numberColorClass = 'bg-green-100';
-                    titleColorClass = 'bg-green-50';
-                    inputColorClass = 'border-green-300 bg-green-50';
-                    focusRingClass = 'focus:ring-green-400';
-                  }
+                  const isCncjCode = !!(conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(currentCode));
                   
                   return (
-                    <div key={account.id} className={`border ${rowColorClass} rounded-lg p-3`}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
-                        <div className={`font-mono ${numberColorClass} px-2 py-1 rounded`}>
-                          {account.number}
-                        </div>
-                        <div className={`${titleColorClass} px-2 py-1 rounded`}>
-                          {account.title || 'Sans titre'}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-xs text-gray-600 whitespace-nowrap">
-                          Code remplacement:
-                        </label>
-                        <div className="relative flex items-center">
-                          <input
-                            type="text"
-                            value={replacementCodes[account.id] || ''}
-                            onChange={(e) => onReplacementCodeChange?.(account.id, e.target.value)}
-                            placeholder="Nouveau code"
-                            className={`w-32 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 ${focusRingClass} ${inputColorClass}`}
-                          />
-                          {isDuplicateCode && (
-                            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-                          {isCncjCode && (
-                            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Afficher les suggestions pour les conflits CNCJ */}
-                      {conflictType === 'cncj-conflicts' && suggestions[account.id] && (
-                        <div className="mt-2 flex items-center space-x-2">
-                          <span className="text-xs text-gray-600">Suggestion:</span>
-                          {suggestions[account.id] === 'error' ? (
-                            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
-                              Aucune solution disponible (contrainte dizaine)
-                            </span>
-                          ) : (
-                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-mono">
-                              {account.number} → {suggestions[account.id]}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <DuplicateRow
+                      key={account.id}
+                      account={account}
+                      replacementCode={currentCode || ''}
+                      onReplacementCodeChange={onReplacementCodeChange || (() => {})}
+                      isDuplicateCode={isDuplicateCode}
+                      isCncjCode={isCncjCode}
+                      conflictType={conflictType}
+                      suggestions={suggestions}
+                    />
                   );
                 });
               })()}
