@@ -270,7 +270,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <thead>
                 <tr className="bg-gray-100 border-b border-gray-300">
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Données d'origine</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">Nouvelle valeur</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Valeur corrigée</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,8 +278,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   .sort((a, b) => a.number.localeCompare(b.number))
                   .map((account, index) => {
                     const replacementCode = replacementCodes[account.id]?.trim();
+                    const isCorrected = !!replacementCode;
                     return (
-                      <tr key={account.id} className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <tr key={account.id} className={`border-b ${isCorrected ? 'bg-green-100 border-l-4 border-green-500' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                         <td className="px-4 py-3">
                           <div className="space-y-1">
                             <div className="font-mono text-gray-900">{account.number}</div>
@@ -287,8 +288,17 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className={`font-mono ${replacementCode ? 'text-green-700 font-medium bg-green-50' : 'text-gray-700 bg-gray-100'} px-2 py-1 rounded`}>
-                            {replacementCode || account.number}
+                          <div className="flex items-center space-x-2">
+                            <div className={`font-mono ${isCorrected ? 'text-green-700 font-bold bg-green-200' : 'text-gray-700 bg-gray-100'} px-3 py-2 rounded flex-1`}>
+                              {replacementCode || account.number}
+                            </div>
+                            {isCorrected && (
+                              <div className="text-green-600">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
