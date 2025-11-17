@@ -453,8 +453,8 @@ const App: React.FC = () => {
             result={state.cncjConflictResult} 
             loading={state.loading} 
             showOnly="duplicates"
-            replacementCodes={{}}
-            onReplacementCodeChange={undefined}
+            replacementCodes={state.replacementCodes}
+            onReplacementCodeChange={handleReplacementCodeChange}
             conflictType="cncj-conflicts"
             suggestions={state.cncjConflictSuggestions}
           />
