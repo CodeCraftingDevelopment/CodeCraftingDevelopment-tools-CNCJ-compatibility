@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback } from 'react';
+import React, { useReducer, useCallback, useMemo } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { Account, ProcessingResult, FileMetadata } from './types/accounts';
@@ -151,9 +151,54 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' });
   }, [state.result]);
 
+  const handleDuplicatesNext = useCallback(() => {
+    console.log('Doublons résolus - passage à l\'étape suivante');
+    // TODO: Implémenter la logique pour l'étape suivante après résolution des doublons
+    alert('Doublons résolus ! Prêt pour l\'étape suivante.');
+  }, []);
+
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
+
+  // Calculer si tous les doublons sont résolus (optimisé avec useMemo)
+  const allDuplicatesResolved = useMemo(() => {
+    if (!state.result || state.result.duplicates.length === 0) return true;
+    
+    // Obtenir les IDs des comptes doublons pour filtrer les codes
+    const duplicateIds = new Set(state.result.duplicates.map(d => d.id));
+    
+    // Calculer les occurrences de codes SEULEMENT pour les doublons
+    const codeOccurrences: { [key: string]: string[] } = {};
+    Object.entries(state.replacementCodes).forEach(([accountId, code]) => {
+      if (!duplicateIds.has(accountId)) return;
+      const trimmedCode = code?.trim();
+      if (trimmedCode) {
+        if (!codeOccurrences[trimmedCode]) {
+          codeOccurrences[trimmedCode] = [];
+        }
+        codeOccurrences[trimmedCode].push(accountId);
+      }
+    });
+    
+    // Obtenir tous les codes clients originaux (sauf les doublons)
+    const allOriginalCodes = new Set([
+      ...state.result.uniqueClients.map(acc => acc.number),
+      ...state.result.matches.map(acc => acc.number), 
+      ...state.result.unmatchedClients.map(acc => acc.number)
+    ]);
+    
+    // Vérifier que tous les doublons ont un code valide et unique
+    return state.result.duplicates.every((account) => {
+      const currentCode = state.replacementCodes[account.id]?.trim();
+      const isEmpty = !currentCode;
+      const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
+      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+      const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
+      
+      return !isEmpty && !isDuplicateCode;
+    });
+  }, [state.result, state.replacementCodes]);
 
   // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
   const canProceed = state.clientAccounts.length > 0 && 
@@ -250,13 +295,23 @@ const App: React.FC = () => {
             onReplacementCodeChange={handleReplacementCodeChange}
           />
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-x-4">
             <button
               onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
             </button>
+            
+            {/* Bouton Suivant - s'affiche uniquement si tous les doublons sont résolus */}
+            {allDuplicatesResolved && (
+              <button
+                onClick={handleDuplicatesNext}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Suivant →
+              </button>
+            )}
           </div>
         </div>
 

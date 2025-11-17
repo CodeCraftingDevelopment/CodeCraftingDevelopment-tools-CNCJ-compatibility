@@ -17,7 +17,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   loading = false, 
   showOnly = 'all', 
   replacementCodes = {}, 
-  onReplacementCodeChange 
+  onReplacementCodeChange
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -518,7 +518,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 </div>
             )}
             
-        </div>
+                    </div>
       )}
     </div>
   );
