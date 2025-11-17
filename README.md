@@ -8,6 +8,7 @@ Compte Processor est une application web React/TypeScript qui permet de :
 - Importer des fichiers CSV de comptes clients et CNCJ
 - Détecter automatiquement les doublons dans les comptes clients
 - Comparer les comptes clients avec les références CNCJ
+- Importer et gérer des corrections avec aperçu avant application
 - Exporter les résultats de traitement au format JSON
 - Afficher les comptes avec numéros et titres descriptifs
 
@@ -16,7 +17,11 @@ Compte Processor est une application web React/TypeScript qui permet de :
 - **Import CSV** : Support de plusieurs formats de fichiers CSV
 - **Détection de doublons** : Identification automatique des comptes en double
 - **Comparaison CNCJ** : Matching des comptes clients avec les références CNCJ
-- **Affichage en deux colonnes** : Numéro de compte + titre descriptif
+- **Import de corrections** : Glisser-déposer de fichiers CSV avec aperçu avant application
+- **Recherche combinée** : Matching des corrections par numéro de compte ET titre
+- **Vérification de doublons** : Détection visuelle des codes de remplacement en double
+- **Coloration des résultats** : Vert (codes uniques), Rouge (doublons), Gris (non trouvés)
+- **Export des doublons** : Export CSV des doublons avec codes de remplacement
 - **Export des résultats** : Téléchargement des résultats au format JSON
 - **Interface responsive** : Design moderne avec Tailwind CSS
 - **Traitement en temps réel** : Feedback visuel pendant le traitement
@@ -81,49 +86,41 @@ numero
 
 *Note : Le fichier CNCJ ne doit contenir que des numéros de comptes. Toute colonne supplémentaire sera ignorée.*
 
-**Format tableau (recommandé)**
+#### Fichier de corrections (nouveau)
 ```csv
-12345,Compte caisse
-67890,Banque principale
+Numéro compte,Titre,Code remplacement
+12345,Compte caisse,CODE001
+67890,Banque principale,CODE002
+11111,Compte clients,CODE003
 ```
 
-**Format objet avec clés nommées**
-```csv
-account,title
-12345,Compte caisse
-67890,Banque principale
-```
-
-**Format générique (premières colonnes)**
-```csv
-12345,Compte caisse
-67890,Banque principale
-```
-
-**Format à colonne unique (clients uniquement)**
-```csv
-12345
-67890
-```
-*Note : La colonne titre est optionnelle. Si absente, "Sans titre" sera affiché.*
-
-#### Fichier CNCJ (numéros de comptes uniquement)
-```csv
-numero
-12345
-67890
-22222
-```
+*Note : Le fichier de corrections nécessite les trois colonnes pour le matching précis.*
 
 ### Flux d'utilisation
 
 1. **Charger le fichier clients** : Cliquez sur "📋 Fichier des comptes clients" et sélectionnez votre CSV
 2. **Charger le fichier CNCJ** : Cliquez sur "🏛️ Fichier des comptes CNCJ" et sélectionnez votre CSV
 3. **Voir les résultats** : L'application traite automatiquement les données et affiche :
-   - ✅ Comptes avec correspondance CNCJ
-   - ⚠️ Doublons détectés
-   - ❌ Comptes sans correspondance CNCJ
-4. **Exporter les résultats** : Cliquez sur "📥 Exporter les résultats" pour télécharger le JSON
+    - ✅ Comptes avec correspondance CNCJ
+    - ⚠️ Doublons détectés
+    - ❌ Comptes sans correspondance CNCJ
+4. **Importer des corrections** : Glissez-déposez un fichier CSV de corrections dans la zone prévue
+5. **Vérifier les doublons** : Consultez l'aperçu coloré (vert/rouge/gris) des codes
+6. **Appliquer les corrections** : Cliquez sur "Appliquer les codes uniques" pour valider
+7. **Exporter les résultats** : Utilisez les boutons d'export selon vos besoins
+
+### Import et gestion des corrections
+
+L'import des corrections suit un workflow en trois étapes :
+
+1. **Glisser-déposer** : Déposez votre fichier CSV dans la zone de dépôt
+2. **Aperçu avec coloration** :
+    - 🟢 **Vert** : Codes uniques applicables
+    - 🔴 **Rouge** : Codes déjà existants (doublons)
+    - ⚪ **Gris** : Comptes non trouvés dans les données
+3. **Application sélective** : Seuls les codes uniques peuvent être appliqués
+
+**Matching des corrections** : La recherche utilise le numéro de compte ET le titre pour garantir une correspondance précise et éviter les erreurs d'application.
 
 ### Structure des résultats exportés
 
@@ -136,10 +133,18 @@ Le fichier JSON exporté contient la structure suivante :
 }
 ```
 
+Le fichier CSV des doublons exporté contient :
+```csv
+Numéro compte,Titre,Code remplacement
+12345,Compte caisse,CODE001
+67890,Banque principale,CODE002
+```
+
 ### Notes importantes
 - **Ordre d'upload** : L'ordre des fichiers n'a pas d'importance
 - **Headers CSV** : Les headers sont automatiquement détectés et ignorés
-- **Colonne titre** : Uniquement utilisée pour les fichiers clients, ignorée pour CNCJ
+- **Colonne titre** : Utilisée pour le matching précis des corrections
+- **Workflow d'import** : Les corrections sont maintenant en aperçu avant application
 
 ### Interprétation des résultats
 
@@ -147,6 +152,8 @@ Le fichier JSON exporté contient la structure suivante :
 - **Doublons détectés** : Comptes apparaissant plusieurs fois dans le fichier client
 - **Correspondances CNCJ** : Comptes clients trouvés dans la référence CNCJ
 - **Sans correspondance** : Comptes clients non présents dans CNCJ
+- **Codes uniques applicables** : Corrections qui peuvent être appliquées sans conflit
+- **Codes en doublon** : Corrections qui existent déjà dans le système
 
 ## 🏗️ Architecture technique
 
@@ -165,11 +172,15 @@ Le fichier JSON exporté contient la structure suivante :
 src/
 ├── components/          # Composants React
 │   ├── FileUploader.tsx    # Composant d'upload de fichiers
-│   └── ResultsDisplay.tsx  # Affichage des résultats
+│   ├── ResultsDisplay.tsx  # Affichage des résultats
+│   └── DropZone.tsx        # Composant de glisser-déposer
+├── hooks/              # Hooks React personnalisés
+│   └── useDragAndDrop.ts   # Hook de gestion du glisser-déposer
 ├── types/              # Définitions TypeScript
 │   └── accounts.ts         # Interfaces Account, ProcessingResult
 ├── utils/              # Utilitaires et logique métier
-│   └── accountUtils.ts     # Parsing CSV, traitement des comptes
+│   ├── accountUtils.ts     # Parsing CSV, traitement des comptes
+│   └── fileUtils.ts        # Utilitaires de formatage de fichiers
 ├── App.tsx             # Composant principal
 ├── main.tsx            # Point d'entrée
 └── index.css           # Styles globaux
@@ -201,6 +212,14 @@ interface ProcessingResult {
   matches: Account[];
   unmatchedClients: Account[];
 }
+
+interface ImportResult {
+  accountNumber: string;
+  title: string;
+  replacementCode: string;
+  isDuplicate: boolean;
+  found: boolean;
+}
 ```
 
 ## 🛠️ Guide de développement
@@ -223,8 +242,19 @@ interface ProcessingResult {
 #### ResultsDisplay
 - Affiche les résultats de traitement
 - Présente les comptes en deux colonnes (numéro + titre)
-- Permet l'export des résultats
-- Gère les états de chargement
+- Gère l'import de corrections avec glisser-déposer
+- Affiche les résultats d'import avec coloration
+- Permet l'export des résultats (doublons CSV, tous JSON)
+
+#### DropZone
+- Composant réutilisable de glisser-déposer
+- Gère les états visuels (drag-over, loading, success, error)
+- Supporte différents types de fichiers
+
+#### useDragAndDrop (Hook)
+- Logique de gestion du glisser-déposer
+- État de glissement et gestionnaires d'événements
+- Validation des types de fichiers
 
 #### App (composant principal)
 - Gère l'état global avec `useReducer`
@@ -253,6 +283,7 @@ Pour ajouter de nouvelles fonctionnalités :
 2. **Logique** : Étendre `src/utils/accountUtils.ts`
 3. **Interface** : Mettre à jour les composants dans `src/components/`
 4. **État** : Ajouter des actions au reducer dans `App.tsx`
+5. **Hooks** : Créer des hooks réutilisables dans `src/hooks/`
 
 ## 📚 Référence API
 
@@ -281,6 +312,15 @@ Traite et compare les comptes clients avec CNCJ.
 
 **Retour** : `ProcessingResult` avec les doublons, correspondances et non-correspondances.
 
+### useDragAndDrop(options): DragDropResult
+
+Hook pour gérer le glisser-déposer de fichiers.
+
+**Paramètres**
+- `options` : Configuration du glisser-déposer (types acceptés, callbacks)
+
+**Retour** : `DragDropResult` avec état et gestionnaires d'événements.
+
 ## 🔧 Dépannage
 
 ### Problèmes courants
@@ -302,6 +342,15 @@ Traite et compare les comptes clients avec CNCJ.
 - **Solution** : Vérifier la structure du CSV et s'assurer de la cohérence des colonnes
 - **Conseil** : Utiliser un éditeur de CSV pour valider le format avant l'import
 
+#### Import des corrections échoue
+- **Cause** : Le fichier CSV ne contient pas la colonne "Code remplacement"
+- **Solution** : Assurer que le CSV contient les trois colonnes requises
+- **Conseil** : Utiliser l'export des doublons comme modèle
+
+#### Codes en doublon non détectés
+- **Cause** : La détection ne vérifie que les codes existants, pas les doublons dans le même fichier
+- **Solution** : Nettoyer le fichier CSV avant import pour éviter les doublons internes
+
 #### Performance avec gros fichiers
 - **Cause** : Fichiers de plus de 10 000 lignes peuvent ralentir le navigateur
 - **Solution** : Diviser les gros fichiers en plusieurs parties plus petites
@@ -312,6 +361,7 @@ Traite et compare les comptes clients avec CNCJ.
 - Pour les gros fichiers (>10 000 lignes), l'application peut prendre quelques secondes
 - L'interface reste responsive pendant le traitement
 - Les résultats sont limités en hauteur pour éviter les problèmes de performance
+- La zone d'aperçu des corrections est limitée à 60px de hauteur avec défilement
 
 ### Support navigateur
 
@@ -328,6 +378,7 @@ L'application supporte les navigateurs modernes :
 - **Format numéros** : Uniquement les numéros purement numériques sont acceptés
 - **Encodage** : UTF-8 recommandé pour les caractères spéciaux dans les titres
 - **Navigateurs** : Nécessite un navigateur moderne avec support JavaScript ES6+
+- **Détection de doublons** : Vérifie uniquement les codes existants, pas les doublons internes au CSV
 
 ## 🚀 Déploiement
 
@@ -348,6 +399,16 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - HTTPS recommandé pour la production
 
 ## 📝 Notes de version
+
+### v1.1.0
+- ✨ **Import de corrections** : Glisser-déposer de fichiers CSV avec aperçu
+- 🔍 **Recherche combinée** : Matching par numéro de compte ET titre
+- 🎨 **Coloration des résultats** : Vert (uniques), Rouge (doublons), Gris (non trouvés)
+- 📊 **Vérification de doublons** : Détection visuelle des codes de remplacement
+- 🔄 **Workflow d'aperçu** : Application sélective des corrections
+- 📍 **Export repositionné** : Bouton "Exporter les doublons" entre sections
+- 🧩 **Composants modulaires** : DropZone et useDragAndDrop réutilisables
+- 🛠️ **Refactoring technique** : Code partagé et architecture améliorée
 
 ### v1.0.0
 - Import et parsing CSV multi-formats

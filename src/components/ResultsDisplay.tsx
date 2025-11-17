@@ -25,6 +25,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // État pour le glisser-déposé des corrections
   const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
   
+  // État pour les résultats d'import avec vérification de doublons
+  const [importResults, setImportResults] = useState<Array<{
+    accountNumber: string;
+    title: string;
+    replacementCode: string;
+    isDuplicate: boolean;
+    found: boolean;
+  }>>([]);
+  
   const processCorrectionsFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
       return;
@@ -67,6 +76,14 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       // Skip header and process each line
       let processedCount = 0;
+      const results: Array<{
+        accountNumber: string;
+        title: string;
+        replacementCode: string;
+        isDuplicate: boolean;
+        found: boolean;
+      }> = [];
+      
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -89,12 +106,27 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             d.number === accountNumber && 
             d.title && d.title.toLowerCase().trim() === title.toLowerCase()
           );
+          
+          // Check if replacement code already exists in current codes
+          const existingCodes = Object.values(replacementCodes);
+          const isDuplicate = existingCodes.includes(replacementCode);
+          
+          results.push({
+            accountNumber,
+            title,
+            replacementCode,
+            isDuplicate,
+            found: !!duplicateAccount
+          });
+          
           if (duplicateAccount) {
-            onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
             processedCount++;
           }
         }
       }
+      
+      // Store import results for display
+      setImportResults(results);
       
       // Set success state
       setCorrectionsFileInfo({
@@ -126,7 +158,21 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   const handleClearCorrectionsFile = useCallback(() => {
     setCorrectionsFileInfo(null);
+    setImportResults([]);
   }, []);
+
+  const applyNonDuplicates = useCallback(() => {
+    importResults.filter(r => !r.isDuplicate && r.found).forEach(r => {
+      const account = duplicates.find(d => 
+        d.number === r.accountNumber && 
+        d.title && d.title.toLowerCase().trim() === r.title.toLowerCase()
+      );
+      if (account) {
+        onReplacementCodeChange?.(account.id, r.replacementCode);
+      }
+    });
+    setImportResults([]);
+  }, [importResults, duplicates, onReplacementCodeChange]);
 
   if (loading) {
     return (
@@ -431,6 +477,73 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     )}
                   </DropZone>
                 </div>
+            )}
+            
+            {/* Affichage des résultats d'import avec vérification de doublons */}
+            {importResults.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                    📊 Résultats de l'import ({importResults.length} lignes)
+                  </h4>
+                  
+                  <div className="mb-4 text-sm">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                      ✅ {importResults.filter(r => !r.isDuplicate && r.found).length} codes uniques applicables
+                    </span>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
+                      ⚠️ {importResults.filter(r => r.isDuplicate).length} codes en doublon
+                    </span>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      ❌ {importResults.filter(r => !r.found).length} comptes non trouvés
+                    </span>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {importResults.map((result, index) => (
+                      <div 
+                        key={index}
+                        className={`p-3 rounded-lg border text-sm ${
+                          !result.found 
+                            ? 'bg-gray-50 border-gray-300 text-gray-600'
+                            : result.isDuplicate 
+                              ? 'bg-red-50 border-red-300 text-red-700'
+                              : 'bg-green-50 border-green-300 text-green-700'
+                        }`}
+                      >
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="font-mono text-xs">{result.accountNumber}</div>
+                          <div className="truncate">{result.title}</div>
+                          <div className="font-semibold">{result.replacementCode}</div>
+                        </div>
+                        <div className="mt-1 text-xs">
+                          {!result.found 
+                            ? '❌ Compte non trouvé'
+                            : result.isDuplicate 
+                              ? '⚠️ Code déjà utilisé'
+                              : '✅ Code unique'
+                          }
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-4 flex gap-3 justify-center">
+                    <button
+                      onClick={applyNonDuplicates}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      ✅ Appliquer les codes uniques ({importResults.filter(r => !r.isDuplicate && r.found).length})
+                    </button>
+                    <button
+                      onClick={() => setImportResults([])}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      ❌ Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
         </div>
       )}
