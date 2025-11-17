@@ -254,7 +254,7 @@ const App: React.FC = () => {
   }, [state.clientAccounts, state.replacementCodes, generateMergedClientAccounts]);
 
   // Créer un Set des IDs des doublons de l'étape 2 pour le style visuel à l'étape 3
-  const duplicateIdsFromStep2 = useMemo(() => {
+  const duplicateIdsFromStep2 = useMemo((): Set<string> => {
     if (!state.result) return new Set();
     return new Set(state.result.duplicates.map(d => d.id));
   }, [state.result]);
