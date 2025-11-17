@@ -1,6 +1,9 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { Account, FileUploadResult, FileMetadata } from '../types/accounts';
 import { parseCSVFile } from '../utils/accountUtils';
+import { formatFileSize } from '../utils/fileUtils';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { DropZone } from './DropZone';
 
 interface FileUploaderProps {
   onFileLoaded: (accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => void;
@@ -12,13 +15,6 @@ interface FileUploaderProps {
   fileInfo: FileMetadata | null;
 }
 
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
   onFileLoaded,
@@ -29,9 +25,6 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   disabled = false,
   fileInfo
 }) => {
-  const [dragState, setDragState] = useState<'idle' | 'drag-over'>('idle');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const processFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
       onError(['Veuillez sélectionner un fichier CSV']);
@@ -90,42 +83,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
   }, [source, onError, onFileLoaded]);
 
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
-  }, [processFile]);
+  const { dragState, fileInputRef, handlers } = useDragAndDrop({
+    disabled,
+    onDrop: processFile,
+    acceptedTypes: ['.csv']
+  });
 
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    if (!disabled) {
-      setDragState('drag-over');
-    }
-  }, [disabled]);
-
-  const handleDragLeave = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    setDragState('idle');
-  }, []);
-
-  const handleDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    setDragState('idle');
-    
-    const file = event.dataTransfer.files[0];
-    if (file && !disabled) {
-      processFile(file);
-    }
-  }, [processFile, disabled]);
-
-  const handleButtonClick = useCallback(() => {
-    if (!disabled && fileInputRef.current) {
-      // Clear input value to allow re-selecting the same file
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
-    }
-  }, [disabled]);
 
   const handleClearFile = useCallback(() => {
     onFileCleared(source);
@@ -158,41 +121,24 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       </div>
       
       {/* Drag & Drop Zone */}
-      <div
-        role="button"
-        aria-label={!fileInfo ? `Zone de dépôt pour ${label}. Cliquez ou glissez-déposez un fichier CSV` : `Fichier sélectionné: ${fileInfo?.name}`}
-        tabIndex={disabled || fileInfo?.loadStatus === 'loading' || fileInfo ? -1 : 0}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && !fileInfo) {
-            e.preventDefault();
-            handleButtonClick();
-          }
-        }}
-        className={`
-          relative border-2 border-dashed rounded-lg px-3 py-4 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-          ${dragState === 'drag-over' 
-            ? 'border-blue-400 bg-blue-50' 
-            : fileInfo?.loadStatus === 'success'
-            ? 'border-green-400 bg-green-50'
-            : fileInfo?.loadStatus === 'warning'
-            ? 'border-orange-400 bg-orange-50'
-            : fileInfo?.loadStatus === 'error'
-            ? 'border-red-400 bg-red-50'
-            : 'border-gray-300 hover:border-gray-400'
-          }
-          ${disabled || fileInfo?.loadStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        `}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={!fileInfo ? handleButtonClick : undefined}
+      <DropZone
+        dragState={dragState}
+        disabled={disabled}
+        loading={fileInfo?.loadStatus === 'loading'}
+        fileInfo={fileInfo}
+        onDragOver={handlers.handleDragOver}
+        onDragLeave={handlers.handleDragLeave}
+        onDrop={handlers.handleDrop}
+        onClick={!fileInfo ? handlers.handleButtonClick : undefined}
+        onKeyDown={(e) => handlers.handleKeyDown(e, !fileInfo ? handlers.handleButtonClick : undefined)}
+        ariaLabel={!fileInfo ? `Zone de dépôt pour ${label}. Cliquez ou glissez-déposez un fichier CSV` : `Fichier sélectionné: ${fileInfo?.name}`}
       >
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
           accept=".csv"
-          onChange={handleFileChange}
+          onChange={handlers.handleFileChange}
           disabled={disabled || fileInfo?.loadStatus === 'loading'}
           className="hidden"
         />
@@ -284,7 +230,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             <div className="flex justify-center space-x-2">
               <button
                 type="button"
-                onClick={handleButtonClick}
+                onClick={handlers.handleButtonClick}
                 className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
               >
                 Changer le fichier
@@ -292,7 +238,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </DropZone>
       
       <p className="mt-2 text-xs text-gray-500 text-center">
         Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)

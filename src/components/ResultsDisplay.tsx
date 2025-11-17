@@ -1,5 +1,8 @@
-import React, { useRef, useCallback } from 'react';
-import { ProcessingResult } from '../types/accounts';
+import React, { useCallback, useState } from 'react';
+import { ProcessingResult, FileMetadata } from '../types/accounts';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { DropZone } from './DropZone';
+import { formatFileSize } from '../utils/fileUtils';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -16,14 +19,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   replacementCodes = {}, 
   onReplacementCodeChange 
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
+  
+  // État pour le glisser-déposé des corrections
+  const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
+  
+  const processCorrectionsFile = useCallback(async (file: File) => {
+    if (!file.name.endsWith('.csv')) {
+      alert('Veuillez sélectionner un fichier CSV');
+      return;
+    }
 
-  const handleImportCorrections = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    // Set loading state
+    setCorrectionsFileInfo({
+      name: file.name,
+      size: formatFileSize(file.size),
+      rowCount: 0,
+      loadStatus: 'loading'
+    });
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -31,11 +45,18 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       const lines = content.split('\n').filter(line => line.trim());
       
       if (lines.length < 2) {
+        setCorrectionsFileInfo({
+          name: file.name,
+          size: formatFileSize(file.size),
+          rowCount: 0,
+          loadStatus: 'error'
+        });
         alert('Le fichier CSV est vide ou invalide');
         return;
       }
 
       // Skip header and process each line
+      let processedCount = 0;
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -50,24 +71,45 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           const duplicateAccount = duplicates.find(d => d.number === accountNumber);
           if (duplicateAccount && replacementCode) {
             onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
+            processedCount++;
           }
         }
       }
       
-      alert('Import des corrections terminé');
+      // Set success state
+      setCorrectionsFileInfo({
+        name: file.name,
+        size: formatFileSize(file.size),
+        rowCount: processedCount,
+        loadStatus: 'success'
+      });
+      
+      alert(`Import des corrections terminé: ${processedCount} corrections appliquées`);
     };
     
     reader.onerror = () => {
+      setCorrectionsFileInfo({
+        name: file.name,
+        size: formatFileSize(file.size),
+        rowCount: 0,
+        loadStatus: 'error'
+      });
       alert('Erreur lors de la lecture du fichier');
     };
     
     reader.readAsText(file);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   }, [duplicates, onReplacementCodeChange]);
+  
+  const { dragState, fileInputRef, handlers } = useDragAndDrop({
+    disabled: false,
+    onDrop: processCorrectionsFile,
+    acceptedTypes: ['.csv']
+  });
+
+
+  const handleClearCorrectionsFile = useCallback(() => {
+    setCorrectionsFileInfo(null);
+  }, []);
 
   if (loading) {
     return (
@@ -121,6 +163,39 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <div className="text-gray-600">Sans correspondance</div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Export des doublons - entre résumé et détails */}
+      {showOnly === 'duplicates' && duplicates.length > 0 && (
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={() => {
+              // Export CSV pour les doublons
+              const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
+              const csvRows = duplicates.map(d => [
+                d.number,
+                d.title || '',
+                replacementCodes[d.id] || ''
+              ]);
+              
+              const csvContent = [
+                csvHeaders.join(','),
+                ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+              ].join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'doublons-comptes.csv';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            📥 Exporter les doublons
+          </button>
         </div>
       )}
 
@@ -216,74 +291,132 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-4 justify-center">
-        {(showOnly === 'all' || (showOnly === 'duplicates' && duplicates.length > 0)) && (
-          <>
-            <button
-              onClick={() => {
-                if (showOnly === 'duplicates') {
-                  // Export CSV pour les doublons
-                  const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
-                  const csvRows = duplicates.map(d => [
-                    d.number,
-                    d.title || '',
-                    replacementCodes[d.id] || ''
-                  ]);
-                  
-                  const csvContent = [
-                    csvHeaders.join(','),
-                    ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
-                  ].join('\n');
-                  
-                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'doublons-comptes.csv';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                } else {
-                  // Export JSON pour les résultats complets
-                  const data = {
-                    duplicates: duplicates.map(d => d.number),
-                    matches: matches.map(m => m.number),
-                    unmatched: unmatchedClients.map(u => u.number)
-                  };
-                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'resultats-comptes.json';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              📥 {showOnly === 'duplicates' ? 'Exporter les doublons' : 'Exporter les résultats'}
-            </button>
-
-            {showOnly === 'duplicates' && (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  onChange={handleImportCorrections}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  📤 Importer les corrections
-                </button>
-              </>
-            )}
-          </>
+      {/* Actions - seulement s'il y a du contenu à afficher */}
+      {(showOnly === 'all' || showOnly === 'duplicates') && (
+        <div className="flex gap-4 justify-center">
+        {showOnly === 'all' && (
+          <button
+            onClick={() => {
+              // Export JSON pour les résultats complets
+              const data = {
+                duplicates: duplicates.map(d => d.number),
+                matches: matches.map(m => m.number),
+                unmatched: unmatchedClients.map(u => u.number)
+              };
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'resultats-comptes.json';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            📥 Exporter les résultats
+          </button>
         )}
-      </div>
+
+        {showOnly === 'duplicates' && (
+          <div className="w-full max-w-2xl">
+            <DropZone
+              dragState={dragState}
+              disabled={false}
+              loading={correctionsFileInfo?.loadStatus === 'loading'}
+              fileInfo={correctionsFileInfo}
+              onDragOver={handlers.handleDragOver}
+              onDragLeave={handlers.handleDragLeave}
+              onDrop={handlers.handleDrop}
+              onClick={!correctionsFileInfo ? handlers.handleButtonClick : undefined}
+              onKeyDown={(e) => handlers.handleKeyDown(e, !correctionsFileInfo ? handlers.handleButtonClick : undefined)}
+              ariaLabel={!correctionsFileInfo ? "Zone de dépôt pour les corrections. Glissez-déposez un fichier CSV ou cliquez pour parcourir" : `Fichier de corrections: ${correctionsFileInfo?.name}`}
+            >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handlers.handleFileChange}
+                      className="hidden"
+                    />
+                    
+                    {!correctionsFileInfo && (
+                      <div className="space-y-2">
+                        <div className="mx-auto w-8 h-8 text-gray-400">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <p className="font-medium text-xs sm:text-sm">Glissez-déposez votre fichier de corrections CSV</p>
+                          <p className="text-xs">ou cliquez pour parcourir</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {correctionsFileInfo?.loadStatus === 'loading' && (
+                      <div className="space-y-2">
+                        <div className="mx-auto w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-sm text-blue-600">Import des corrections...</p>
+                      </div>
+                    )}
+                    
+                    {correctionsFileInfo && (correctionsFileInfo.loadStatus === 'success' || correctionsFileInfo.loadStatus === 'error') && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              correctionsFileInfo.loadStatus === 'success' ? 'bg-green-100 text-green-600' :
+                              'bg-red-100 text-red-600'
+                            }`}>
+                              {correctionsFileInfo.loadStatus === 'success' ? (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="text-left flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{correctionsFileInfo?.name}</p>
+                              <p className="text-xs text-gray-500">{correctionsFileInfo?.size}</p>
+                            </div>
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={handleClearCorrectionsFile}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        <div className={`text-sm ${
+                          correctionsFileInfo.loadStatus === 'success' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {correctionsFileInfo.loadStatus === 'success' ? 'Corrections importées avec succès' : 'Échec de l\'import'}
+                        </div>
+                        
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={handlers.handleButtonClick}
+                            className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+                          >
+                            Changer le fichier
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </DropZone>
+                </div>
+            )}
+        </div>
+      )}
     </div>
   );
 };
