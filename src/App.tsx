@@ -50,6 +50,54 @@ const initialState: AppState = {
   finalFilter: 'all'
 };
 
+// Fonction pour nettoyer les données des étapes futures lors d'une navigation vers l'arrière
+const cleanupFutureSteps = (state: AppState, targetStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal'): AppState => {
+  let newState = { ...state, currentStep: targetStep };
+  
+  // Définir les données à nettoyer pour chaque étape de destination
+  switch (targetStep) {
+    case 'step1':
+      // Retour à step1 : nettoyer les données de traitement mais préserver le result
+      return {
+        ...newState,
+        replacementCodes: {},
+        cncjConflictResult: null,
+        cncjConflictSuggestions: {},
+        finalFilter: 'all'
+      };
+      
+    case 'step2':
+      // Retour à step2 : nettoyer les données des étapes 3, 4 et finale
+      return {
+        ...newState,
+        cncjConflictResult: null,
+        cncjConflictSuggestions: {},
+        finalFilter: 'all'
+      };
+      
+    case 'step3':
+      // Retour à step3 : nettoyer les données des étapes 4 et finale
+      return {
+        ...newState,
+        finalFilter: 'all'
+      };
+      
+    case 'step4':
+      // Retour à step4 : nettoyer les données de l'étape finale
+      return {
+        ...newState,
+        finalFilter: 'all'
+      };
+      
+    case 'stepFinal':
+      // Pas de nettoyage nécessaire pour l'étape finale
+      return newState;
+      
+    default:
+      return newState;
+  }
+};
+
 const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
     case 'SET_CLIENT_ACCOUNTS':
@@ -68,8 +116,18 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, errors: action.payload };
     case 'CLEAR_ERRORS':
       return { ...state, errors: [] };
-    case 'SET_CURRENT_STEP':
+    case 'SET_CURRENT_STEP': {
+      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'stepFinal'];
+      const currentIndex = stepOrder.indexOf(state.currentStep);
+      const targetIndex = stepOrder.indexOf(action.payload);
+      
+      if (targetIndex < currentIndex) {
+        // Navigation vers l'arrière - nettoyer les données des étapes futures
+        return cleanupFutureSteps(state, action.payload);
+      }
+      
       return { ...state, currentStep: action.payload };
+    }
     case 'SET_REPLACEMENT_CODE':
       return { 
         ...state, 
