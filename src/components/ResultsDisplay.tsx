@@ -7,7 +7,7 @@ import { formatFileSize } from '../utils/fileUtils';
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
   loading?: boolean;
-  showOnly?: 'duplicates' | 'all';
+  showOnly?: 'duplicates' | 'all' | 'review';
   replacementCodes?: { [key: string]: string };
   onReplacementCodeChange?: (accountId: string, code: string) => void;
   conflictType?: 'duplicates' | 'cncj-conflicts';
@@ -256,6 +256,51 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             >
               ✅ Valider les suggestions
             </button>
+          )}
+        </div>
+      )}
+
+      {/* Review Table - Tableau des corrections */}
+      {showOnly === 'review' && duplicates.length > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            📋 Tableau des corrections ({duplicates.filter(d => replacementCodes[d.id]?.trim()).length} corrections appliquées)
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-300">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Données d'origine</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">Nouvelle valeur</th>
+                </tr>
+              </thead>
+              <tbody>
+                {duplicates
+                  .filter(duplicate => replacementCodes[duplicate.id]?.trim())
+                  .map((duplicate, index) => (
+                    <tr key={duplicate.id} className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <td className="px-4 py-3">
+                        <div className="space-y-1">
+                          <div className="font-mono text-gray-900">{duplicate.number}</div>
+                          <div className="text-gray-600 text-xs">{duplicate.title || 'Sans titre'}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-mono text-green-700 font-medium bg-green-50 px-2 py-1 rounded">
+                          {replacementCodes[duplicate.id]?.trim()}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {duplicates.filter(d => replacementCodes[d.id]?.trim()).length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>Aucune correction appliquée</p>
+              <p className="text-sm mt-2">Retournez à l'étape précédente pour ajouter des corrections</p>
+            </div>
           )}
         </div>
       )}

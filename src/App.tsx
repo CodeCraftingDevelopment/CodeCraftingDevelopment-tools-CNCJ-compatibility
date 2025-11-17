@@ -12,7 +12,7 @@ interface AppState {
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
-  currentStep: 'upload' | 'results' | 'cncj-conflicts';
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4';
   replacementCodes: { [key: string]: string };
   mergedClientAccounts: Account[];
   cncjConflictResult: ProcessingResult | null;
@@ -28,7 +28,7 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' | 'cncj-conflicts' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_MERGED_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -43,7 +43,7 @@ const initialState: AppState = {
   result: null,
   loading: false,
   errors: [],
-  currentStep: 'upload',
+  currentStep: 'step1',
   replacementCodes: {},
   mergedClientAccounts: [],
   cncjConflictResult: null,
@@ -153,7 +153,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' });
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
     dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
   }, []);
 
@@ -163,7 +163,7 @@ const App: React.FC = () => {
       dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
       return;
     }
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' });
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' });
   }, [state.result]);
 
   // Générer la liste fusionnée de clients (originaux + corrections surchargées)
@@ -258,7 +258,18 @@ const App: React.FC = () => {
   }, []);
 
   const handleDuplicatesNext = useCallback(() => {
-    console.log('Doublons résolus - passage à l\'étape suivante');
+    console.log('Doublons résolus - passage à la révision des corrections');
+    if (!state.result) {
+      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
+      return;
+    }
+
+    // Naviguer vers l'étape de révision des corrections
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' });
+  }, [state.result]);
+
+  const handleReviewNext = useCallback(() => {
+    console.log('Révision terminée - passage aux conflits CNCJ');
     if (!state.result) {
       dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
       return;
@@ -276,8 +287,8 @@ const App: React.FC = () => {
     const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedAccounts);
     dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
 
-    // Étape 4 : Naviguer vers step 3
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'cncj-conflicts' });
+    // Étape 4 : Naviguer vers step 4
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
   }, [state.result, state.replacementCodes, state.cncjAccounts, generateMergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
@@ -349,7 +360,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Upload Section - Always rendered */}
-        <div style={{display: state.currentStep === 'upload' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+        <div style={{display: state.currentStep === 'step1' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
               Step 1
@@ -405,7 +416,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Results Section - Always rendered */}
-        <div style={{display: state.currentStep === 'results' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+        <div style={{display: state.currentStep === 'step2' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
               Step 2
@@ -425,7 +436,7 @@ const App: React.FC = () => {
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
@@ -443,11 +454,47 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* CNCJ Reserved Codes Section - Step 3 */}
-        <div style={{display: state.currentStep === 'cncj-conflicts' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+        {/* Review Corrections Section - Step 3 */}
+        <div style={{display: state.currentStep === 'step3' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
               Step 3
+            </span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            📋 Révision des corrections
+          </h2>
+          
+          <ResultsDisplay 
+            result={state.result} 
+            loading={state.loading} 
+            showOnly="review"
+            replacementCodes={state.replacementCodes}
+            onReplacementCodeChange={undefined}
+          />
+          
+          <div className="mt-6 text-center space-x-4">
+            <button
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' })}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Retour
+            </button>
+            
+            <button
+              onClick={handleReviewNext}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Suivant →
+            </button>
+          </div>
+        </div>
+
+        {/* CNCJ Reserved Codes Section - Step 4 */}
+        <div style={{display: state.currentStep === 'step4' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
+              Step 4
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -467,7 +514,7 @@ const App: React.FC = () => {
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
