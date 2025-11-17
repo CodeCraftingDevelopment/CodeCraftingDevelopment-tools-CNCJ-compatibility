@@ -97,7 +97,7 @@ export const processAccounts = (
 ): ProcessingResult => {
   const duplicates = findDuplicates(clientAccounts);
   const uniqueClients = clientAccounts.filter(acc => 
-    !duplicates.some(dup => dup.number === acc.number)
+    !duplicates.some(dup => dup.id === acc.id)
   );
   
   const { matches, unmatchedClients } = compareAccounts(uniqueClients, cncjAccounts);

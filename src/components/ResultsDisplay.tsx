@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ProcessingResult, FileMetadata } from '../types/accounts';
+import { ProcessingResult, FileMetadata, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
 import { formatFileSize } from '../utils/fileUtils';
@@ -13,6 +13,7 @@ interface ResultsDisplayProps {
   conflictType?: 'duplicates' | 'cncj-conflicts';
   suggestions?: { [key: string]: string | 'error' };
   cncjCodes?: Set<string>;
+  mergedClientAccounts?: Account[];
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -23,7 +24,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onReplacementCodeChange,
   conflictType = 'duplicates',
   suggestions = {},
-  cncjCodes
+  cncjCodes,
+  mergedClientAccounts
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -185,7 +187,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
           </div>
         )
-      ) : (
+      ) : showOnly !== 'review' ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -209,7 +211,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Export des doublons - entre résumé et détails */}
       {showOnly === 'duplicates' && duplicates.length > 0 && (
@@ -261,10 +263,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       )}
 
       {/* Review Table - Tableau des corrections */}
-      {showOnly === 'review' && duplicates.length > 0 && (
+      {showOnly === 'review' && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            📋 Tableau des corrections ({duplicates.filter(d => replacementCodes[d.id]?.trim()).length} corrections appliquées)
+            📋 Tableau des corrections ({mergedClientAccounts?.filter(acc => replacementCodes[acc.id]?.trim()).length || 0} corrections appliquées)
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -275,38 +277,34 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {duplicates
-                  .filter(duplicate => replacementCodes[duplicate.id]?.trim())
-                  .map((duplicate, index) => (
-                    <tr key={duplicate.id} className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <td className="px-4 py-3">
-                        <div className="space-y-1">
-                          <div className="font-mono text-gray-900">{duplicate.number}</div>
-                          <div className="text-gray-600 text-xs">{duplicate.title || 'Sans titre'}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-mono text-green-700 font-medium bg-green-50 px-2 py-1 rounded">
-                          {replacementCodes[duplicate.id]?.trim()}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                {(mergedClientAccounts || [])
+                  .sort((a, b) => a.number.localeCompare(b.number))
+                  .map((account, index) => {
+                    const replacementCode = replacementCodes[account.id]?.trim();
+                    return (
+                      <tr key={account.id} className={`border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <td className="px-4 py-3">
+                          <div className="space-y-1">
+                            <div className="font-mono text-gray-900">{account.number}</div>
+                            <div className="text-gray-600 text-xs">{account.title || 'Sans titre'}</div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className={`font-mono ${replacementCode ? 'text-green-700 font-medium bg-green-50' : 'text-gray-700 bg-gray-100'} px-2 py-1 rounded`}>
+                            {replacementCode || account.number}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
-          
-          {duplicates.filter(d => replacementCodes[d.id]?.trim()).length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <p>Aucune correction appliquée</p>
-              <p className="text-sm mt-2">Retournez à l'étape précédente pour ajouter des corrections</p>
-            </div>
-          )}
         </div>
       )}
 
       {/* Doublons */}
-      {duplicates.length > 0 ? (
+      {duplicates.length > 0 && showOnly !== 'review' ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-red-900 mb-3">
             ⚠️ {conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'} ({duplicates.length})

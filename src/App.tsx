@@ -14,7 +14,6 @@ interface AppState {
   errors: string[];
   currentStep: 'step1' | 'step2' | 'step3' | 'step4';
   replacementCodes: { [key: string]: string };
-  mergedClientAccounts: Account[];
   cncjConflictResult: ProcessingResult | null;
   cncjConflictSuggestions: { [key: string]: string | 'error' };
 }
@@ -31,7 +30,6 @@ type AppAction =
   | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
-  | { type: 'SET_MERGED_CLIENT_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } };
 
@@ -45,7 +43,6 @@ const initialState: AppState = {
   errors: [],
   currentStep: 'step1',
   replacementCodes: {},
-  mergedClientAccounts: [],
   cncjConflictResult: null,
   cncjConflictSuggestions: {}
 };
@@ -80,8 +77,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_REPLACEMENT_CODES':
       return { ...state, replacementCodes: {} };
-    case 'SET_MERGED_CLIENT_ACCOUNTS':
-      return { ...state, mergedClientAccounts: action.payload };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
     case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
@@ -167,29 +162,26 @@ const App: React.FC = () => {
   }, [state.result]);
 
   // Générer la liste fusionnée de clients (originaux + corrections surchargées)
-  const generateMergedClientAccounts = useCallback((result: ProcessingResult, replacementCodes: { [key: string]: string }): Account[] => {
-    const allClientAccounts = [
-      ...result.uniqueClients,
-      ...result.matches,
-      ...result.unmatchedClients,
-      ...result.duplicates
-    ];
-
-    return allClientAccounts.map(account => {
-      // Pour les doublons, surcharger le numéro avec le code de remplacement
-      if (result.duplicates.some(dup => dup.id === account.id)) {
-        const replacementCode = replacementCodes[account.id];
-        if (replacementCode?.trim()) {
-          return {
-            ...account,
-            number: replacementCode.trim()
-          };
-        }
+  const generateMergedClientAccounts = useCallback((clientAccounts: Account[], replacementCodes: { [key: string]: string }): Account[] => {
+    // Partir de la liste originale complète et appliquer les corrections
+    return clientAccounts.map(account => {
+      const replacementCode = replacementCodes[account.id];
+      if (replacementCode?.trim()) {
+        // Appliquer le code de remplacement
+        return {
+          ...account,
+          number: replacementCode.trim()
+        };
       }
-      // Pour les autres comptes, garder le numéro original
+      // Garder le numéro original
       return account;
     });
   }, []);
+
+  // Calculer mergedClientAccounts automatiquement avec useMemo
+  const mergedClientAccounts = useMemo(() => {
+    return generateMergedClientAccounts(state.clientAccounts, state.replacementCodes);
+  }, [state.clientAccounts, state.replacementCodes, generateMergedClientAccounts]);
 
   // Incrémenter un code client avec contrainte (ne jamais passer à la dizaine supérieure)
   const incrementCodeWithConstraint = useCallback((code: string): string | null => {
@@ -275,21 +267,17 @@ const App: React.FC = () => {
       return;
     }
 
-    // Étape 1 : Générer la liste fusionnée
-    const mergedAccounts = generateMergedClientAccounts(state.result, state.replacementCodes);
-    dispatch({ type: 'SET_MERGED_CLIENT_ACCOUNTS', payload: mergedAccounts });
-
-    // Étape 2 : Traiter les conflits CNCJ
-    const cncjConflicts = processCncjConflicts(mergedAccounts, state.cncjAccounts);
+    // Étape 1 : Traiter les conflits CNCJ avec les comptes fusionnés
+    const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
     dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
 
-    // Étape 3 : Générer les suggestions d'auto-correction
-    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedAccounts);
+    // Étape 2 : Générer les suggestions d'auto-correction
+    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
     dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
 
-    // Étape 4 : Naviguer vers step 4
+    // Étape 3 : Naviguer vers step 4
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
-  }, [state.result, state.replacementCodes, state.cncjAccounts, generateMergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts]);
+  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
@@ -471,6 +459,7 @@ const App: React.FC = () => {
             showOnly="review"
             replacementCodes={state.replacementCodes}
             onReplacementCodeChange={undefined}
+            mergedClientAccounts={mergedClientAccounts}
           />
           
           <div className="mt-6 text-center space-x-4">
