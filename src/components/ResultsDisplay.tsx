@@ -11,6 +11,7 @@ interface ResultsDisplayProps {
   replacementCodes?: { [key: string]: string };
   onReplacementCodeChange?: (accountId: string, code: string) => void;
   conflictType?: 'duplicates' | 'cncj-conflicts';
+  suggestions?: { [key: string]: string | 'error' };
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -19,7 +20,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   showOnly = 'all', 
   replacementCodes = {}, 
   onReplacementCodeChange,
-  conflictType = 'duplicates'
+  conflictType = 'duplicates',
+  suggestions = {}
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -331,6 +333,22 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           )}
                         </div>
                       </div>
+                      
+                      {/* Afficher les suggestions pour les conflits CNCJ */}
+                      {conflictType === 'cncj-conflicts' && suggestions[account.id] && (
+                        <div className="mt-2 flex items-center space-x-2">
+                          <span className="text-xs text-gray-600">Suggestion:</span>
+                          {suggestions[account.id] === 'error' ? (
+                            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+                              Aucune solution disponible (contrainte dizaine)
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-mono">
+                              {account.number} → {suggestions[account.id]}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 });

@@ -16,6 +16,7 @@ interface AppState {
   replacementCodes: { [key: string]: string };
   mergedClientAccounts: Account[];
   cncjConflictResult: ProcessingResult | null;
+  cncjConflictSuggestions: { [key: string]: string | 'error' };
 }
 
 type AppAction = 
@@ -31,7 +32,8 @@ type AppAction =
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_MERGED_CLIENT_ACCOUNTS'; payload: Account[] }
-  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null };
+  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
+  | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -44,7 +46,8 @@ const initialState: AppState = {
   currentStep: 'upload',
   replacementCodes: {},
   mergedClientAccounts: [],
-  cncjConflictResult: null
+  cncjConflictResult: null,
+  cncjConflictSuggestions: {}
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -81,6 +84,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, mergedClientAccounts: action.payload };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
+    case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
+      return { ...state, cncjConflictSuggestions: action.payload };
     default:
       return state;
   }
@@ -186,6 +191,56 @@ const App: React.FC = () => {
     });
   }, []);
 
+  // Incrémenter un code client avec contrainte (ne jamais passer à la dizaine supérieure)
+  const incrementCodeWithConstraint = useCallback((code: string): string | null => {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return null;
+    
+    const incremented = codeNum + 1;
+    
+    // Vérifier la contrainte : ne pas passer à la dizaine supérieure
+    if (incremented % 10 === 0) {
+      return null; // Contrainte violée (ex: 10009 → 10010)
+    }
+    
+    return incremented.toString();
+  }, []);
+
+  // Auto-corriger les conflits CNCJ avec incrémentation contrainte
+  const autoCorrectCncjConflicts = useCallback((conflicts: Account[], cncjAccounts: Account[]): { [accountId: string]: string | 'error' } => {
+    const cncjNumbers = new Set(cncjAccounts.map(acc => acc.number));
+    const suggestions: { [accountId: string]: string | 'error' } = {};
+    
+    conflicts.forEach(conflict => {
+      let currentCode = conflict.number;
+      let attempts = 0;
+      const maxAttempts = 9; // Maximum 9 tentatives avant de changer de dizaine
+      
+      while (attempts < maxAttempts) {
+        const suggestedCode = incrementCodeWithConstraint(currentCode);
+        
+        if (suggestedCode === null) {
+          suggestions[conflict.id] = 'error';
+          break;
+        }
+        
+        if (!cncjNumbers.has(suggestedCode)) {
+          suggestions[conflict.id] = suggestedCode;
+          break;
+        }
+        
+        currentCode = suggestedCode;
+        attempts++;
+      }
+      
+      if (attempts >= maxAttempts) {
+        suggestions[conflict.id] = 'error';
+      }
+    });
+    
+    return suggestions;
+  }, [incrementCodeWithConstraint]);
+
   // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
   const processCncjConflicts = useCallback((mergedClientAccounts: Account[], cncjAccounts: Account[]): ProcessingResult => {
     // Utiliser la même logique que processAccounts mais avec les comptes fusionnés
@@ -207,9 +262,13 @@ const App: React.FC = () => {
     const cncjConflicts = processCncjConflicts(mergedAccounts, state.cncjAccounts);
     dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
 
-    // Étape 3 : Naviguer vers step 3
+    // Étape 3 : Générer les suggestions d'auto-correction
+    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts);
+    dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
+
+    // Étape 4 : Naviguer vers step 3
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'cncj-conflicts' });
-  }, [state.result, state.replacementCodes, state.cncjAccounts, generateMergedClientAccounts, processCncjConflicts]);
+  }, [state.result, state.replacementCodes, state.cncjAccounts, generateMergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
@@ -387,6 +446,7 @@ const App: React.FC = () => {
             replacementCodes={{}}
             onReplacementCodeChange={undefined}
             conflictType="cncj-conflicts"
+            suggestions={state.cncjConflictSuggestions}
           />
           
           <div className="mt-6 text-center space-x-4">
