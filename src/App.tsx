@@ -206,12 +206,20 @@ const App: React.FC = () => {
     return incremented.toString();
   }, []);
 
-  // Auto-corriger les conflits CNCJ avec incrémentation contrainte
-  const autoCorrectCncjConflicts = useCallback((conflicts: Account[], cncjAccounts: Account[]): { [accountId: string]: string | 'error' } => {
-    const cncjNumbers = new Set(cncjAccounts.map(acc => acc.number));
+  // Auto-corriger les conflits CNCJ avec incrémentation contrainte et validation croisée
+  const autoCorrectCncjConflicts = useCallback((conflicts: Account[], cncjAccounts: Account[], mergedClientAccounts: Account[]): { [accountId: string]: string | 'error' } => {
+    // Initialiser l'ensemble des codes utilisés (CNCJ + comptes clients fusionnés)
+    const usedCodes = new Set([
+      ...cncjAccounts.map(acc => acc.number),
+      ...mergedClientAccounts.map(acc => acc.number)
+    ]);
+    
     const suggestions: { [accountId: string]: string | 'error' } = {};
     
-    conflicts.forEach(conflict => {
+    // Trier les conflits pour des résultats déterministes
+    const sortedConflicts = [...conflicts].sort((a, b) => a.number.localeCompare(b.number));
+    
+    sortedConflicts.forEach(conflict => {
       let currentCode = conflict.number;
       let attempts = 0;
       const maxAttempts = 9; // Maximum 9 tentatives avant de changer de dizaine
@@ -224,8 +232,10 @@ const App: React.FC = () => {
           break;
         }
         
-        if (!cncjNumbers.has(suggestedCode)) {
+        // Vérifier que le code n'est ni dans CNCJ, ni dans les clients fusionnés, ni déjà suggéré
+        if (!usedCodes.has(suggestedCode)) {
           suggestions[conflict.id] = suggestedCode;
+          usedCodes.add(suggestedCode); // Ajouter immédiatement pour éviter les conflits avec les prochaines suggestions
           break;
         }
         
@@ -263,7 +273,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
 
     // Étape 3 : Générer les suggestions d'auto-correction
-    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts);
+    const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedAccounts);
     dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
 
     // Étape 4 : Naviguer vers step 3
