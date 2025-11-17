@@ -762,11 +762,6 @@ const App: React.FC = () => {
                         <tr key={row.id} className={getRowStyle(row.modificationSource)}>
                           <td className="border border-gray-300 px-4 py-2">
                             <div className="flex items-center space-x-2">
-                              {row.modificationSource === 'step2+step4' && (
-                                <span className="inline-block px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full font-medium">
-                                  Double
-                                </span>
-                              )}
                               {row.title}
                             </div>
                           </td>
