@@ -701,7 +701,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Tableau récapitulatif */}
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-100">
