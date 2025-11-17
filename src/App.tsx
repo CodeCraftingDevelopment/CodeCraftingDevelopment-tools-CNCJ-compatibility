@@ -480,7 +480,7 @@ const App: React.FC = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{state.mergeInfo.length}</div>
-                  <div className="text-gray-600">groupes de comptes ont été fusionnés automatiquement</div>
+                  <div className="text-gray-600">{state.mergeInfo.length === 1 ? 'fusion' : 'fusions'} automatique{state.mergeInfo.length > 1 ? 's' : ''}</div>
                 </div>
               </div>
               
@@ -561,7 +561,7 @@ const App: React.FC = () => {
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
