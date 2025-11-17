@@ -450,7 +450,7 @@ const App: React.FC = () => {
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📋 Révision des corrections
+            📋 Révision des corrections ({mergedClientAccounts?.filter(acc => state.replacementCodes[acc.id]?.trim()).length || 0} corrections appliquées)
           </h2>
           
           <ResultsDisplay 
