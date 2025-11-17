@@ -13,6 +13,7 @@ interface AppState {
   loading: boolean;
   errors: string[];
   currentStep: 'upload' | 'results';
+  replacementCodes: { [key: string]: string };
 }
 
 type AppAction = 
@@ -24,7 +25,9 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' };
+  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' }
+  | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
+  | { type: 'CLEAR_REPLACEMENT_CODES' };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -34,7 +37,8 @@ const initialState: AppState = {
   result: null,
   loading: false,
   errors: [],
-  currentStep: 'upload'
+  currentStep: 'upload',
+  replacementCodes: {}
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -57,6 +61,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, errors: [] };
     case 'SET_CURRENT_STEP':
       return { ...state, currentStep: action.payload };
+    case 'SET_REPLACEMENT_CODE':
+      return { 
+        ...state, 
+        replacementCodes: { 
+          ...state.replacementCodes, 
+          [action.payload.accountId]: action.payload.code 
+        } 
+      };
+    case 'CLEAR_REPLACEMENT_CODES':
+      return { ...state, replacementCodes: {} };
     default:
       return state;
   }
@@ -125,6 +139,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' });
+    dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
   }, []);
 
   const handleNext = useCallback(() => {
@@ -135,6 +150,10 @@ const App: React.FC = () => {
     }
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' });
   }, [state.result]);
+
+  const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
+    dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
+  }, []);
 
   // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
   const canProceed = state.clientAccounts.length > 0 && 
@@ -223,7 +242,13 @@ const App: React.FC = () => {
             ⚠️ Vérification des doublons
           </h2>
           
-          <ResultsDisplay result={state.result} loading={state.loading} showOnly="duplicates" />
+          <ResultsDisplay 
+            result={state.result} 
+            loading={state.loading} 
+            showOnly="duplicates"
+            replacementCodes={state.replacementCodes}
+            onReplacementCodeChange={handleReplacementCodeChange}
+          />
           
           <div className="mt-6 text-center">
             <button

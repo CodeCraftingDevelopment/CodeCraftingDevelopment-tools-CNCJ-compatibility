@@ -5,9 +5,17 @@ interface ResultsDisplayProps {
   result: ProcessingResult | null;
   loading?: boolean;
   showOnly?: 'duplicates' | 'all';
+  replacementCodes?: { [key: string]: string };
+  onReplacementCodeChange?: (accountId: string, code: string) => void;
 }
 
-export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading = false, showOnly = 'all' }) => {
+export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
+  result, 
+  loading = false, 
+  showOnly = 'all', 
+  replacementCodes = {}, 
+  onReplacementCodeChange 
+}) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -68,14 +76,28 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
             ⚠️ Doublons détectés ({duplicates.length})
           </h3>
           <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {duplicates.map((account) => (
-                <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="font-mono bg-red-100 px-2 py-1 rounded">
-                    {account.number}
+                <div key={account.id} className="border border-red-200 rounded-lg p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
+                    <div className="font-mono bg-red-100 px-2 py-1 rounded">
+                      {account.number}
+                    </div>
+                    <div className="bg-red-50 px-2 py-1 rounded">
+                      {account.title || 'Sans titre'}
+                    </div>
                   </div>
-                  <div className="bg-red-50 px-2 py-1 rounded">
-                    {account.title || 'Sans titre'}
+                  <div className="flex items-center space-x-2">
+                    <label className="text-xs text-gray-600 whitespace-nowrap">
+                      Code remplacement:
+                    </label>
+                    <input
+                      type="text"
+                      value={replacementCodes[account.id] || ''}
+                      onChange={(e) => onReplacementCodeChange?.(account.id, e.target.value)}
+                      placeholder="Nouveau code"
+                      className="w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
                   </div>
                 </div>
               ))}
@@ -144,7 +166,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, loading 
         <button
           onClick={() => {
             const data = showOnly === 'duplicates' 
-              ? { duplicates: duplicates.map(d => ({ number: d.number, title: d.title })) }
+              ? { 
+                  duplicates: duplicates.map(d => ({ 
+                    number: d.number, 
+                    title: d.title,
+                    replacementCode: replacementCodes[d.id] || null
+                  })) 
+                }
               : {
                   duplicates: duplicates.map(d => d.number),
                   matches: matches.map(m => m.number),
