@@ -188,6 +188,19 @@ const App: React.FC = () => {
     return generateMergedClientAccounts(state.clientAccounts, state.replacementCodes);
   }, [state.clientAccounts, state.replacementCodes, generateMergedClientAccounts]);
 
+  // Créer un Set des IDs des doublons de l'étape 2 pour le style visuel à l'étape 3
+  const duplicateIdsFromStep2 = useMemo(() => {
+    if (!state.result) return new Set();
+    return new Set(state.result.duplicates.map(d => d.id));
+  }, [state.result]);
+
+  // Calculer le nombre de corrections appliquées aux doublons de l'étape 2
+  const duplicateCorrectionsCount = useMemo(() => {
+    return mergedClientAccounts.filter(acc => 
+      duplicateIdsFromStep2.has(acc.id) && state.replacementCodes[acc.id]?.trim()
+    ).length;
+  }, [mergedClientAccounts, duplicateIdsFromStep2, state.replacementCodes]);
+
   // Incrémenter un code client avec contrainte (ne jamais passer à la dizaine supérieure)
   const incrementCodeWithConstraint = useCallback((code: string): string | null => {
     const codeNum = parseInt(code);
@@ -527,7 +540,7 @@ const App: React.FC = () => {
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📋 Révision des corrections ({mergedClientAccounts?.filter(acc => state.replacementCodes[acc.id]?.trim()).length || 0} corrections appliquées)
+            📋 Révision des corrections ({duplicateCorrectionsCount} corrections doublons appliquées)
           </h2>
           
           <ResultsDisplay 
@@ -538,6 +551,7 @@ const App: React.FC = () => {
             onReplacementCodeChange={undefined}
             mergedClientAccounts={mergedClientAccounts}
             originalClientAccounts={state.clientAccounts}
+            duplicateIdsFromStep2={duplicateIdsFromStep2}
           />
           
           <div className="mt-6 text-center space-x-4">

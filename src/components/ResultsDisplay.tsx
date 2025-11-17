@@ -17,6 +17,7 @@ interface ResultsDisplayProps {
   cncjCodes?: Set<string>;
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
+  duplicateIdsFromStep2?: Set<string>;
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -29,7 +30,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   suggestions = {},
   cncjCodes,
   mergedClientAccounts,
-  originalClientAccounts
+  originalClientAccounts,
+  duplicateIdsFromStep2
 }) => {
   // État pour le filtre des lignes corrigées (step3 uniquement)
   const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
@@ -284,8 +286,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           {/* Boutons de filtrage */}
           <div className="mb-4 flex justify-center space-x-2">
             {(() => {
-              const totalCount = mergedClientAccounts?.length || 0;
-              const correctedCount = mergedClientAccounts?.filter(acc => replacementCodes[acc.id]?.trim()).length || 0;
+              const totalCount = (mergedClientAccounts || []).length;
+              const correctedCount = (mergedClientAccounts || []).filter(acc => {
+                const isCorrected = !!replacementCodes[acc.id]?.trim();
+                const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(acc.id);
+                return isDuplicateFromStep2 && isCorrected;
+              }).length;
               const uncorrectedCount = totalCount - correctedCount;
               
               return (
@@ -338,15 +344,22 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   .filter(account => {
                     if (correctionFilter === 'all') return true;
                     const isCorrected = !!replacementCodes[account.id]?.trim();
-                    return correctionFilter === 'corrected' ? isCorrected : !isCorrected;
+                    const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
+                    if (correctionFilter === 'corrected') {
+                      return isDuplicateFromStep2 && isCorrected;
+                    } else { // non corrigés
+                      return !(isDuplicateFromStep2 && isCorrected);
+                    }
                   })
                   .sort((a, b) => a.number.localeCompare(b.number))
                   .map((account, index) => {
                     const replacementCode = replacementCodes[account.id]?.trim();
                     const isCorrected = !!replacementCode;
                     const originalAccount = originalAccountsById[account.id];
+                    const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
+                    const shouldHighlight = isDuplicateFromStep2 && isCorrected;
                     return (
-                      <tr key={account.id} className={`border-b ${isCorrected ? 'bg-green-100 border-l-4 border-green-500' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <tr key={account.id} className={`border-b ${shouldHighlight ? 'bg-green-100 border-l-4 border-green-500' : isDuplicateFromStep2 ? 'bg-blue-50 border-l-4 border-blue-300' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                         <td className="px-4 py-3">
                           <div className="space-y-1">
                             <div className="font-mono text-gray-900">{originalAccount?.number || account.number}</div>
@@ -355,7 +368,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className={`font-mono ${isCorrected ? 'text-green-700 font-bold bg-green-200' : 'text-gray-700 bg-gray-100'} px-3 py-2 rounded flex-1`}>
+                            <div className={`font-mono ${shouldHighlight ? 'text-green-700 font-bold bg-green-200' : isDuplicateFromStep2 ? 'text-blue-700 font-bold bg-blue-100' : 'text-gray-700 bg-gray-100'} px-3 py-2 rounded flex-1`}>
                               {replacementCode || account.number}
                             </div>
                             {isCorrected && (
