@@ -27,7 +27,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   
   const processCorrectionsFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
-      alert('Veuillez sélectionner un fichier CSV');
       return;
     }
 
@@ -51,7 +50,18 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           rowCount: 0,
           loadStatus: 'error'
         });
-        alert('Le fichier CSV est vide ou invalide');
+        return;
+      }
+
+      // Valider les en-têtes
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      if (!headers.includes('Code remplacement')) {
+        setCorrectionsFileInfo({
+          name: file.name,
+          size: formatFileSize(file.size),
+          rowCount: 0,
+          loadStatus: 'error'
+        });
         return;
       }
 
@@ -62,14 +72,24 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         if (!line) continue;
         
         // Parse CSV line (handle quoted values)
-        const match = line.match(/^"?([^"]*)"?,\s*"?([^"]*)"?,?/);
+        // Format: Numéro compte, Titre, Code remplacement (recherche par numéro ET titre)
+        const match = line.match(/^"?([^"]*)"?,\s*"?([^"]*)"?,\s*"?([^"]*)"?,?/);
         if (match) {
           const accountNumber = match[1].trim();
-          const replacementCode = match[2].trim();
+          const title = match[2].trim();
+          const replacementCode = match[3].trim(); // Utiliser la 3ème colonne "Code remplacement"
           
-          // Find the duplicate account by number
-          const duplicateAccount = duplicates.find(d => d.number === accountNumber);
-          if (duplicateAccount && replacementCode) {
+          // Validate that both account number and title are provided
+          if (!accountNumber || !title || !replacementCode) {
+            continue;
+          }
+          
+          // Find the duplicate account by number AND title (case-insensitive for title)
+          const duplicateAccount = duplicates.find(d => 
+            d.number === accountNumber && 
+            d.title && d.title.toLowerCase().trim() === title.toLowerCase()
+          );
+          if (duplicateAccount) {
             onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
             processedCount++;
           }
@@ -83,8 +103,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         rowCount: processedCount,
         loadStatus: 'success'
       });
-      
-      alert(`Import des corrections terminé: ${processedCount} corrections appliquées`);
     };
     
     reader.onerror = () => {
@@ -94,7 +112,6 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         rowCount: 0,
         loadStatus: 'error'
       });
-      alert('Erreur lors de la lecture du fichier');
     };
     
     reader.readAsText(file);
