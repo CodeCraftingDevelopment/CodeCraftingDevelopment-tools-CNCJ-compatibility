@@ -12,8 +12,10 @@ interface AppState {
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
-  currentStep: 'upload' | 'results';
+  currentStep: 'upload' | 'results' | 'cncj-conflicts';
   replacementCodes: { [key: string]: string };
+  mergedClientAccounts: Account[];
+  cncjConflictResult: ProcessingResult | null;
 }
 
 type AppAction = 
@@ -25,9 +27,11 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'upload' | 'results' | 'cncj-conflicts' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
-  | { type: 'CLEAR_REPLACEMENT_CODES' };
+  | { type: 'CLEAR_REPLACEMENT_CODES' }
+  | { type: 'SET_MERGED_CLIENT_ACCOUNTS'; payload: Account[] }
+  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -38,7 +42,9 @@ const initialState: AppState = {
   loading: false,
   errors: [],
   currentStep: 'upload',
-  replacementCodes: {}
+  replacementCodes: {},
+  mergedClientAccounts: [],
+  cncjConflictResult: null
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -71,6 +77,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_REPLACEMENT_CODES':
       return { ...state, replacementCodes: {} };
+    case 'SET_MERGED_CLIENT_ACCOUNTS':
+      return { ...state, mergedClientAccounts: action.payload };
+    case 'SET_CNCJ_CONFLICT_RESULT':
+      return { ...state, cncjConflictResult: action.payload };
     default:
       return state;
   }
@@ -151,11 +161,55 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' });
   }, [state.result]);
 
+  // Générer la liste fusionnée de clients (originaux + corrections surchargées)
+  const generateMergedClientAccounts = useCallback((result: ProcessingResult, replacementCodes: { [key: string]: string }): Account[] => {
+    const allClientAccounts = [
+      ...result.uniqueClients,
+      ...result.matches,
+      ...result.unmatchedClients,
+      ...result.duplicates
+    ];
+
+    return allClientAccounts.map(account => {
+      // Pour les doublons, surcharger le numéro avec le code de remplacement
+      if (result.duplicates.some(dup => dup.id === account.id)) {
+        const replacementCode = replacementCodes[account.id];
+        if (replacementCode?.trim()) {
+          return {
+            ...account,
+            number: replacementCode.trim()
+          };
+        }
+      }
+      // Pour les autres comptes, garder le numéro original
+      return account;
+    });
+  }, []);
+
+  // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
+  const processCncjConflicts = useCallback((mergedClientAccounts: Account[], cncjAccounts: Account[]): ProcessingResult => {
+    // Utiliser la même logique que processAccounts mais avec les comptes fusionnés
+    return processAccounts(mergedClientAccounts, cncjAccounts);
+  }, []);
+
   const handleDuplicatesNext = useCallback(() => {
     console.log('Doublons résolus - passage à l\'étape suivante');
-    // TODO: Implémenter la logique pour l'étape suivante après résolution des doublons
-    alert('Doublons résolus ! Prêt pour l\'étape suivante.');
-  }, []);
+    if (!state.result) {
+      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
+      return;
+    }
+
+    // Étape 1 : Générer la liste fusionnée
+    const mergedAccounts = generateMergedClientAccounts(state.result, state.replacementCodes);
+    dispatch({ type: 'SET_MERGED_CLIENT_ACCOUNTS', payload: mergedAccounts });
+
+    // Étape 2 : Traiter les conflits CNCJ
+    const cncjConflicts = processCncjConflicts(mergedAccounts, state.cncjAccounts);
+    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+
+    // Étape 3 : Naviguer vers step 3
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'cncj-conflicts' });
+  }, [state.result, state.replacementCodes, state.cncjAccounts, generateMergedClientAccounts, processCncjConflicts]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
@@ -223,7 +277,7 @@ const App: React.FC = () => {
         {/* Upload Section - Always rendered */}
         <div style={{display: state.currentStep === 'upload' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-blue-100 text-blue-800 rounded-full text-lg font-bold">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
               Step 1
             </span>
           </div>
@@ -312,6 +366,36 @@ const App: React.FC = () => {
                 Suivant →
               </button>
             )}
+          </div>
+        </div>
+
+        {/* CNCJ Reserved Codes Section - Step 3 */}
+        <div style={{display: state.currentStep === 'cncj-conflicts' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
+              Step 3
+            </span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            🚫 Codes clients réservés (homologués CNCJ)
+          </h2>
+          
+          <ResultsDisplay 
+            result={state.cncjConflictResult} 
+            loading={state.loading} 
+            showOnly="duplicates"
+            replacementCodes={{}}
+            onReplacementCodeChange={undefined}
+            conflictType="cncj-conflicts"
+          />
+          
+          <div className="mt-6 text-center space-x-4">
+            <button
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'results' })}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Retour
+            </button>
           </div>
         </div>
 

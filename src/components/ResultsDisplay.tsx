@@ -10,6 +10,7 @@ interface ResultsDisplayProps {
   showOnly?: 'duplicates' | 'all';
   replacementCodes?: { [key: string]: string };
   onReplacementCodeChange?: (accountId: string, code: string) => void;
+  conflictType?: 'duplicates' | 'cncj-conflicts';
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -17,7 +18,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   loading = false, 
   showOnly = 'all', 
   replacementCodes = {}, 
-  onReplacementCodeChange
+  onReplacementCodeChange,
+  conflictType = 'duplicates'
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -175,7 +177,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="text-center">
               <div className="text-3xl font-bold text-red-600">{duplicates.length}</div>
-              <div className="text-gray-600">Doublons détectés</div>
+              <div className="text-gray-600">{conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'}</div>
             </div>
           </div>
         )
@@ -190,7 +192,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             {duplicates.length > 0 && (
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">{duplicates.length}</div>
-                <div className="text-gray-600">Doublons détectés</div>
+                <div className="text-gray-600">{conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'}</div>
               </div>
             )}
             <div className="text-center">
@@ -242,7 +244,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {duplicates.length > 0 ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-red-900 mb-3">
-            ⚠️ Doublons détectés ({duplicates.length})
+            ⚠️ {conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'} ({duplicates.length})
           </h3>
           <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
             <div className="space-y-3">
