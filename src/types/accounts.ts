@@ -5,6 +5,12 @@ export interface Account {
   source: 'client' | 'cncj';
 }
 
+export interface MergeInfo {
+  number: string;
+  title: string;
+  mergedCount: number;
+}
+
 export interface ProcessingResult {
   duplicates: Account[];
   uniqueClients: Account[];
@@ -32,10 +38,11 @@ export interface AppState {
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
-  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'stepFinal';
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
+  mergeInfo: MergeInfo[];
   cncjConflictResult: ProcessingResult | null;
   cncjConflictSuggestions: { [key: string]: string | 'error' };
-  finalFilter: 'all' | 'step2' | 'step4' | 'step2+step4';
+  finalFilter: 'all' | 'step3' | 'step5' | 'step3+step5';
 }

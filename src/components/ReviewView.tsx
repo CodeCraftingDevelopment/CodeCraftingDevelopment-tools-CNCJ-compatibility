@@ -5,7 +5,7 @@ interface ReviewViewProps {
   mergedClientAccounts: Account[];
   originalClientAccounts: Account[];
   replacementCodes: { [key: string]: string };
-  duplicateIdsFromStep2: Set<string>;
+  duplicateIdsFromStep3: Set<string>;
 }
 
 type FilterType = 'all' | 'corrected' | 'uncorrected';
@@ -14,7 +14,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
   mergedClientAccounts,
   originalClientAccounts,
   replacementCodes,
-  duplicateIdsFromStep2
+  duplicateIdsFromStep3
 }) => {
   const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
 
@@ -30,8 +30,8 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
     const totalCount = mergedClientAccounts.length;
     const correctedCount = mergedClientAccounts.filter(acc => {
       const isCorrected = !!replacementCodes[acc.id]?.trim();
-      const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(acc.id);
-      return isDuplicateFromStep2 && isCorrected;
+      const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(acc.id);
+      return isDuplicateFromStep3 && isCorrected;
     }).length;
     const uncorrectedCount = totalCount - correctedCount;
     
@@ -44,11 +44,11 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
     .filter(account => {
       if (correctionFilter === 'all') return true;
       const isCorrected = !!replacementCodes[account.id]?.trim();
-      const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
+      const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(account.id);
       if (correctionFilter === 'corrected') {
-        return isDuplicateFromStep2 && isCorrected;
+        return isDuplicateFromStep3 && isCorrected;
       } else { // non corrigés
-        return !(isDuplicateFromStep2 && isCorrected);
+        return !(isDuplicateFromStep3 && isCorrected);
       }
     })
     .sort((a, b) => a.number.localeCompare(b.number));
@@ -102,15 +102,15 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
               const replacementCode = replacementCodes[account.id]?.trim();
               const isCorrected = !!replacementCode;
               const originalAccount = originalAccountsById[account.id];
-              const isDuplicateFromStep2 = duplicateIdsFromStep2?.has(account.id);
-              const shouldHighlight = isDuplicateFromStep2 && isCorrected;
+              const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(account.id);
+              const shouldHighlight = isDuplicateFromStep3 && isCorrected;
               
               return (
                 <tr 
                   key={account.id} 
                   className={`border-b ${
                     shouldHighlight ? 'bg-green-100 border-l-4 border-green-500' : 
-                    isDuplicateFromStep2 ? 'bg-blue-50 border-l-4 border-blue-300' : 
+                    isDuplicateFromStep3 ? 'bg-blue-50 border-l-4 border-blue-300' : 
                     index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                   }`}
                 >
@@ -128,7 +128,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
                     <div className="flex items-center space-x-2">
                       <div className={`font-mono ${
                         shouldHighlight ? 'text-green-700 font-bold bg-green-200' : 
-                        isDuplicateFromStep2 ? 'text-blue-700 font-bold bg-blue-100' : 
+                        isDuplicateFromStep3 ? 'text-blue-700 font-bold bg-blue-100' : 
                         'text-gray-700 bg-gray-100'
                       } px-3 py-2 rounded flex-1`}>
                         {replacementCode || account.number}

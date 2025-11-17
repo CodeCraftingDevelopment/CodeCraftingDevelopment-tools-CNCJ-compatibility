@@ -1,6 +1,6 @@
 import { AppState } from '../types/accounts';
 
-type Step = 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal';
+type Step = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'stepFinal';
 
 interface CleanupConfig {
   replacementCodes?: boolean;
@@ -18,14 +18,22 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     finalFilter: true
   },
   step2: {
+    replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictSuggestions: true,
     finalFilter: true
   },
   step3: {
+    cncjConflictResult: true,
+    cncjConflictSuggestions: true,
     finalFilter: true
   },
   step4: {
+    cncjConflictResult: true,
+    cncjConflictSuggestions: true,
+    finalFilter: true
+  },
+  step5: {
     finalFilter: true
   },
   stepFinal: {}

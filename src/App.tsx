@@ -1,7 +1,7 @@
 import React, { useReducer, useCallback, useMemo } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { ResultsDisplay } from './components/ResultsDisplay';
-import { Account, ProcessingResult, FileMetadata, AppState } from './types/accounts';
+import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
 import { processAccounts, mergeIdenticalAccounts } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
@@ -15,14 +15,15 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'stepFinal' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'stepFinal' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_CNCJ_REPLACEMENT_CODES' }
+  | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } }
-  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step2' | 'step4' | 'step2+step4' };
+  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step3' | 'step5' | 'step3+step5' };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -35,6 +36,7 @@ const initialState: AppState = {
   currentStep: 'step1',
   replacementCodes: {},
   cncjReplacementCodes: {},
+  mergeInfo: [],
   cncjConflictResult: null,
   cncjConflictSuggestions: {},
   finalFilter: 'all'
@@ -60,7 +62,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'CLEAR_ERRORS':
       return { ...state, errors: [] };
     case 'SET_CURRENT_STEP': {
-      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'stepFinal'];
+      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'step5', 'stepFinal'];
       const currentIndex = stepOrder.indexOf(state.currentStep);
       const targetIndex = stepOrder.indexOf(action.payload);
       
@@ -91,6 +93,9 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_CNCJ_REPLACEMENT_CODES':
       return { ...state, cncjReplacementCodes: {} };
+    case 'SET_MERGE_INFO':
+      console.log('🔍 REDUCER: SET_MERGE_INFO appelé avec payload:', action.payload);
+      return { ...state, mergeInfo: action.payload };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
     case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
@@ -126,14 +131,21 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: {} });
     
     if (source === 'client') {
+      // NE vider mergeInfo QUE pour les fichiers clients (pas pendant le chargement)
+      if (fileInfo.loadStatus !== 'loading') {
+        dispatch({ type: 'SET_MERGE_INFO', payload: [] });
+      }
+      
       // Fusionner les comptes identiques (même numéro ET titre) avant de les stocker
-      const mergedAccounts = mergeIdenticalAccounts(accounts);
+      const { merged: mergedAccounts, mergeInfo } = mergeIdenticalAccounts(accounts);
       console.log(`Fusion de ${accounts.length} comptes clients en ${mergedAccounts.length} comptes uniques`);
+      console.log(`${mergeInfo.length} groupes de comptes ont été fusionnés`);
       
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: mergedAccounts });
+        dispatch({ type: 'SET_MERGE_INFO', payload: mergeInfo });
         
         // Process if we have both files and both are fully loaded (not loading)
         if (state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
@@ -189,6 +201,11 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' });
   }, [state.result]);
 
+  const handleMergeNext = useCallback(() => {
+    console.log('Visualisation des fusions terminée - passage aux doublons');
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' });
+  }, []);
+
   // Générer la liste fusionnée de clients (originaux + corrections surchargées)
   const generateMergedClientAccounts = useCallback((clientAccounts: Account[], replacementCodes: { [key: string]: string }): Account[] => {
     // Partir de la liste originale complète et appliquer les corrections
@@ -211,18 +228,18 @@ const App: React.FC = () => {
     return generateMergedClientAccounts(state.clientAccounts, state.replacementCodes);
   }, [state.clientAccounts, state.replacementCodes, generateMergedClientAccounts]);
 
-  // Créer un Set des IDs des doublons de l'étape 2 pour le style visuel à l'étape 3
-  const duplicateIdsFromStep2 = useMemo((): Set<string> => {
+  // Créer un Set des IDs des doublons de l'étape 3 pour le style visuel à l'étape 4
+  const duplicateIdsFromStep3 = useMemo((): Set<string> => {
     if (!state.result) return new Set();
     return new Set(state.result.duplicates.map(d => d.id));
   }, [state.result]);
 
-  // Calculer le nombre de corrections appliquées aux doublons de l'étape 2
+  // Calculer le nombre de corrections appliquées aux doublons de l'étape 3
   const duplicateCorrectionsCount = useMemo(() => {
     return mergedClientAccounts.filter(acc => 
-      duplicateIdsFromStep2.has(acc.id) && state.replacementCodes[acc.id]?.trim()
+      duplicateIdsFromStep3.has(acc.id) && state.replacementCodes[acc.id]?.trim()
     ).length;
-  }, [mergedClientAccounts, duplicateIdsFromStep2, state.replacementCodes]);
+  }, [mergedClientAccounts, duplicateIdsFromStep3, state.replacementCodes]);
 
   // Incrémenter un code client avec contrainte (ne jamais passer à la dizaine supérieure)
   const incrementCodeWithConstraint = useCallback((code: string): string | null => {
@@ -318,7 +335,7 @@ const App: React.FC = () => {
     }
 
     // Naviguer vers l'étape de révision des corrections
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' });
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
   }, [state.result]);
 
   const handleReviewNext = useCallback(() => {
@@ -331,7 +348,7 @@ const App: React.FC = () => {
     // Ne recalculer les conflits CNCJ que si ce n'a pas déjà été fait
     // Cela préserve les modifications manuelles de l'utilisateur lors de la navigation retour-avant
     if (!state.cncjConflictResult) {
-      console.log('Premier passage à step4 - calcul des conflits CNCJ');
+      console.log('Premier passage à step5 - calcul des conflits CNCJ');
       // Étape 1 : Traiter les conflits CNCJ avec les comptes fusionnés
       const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
       dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
@@ -340,11 +357,11 @@ const App: React.FC = () => {
       const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
       dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
     } else {
-      console.log('Retour à step4 - conservation des conflits CNCJ existants et des modifications manuelles');
+      console.log('Retour à step5 - conservation des conflits CNCJ existants et des modifications manuelles');
     }
 
-    // Étape 3 : Naviguer vers step 4
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
+    // Étape 3 : Naviguer vers step 5
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step5' });
   }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
@@ -446,11 +463,87 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Results Section - Always rendered */}
+        {/* Merge Visualization Section - Step 2 */}
         <div style={{display: state.currentStep === 'step2' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          {(console.log('🔍 DEBUG: Step 2 rendering, mergeInfo:', state.mergeInfo, 'length:', state.mergeInfo.length), null)}
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
               Step 2
+            </span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            🔗 Visualisation des fusions automatiques
+          </h2>
+          
+          {state.mergeInfo.length > 0 ? (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{state.mergeInfo.length}</div>
+                  <div className="text-gray-600">groupes de comptes ont été fusionnés automatiquement</div>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-4 py-2 text-left">Numéro</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
+                      <th className="border border-gray-300 px-4 py-2 text-center">Nombre fusionné</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {state.mergeInfo.map((info, index) => (
+                      <tr key={index} className="bg-blue-50">
+                        <td className="border border-gray-300 px-4 py-2 font-mono">{info.number}</td>
+                        <td className="border border-gray-300 px-4 py-2">{info.title || 'Sans titre'}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
+                          {info.mergedCount}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-sm text-gray-600 text-center">
+                  💡 Les comptes ayant le même numéro ET le même titre ont été automatiquement fusionnés pour éviter les doublons.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <div className="text-gray-500">
+                <div className="text-lg mb-2">✅ Aucune fusion nécessaire</div>
+                <p className="text-sm">Tous les comptes sont uniques (même numéro ET titre)</p>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-6 text-center space-x-4">
+            <button
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' })}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Retour
+            </button>
+            
+            <button
+              onClick={handleMergeNext}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Suivant →
+            </button>
+          </div>
+        </div>
+
+        {/* Results Section - Step 3 */}
+        <div style={{display: state.currentStep === 'step3' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="mb-6 text-center">
+            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
+              Step 3
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -468,7 +561,7 @@ const App: React.FC = () => {
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
@@ -486,11 +579,11 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Review Corrections Section - Step 3 */}
-        <div style={{display: state.currentStep === 'step3' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+        {/* Review Corrections Section - Step 4 */}
+        <div style={{display: state.currentStep === 'step4' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 3
+              Step 4
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -506,12 +599,12 @@ const App: React.FC = () => {
             onReplacementCodeChange={undefined}
             mergedClientAccounts={mergedClientAccounts}
             originalClientAccounts={state.clientAccounts}
-            duplicateIdsFromStep2={duplicateIdsFromStep2}
+            duplicateIdsFromStep3={duplicateIdsFromStep3}
           />
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
@@ -526,11 +619,11 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* CNCJ Reserved Codes Section - Step 4 */}
-        <div style={{display: state.currentStep === 'step4' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
+        {/* CNCJ Reserved Codes Section - Step 5 */}
+        <div style={{display: state.currentStep === 'step5' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="mb-6 text-center">
             <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 4
+              Step 5
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -551,7 +644,7 @@ const App: React.FC = () => {
           
           <div className="mt-6 text-center space-x-4">
             <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
+              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' })}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               ← Retour
@@ -583,28 +676,28 @@ const App: React.FC = () => {
           {/* Préparer les données pour le récapitulatif */}
           {(() => {
             // Optimisation: créer des Sets pour les recherches rapides
-            const step2Ids = new Set(state.result?.duplicates?.map(d => d.id) || []);
-            const step4Ids = new Set(state.cncjConflictResult?.duplicates?.map(d => d.id) || []);
+            const step3Ids = new Set(state.result?.duplicates?.map(d => d.id) || []);
+            const step5Ids = new Set(state.cncjConflictResult?.duplicates?.map(d => d.id) || []);
             
             const finalSummaryData = state.clientAccounts.map(account => {
               const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
               const suggestedCode = state.cncjConflictSuggestions[account.id];
               
               // Déterminer la source de la modification (gérer les doubles modifications)
-              const isStep2Duplicate = step2Ids.has(account.id);
-              const isStep4Conflict = step4Ids.has(account.id);
+              const isStep3Duplicate = step3Ids.has(account.id);
+              const isStep5Conflict = step5Ids.has(account.id);
               
               let modificationSource = null;
-              if (isStep2Duplicate && isStep4Conflict) {
-                modificationSource = 'step2+step4';
-              } else if (isStep4Conflict) {
-                modificationSource = 'step4';
-              } else if (isStep2Duplicate) {
-                modificationSource = 'step2';
+              if (isStep3Duplicate && isStep5Conflict) {
+                modificationSource = 'step3+step5';
+              } else if (isStep5Conflict) {
+                modificationSource = 'step5';
+              } else if (isStep3Duplicate) {
+                modificationSource = 'step3';
               }
               
-              // Code corrigé : toujours montrer la correction step 2 si elle existe
-              const correctedCode = isStep2Duplicate 
+              // Code corrigé : toujours montrer la correction step 3 si elle existe
+              const correctedCode = isStep3Duplicate 
                 ? (mergedAccount?.number || account.number)
                 : account.number;
               
@@ -616,23 +709,23 @@ const App: React.FC = () => {
                 suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
                 wasModified: state.replacementCodes[account.id] !== undefined,
                 modificationSource,
-                isStep2Duplicate,
-                isStep4Conflict
+                isStep3Duplicate,
+                isStep5Conflict
               };
             });
 
             const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
-            const step2Count = finalSummaryData.filter(row => row.isStep2Duplicate).length;
-            const step4Count = finalSummaryData.filter(row => row.isStep4Conflict).length;
-            const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step2+step4').length;
+            const step3Count = finalSummaryData.filter(row => row.isStep3Duplicate).length;
+            const step5Count = finalSummaryData.filter(row => row.isStep5Conflict).length;
+            const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step3+step5').length;
             const totalCount = finalSummaryData.length;
 
             // Fonction pour obtenir le style de ligne selon la source
             const getRowStyle = (source: string | null) => {
               switch (source) {
-                case 'step2': return 'bg-blue-50 border-l-4 border-blue-400';
-                case 'step4': return 'bg-orange-50 border-l-4 border-orange-400';
-                case 'step2+step4': return 'bg-purple-50 border-l-4 border-purple-400';
+                case 'step3': return 'bg-blue-50 border-l-4 border-blue-400';
+                case 'step5': return 'bg-orange-50 border-l-4 border-orange-400';
+                case 'step3+step5': return 'bg-purple-50 border-l-4 border-purple-400';
                 default: return '';
               }
             };
@@ -651,11 +744,11 @@ const App: React.FC = () => {
                       <div className="text-gray-600">Comptes modifiés</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{step2Count}</div>
+                      <div className="text-2xl font-bold text-blue-600">{step3Count}</div>
                       <div className="text-gray-600">Correction doublons</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">{step4Count}</div>
+                      <div className="text-2xl font-bold text-orange-600">{step5Count}</div>
                       <div className="text-gray-600">Suggestions hors CNCJ</div>
                     </div>
                     <div className="text-center">
@@ -688,9 +781,9 @@ const App: React.FC = () => {
                   <div className="mb-4 flex justify-center space-x-2">
                     {(() => {
                       const totalCount = finalSummaryData.length;
-                      const step2Count = finalSummaryData.filter(row => row.modificationSource === 'step2').length;
-                      const step4Count = finalSummaryData.filter(row => row.modificationSource === 'step4').length;
-                      const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step2+step4').length;
+                      const step3Count = finalSummaryData.filter(row => row.modificationSource === 'step3').length;
+                      const step5Count = finalSummaryData.filter(row => row.modificationSource === 'step5').length;
+                      const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step3+step5').length;
                       
                       return (
                         <>
@@ -705,29 +798,29 @@ const App: React.FC = () => {
                             Tous ({totalCount})
                           </button>
                           <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step2' })}
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step3' })}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step2' 
+                              state.finalFilter === 'step3' 
                                 ? 'bg-blue-600 text-white' 
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                           >
-                            Doublons corrigés ({step2Count})
+                            Doublons corrigés ({step3Count})
                           </button>
                           <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step4' })}
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step5' })}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step4' 
+                              state.finalFilter === 'step5' 
                                 ? 'bg-orange-600 text-white' 
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                           >
-                            Suggestions CNCJ ({step4Count})
+                            Suggestions CNCJ ({step5Count})
                           </button>
                           <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step2+step4' })}
+                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step3+step5' })}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step2+step4' 
+                              state.finalFilter === 'step3+step5' 
                                 ? 'bg-purple-600 text-white' 
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
@@ -771,11 +864,11 @@ const App: React.FC = () => {
                           </td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">
-                            {row.modificationSource === 'step2+step4' ? (
+                            {row.modificationSource === 'step3+step5' ? (
                               <span className="text-purple-700 font-bold">
                                 {row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode}
                               </span>
-                            ) : row.modificationSource === 'step2' ? (
+                            ) : row.modificationSource === 'step3' ? (
                               <span className="text-blue-700 font-bold">
                                 {row.correctedCode}
                               </span>
@@ -798,7 +891,7 @@ const App: React.FC = () => {
                 {/* Boutons d'action */}
                 <div className="mt-6 text-center space-x-4">
                   <button
-                    onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' })}
+                    onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step5' })}
                     className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                   >
                     ← Retour
@@ -817,11 +910,11 @@ const App: React.FC = () => {
                         .map(row => {
                           // Déterminer le code final selon la même logique que le tableau
                           let finalCode;
-                          if (row.modificationSource === 'step2+step4') {
+                          if (row.modificationSource === 'step3+step5') {
                             finalCode = row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode;
-                          } else if (row.modificationSource === 'step2') {
+                          } else if (row.modificationSource === 'step3') {
                             finalCode = row.correctedCode;
-                          } else if (row.modificationSource === 'step4') {
+                          } else if (row.modificationSource === 'step5') {
                             finalCode = row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode;
                           } else {
                             finalCode = row.originalCode;

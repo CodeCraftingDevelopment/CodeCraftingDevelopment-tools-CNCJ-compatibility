@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { Account, FileUploadResult, ProcessingResult } from '../types/accounts';
+import { Account, FileUploadResult, ProcessingResult, MergeInfo } from '../types/accounts';
 import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
 
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
@@ -39,9 +39,22 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
   });
 };
 
-export const mergeIdenticalAccounts = (accounts: Account[]): Account[] => {
+export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[], mergeInfo: MergeInfo[] } => {
+  console.log('🔍 DEBUG: mergeIdenticalAccounts appelé avec', accounts.length, 'comptes');
+  console.log('🔍 DEBUG: Comptes d\'origine:', accounts.map(a => ({ number: a.number, title: a.title })));
+  
   const seen = new Map<string, Account>();
   const merged: Account[] = [];
+  const mergeInfo: MergeInfo[] = [];
+  const countMap = new Map<string, number>();
+  
+  // Compter les occurrences pour chaque clé unique
+  accounts.forEach(account => {
+    const key = `${account.number}-${account.title || ''}`;
+    countMap.set(key, (countMap.get(key) || 0) + 1);
+  });
+  
+  console.log('🔍 DEBUG: countMap généré:', Object.fromEntries(countMap));
   
   accounts.forEach(account => {
     // Créer une clé unique basée sur le numéro ET le titre
@@ -51,11 +64,24 @@ export const mergeIdenticalAccounts = (accounts: Account[]): Account[] => {
       // Première occurrence : garder ce compte comme représentant
       seen.set(key, account);
       merged.push(account);
+      
+      // Ajouter les infos de fusion si plus d'une occurrence
+      const count = countMap.get(key) || 0;
+      if (count > 1) {
+        mergeInfo.push({
+          number: account.number,
+          title: account.title || '',
+          mergedCount: count
+        });
+      }
     }
     // Si la clé existe déjà, on ignore ce compte (fusionné dans le premier)
   });
   
-  return merged;
+  console.log('🔍 DEBUG: mergeInfo final:', mergeInfo);
+  console.log('🔍 DEBUG: Fusion terminée -', mergeInfo.length, 'groupes fusionnés');
+  
+  return { merged, mergeInfo };
 };
 
 export const findDuplicates = (accounts: Account[]): Account[] => {
@@ -97,11 +123,10 @@ export const processAccounts = (
   cncjAccounts: Account[]
 ): ProcessingResult => {
   // Étape 1 : Fusionner les comptes identiques (même numéro ET titre)
-  const mergedAccounts = mergeIdenticalAccounts(clientAccounts);
-  
+  // Note: les comptes sont déjà fusionnés dans handleFileLoaded
   // Étape 2 : Détecter les doublons sur les comptes fusionnés
-  const duplicates = findDuplicates(mergedAccounts);
-  const uniqueClients = mergedAccounts.filter(acc => 
+  const duplicates = findDuplicates(clientAccounts);
+  const uniqueClients = clientAccounts.filter(acc => 
     !duplicates.some(dup => dup.id === acc.id)
   );
   

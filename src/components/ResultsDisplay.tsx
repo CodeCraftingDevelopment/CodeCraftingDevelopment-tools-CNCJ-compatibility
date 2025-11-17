@@ -17,7 +17,7 @@ interface ResultsDisplayProps {
   cncjCodes?: Set<string>;
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
-  duplicateIdsFromStep2?: Set<string>;
+  duplicateIdsFromStep3?: Set<string>;
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -31,7 +31,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   cncjCodes,
   mergedClientAccounts,
   originalClientAccounts,
-  duplicateIdsFromStep2
+  duplicateIdsFromStep3
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -171,7 +171,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           mergedClientAccounts={mergedClientAccounts || []}
           originalClientAccounts={originalClientAccounts || []}
           replacementCodes={replacementCodes || {}}
-          duplicateIdsFromStep2={duplicateIdsFromStep2 || new Set()}
+          duplicateIdsFromStep3={duplicateIdsFromStep3 || new Set()}
         />
       )}
 
