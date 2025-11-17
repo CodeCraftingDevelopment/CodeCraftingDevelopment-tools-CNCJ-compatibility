@@ -615,11 +615,16 @@ const App: React.FC = () => {
                 modificationSource = 'step2';
               }
               
+              // Code corrigé : uniquement pour les modifications step 2 (doublons)
+              const correctedCode = step2Ids.has(account.id) 
+                ? (mergedAccount?.number || account.number)
+                : account.number;
+              
               return {
                 id: account.id,
                 title: account.title || 'Sans titre',
                 originalCode: account.number,
-                correctedCode: mergedAccount?.number || account.number,
+                correctedCode: correctedCode,
                 suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
                 wasModified: state.replacementCodes[account.id] !== undefined,
                 modificationSource
