@@ -607,16 +607,21 @@ const App: React.FC = () => {
               const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
               const suggestedCode = state.cncjConflictSuggestions[account.id];
               
-              // Déterminer la source de la modification
+              // Déterminer la source de la modification (gérer les doubles modifications)
+              const isStep2Duplicate = step2Ids.has(account.id);
+              const isStep4Conflict = step4Ids.has(account.id);
+              
               let modificationSource = null;
-              if (step4Ids.has(account.id)) {
+              if (isStep2Duplicate && isStep4Conflict) {
+                modificationSource = 'step2+step4';
+              } else if (isStep4Conflict) {
                 modificationSource = 'step4';
-              } else if (step2Ids.has(account.id)) {
+              } else if (isStep2Duplicate) {
                 modificationSource = 'step2';
               }
               
-              // Code corrigé : uniquement pour les modifications step 2 (doublons)
-              const correctedCode = step2Ids.has(account.id) 
+              // Code corrigé : toujours montrer la correction step 2 si elle existe
+              const correctedCode = isStep2Duplicate 
                 ? (mergedAccount?.number || account.number)
                 : account.number;
               
@@ -627,13 +632,16 @@ const App: React.FC = () => {
                 correctedCode: correctedCode,
                 suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
                 wasModified: state.replacementCodes[account.id] !== undefined,
-                modificationSource
+                modificationSource,
+                isStep2Duplicate,
+                isStep4Conflict
               };
             });
 
             const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
-            const step2Count = finalSummaryData.filter(row => row.modificationSource === 'step2').length;
-            const step4Count = finalSummaryData.filter(row => row.modificationSource === 'step4').length;
+            const step2Count = finalSummaryData.filter(row => row.isStep2Duplicate).length;
+            const step4Count = finalSummaryData.filter(row => row.isStep4Conflict).length;
+            const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step2+step4').length;
             const totalCount = finalSummaryData.length;
 
             // Fonction pour obtenir le style de ligne selon la source
@@ -641,6 +649,7 @@ const App: React.FC = () => {
               switch (source) {
                 case 'step2': return 'bg-blue-50 border-l-4 border-blue-400';
                 case 'step4': return 'bg-orange-50 border-l-4 border-orange-400';
+                case 'step2+step4': return 'bg-purple-50 border-l-4 border-purple-400';
                 default: return '';
               }
             };
@@ -649,7 +658,7 @@ const App: React.FC = () => {
               <div className="space-y-4">
                 {/* Statistiques détaillées */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="grid grid-cols-4 gap-4 text-sm">
+                  <div className="grid grid-cols-5 gap-4 text-sm">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{totalCount}</div>
                       <div className="text-gray-600">Total comptes</div>
@@ -666,12 +675,16 @@ const App: React.FC = () => {
                       <div className="text-2xl font-bold text-orange-600">{step4Count}</div>
                       <div className="text-gray-600">Suggestions hors CNCJ</div>
                     </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{doubleModifiedCount}</div>
+                      <div className="text-gray-600">Double modification</div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Légende */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-center justify-center space-x-6 text-sm">
+                  <div className="flex items-center justify-center space-x-4 text-sm">
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-blue-50 border-l-4 border-blue-400 rounded"></div>
                       <span className="text-gray-700">Correction doublons</span>
@@ -679,6 +692,10 @@ const App: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-orange-50 border-l-4 border-orange-400 rounded"></div>
                       <span className="text-gray-700">Suggestions hors CNCJ</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 bg-purple-50 border-l-4 border-purple-400 rounded"></div>
+                      <span className="text-gray-700">Double modification</span>
                     </div>
                   </div>
                 </div>
@@ -692,17 +709,44 @@ const App: React.FC = () => {
                         <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code suggéré (CNCJ)</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Progression</th>
                       </tr>
                     </thead>
                     <tbody>
                       {finalSummaryData.map((row) => (
                         <tr key={row.id} className={getRowStyle(row.modificationSource)}>
-                          <td className="border border-gray-300 px-4 py-2">{row.title}</td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            <div className="flex items-center space-x-2">
+                              {row.modificationSource === 'step2+step4' && (
+                                <span className="inline-block px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full font-medium">
+                                  Double
+                                </span>
+                              )}
+                              {row.title}
+                            </div>
+                          </td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">
                             {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
+                          <td className="border border-gray-300 px-4 py-2 font-mono text-xs">
+                            {row.modificationSource === 'step2+step4' ? (
+                              <span className="text-purple-700">
+                                {row.originalCode} → {row.correctedCode} → {row.suggestedCode}
+                              </span>
+                            ) : row.modificationSource === 'step2' ? (
+                              <span className="text-blue-700">
+                                {row.originalCode} → {row.correctedCode}
+                              </span>
+                            ) : row.modificationSource === 'step4' ? (
+                              <span className="text-orange-700">
+                                {row.originalCode} → {row.suggestedCode}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -727,6 +771,7 @@ const App: React.FC = () => {
                           modifiedAccounts: modifiedCount,
                           correctionDoublons: step2Count,
                           suggestionsHorsCncj: step4Count,
+                          doubleModifications: doubleModifiedCount,
                           unmodifiedAccounts: totalCount - modifiedCount
                         },
                         accounts: finalSummaryData.map(row => ({
@@ -735,8 +780,15 @@ const App: React.FC = () => {
                           correctedCode: row.correctedCode === row.originalCode ? null : row.correctedCode,
                           suggestedCode: row.suggestedCode === '-' ? null : row.suggestedCode,
                           wasModified: row.wasModified,
-                          modificationSource: row.modificationSource === 'step2' ? 'correction doublons' : 
-                                           row.modificationSource === 'step4' ? 'suggestions hors CNCJ' : null
+                          modificationSource: row.modificationSource === 'step2+step4' ? 'double modification' : 
+                                           row.modificationSource === 'step2' ? 'correction doublons' : 
+                                           row.modificationSource === 'step4' ? 'suggestions hors CNCJ' : null,
+                          progression: row.modificationSource === 'step2+step4' ? 
+                            `${row.originalCode} → ${row.correctedCode} → ${row.suggestedCode}` :
+                            row.modificationSource === 'step2' ? 
+                            `${row.originalCode} → ${row.correctedCode}` :
+                            row.modificationSource === 'step4' ? 
+                            `${row.originalCode} → ${row.suggestedCode}` : null
                         }))
                       };
                       
