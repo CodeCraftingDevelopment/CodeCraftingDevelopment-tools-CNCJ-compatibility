@@ -4,6 +4,8 @@ import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
 import { formatFileSize } from '../utils/fileUtils';
 
+type FilterType = 'all' | 'corrected' | 'uncorrected';
+
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
   loading?: boolean;
@@ -27,6 +29,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   cncjCodes,
   mergedClientAccounts
 }) => {
+  // État pour le filtre des lignes corrigées (step3 uniquement)
+  const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
+  
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
   
@@ -265,6 +270,50 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {/* Review Table - Tableau des corrections */}
       {showOnly === 'review' && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          {/* Boutons de filtrage */}
+          <div className="mb-4 flex justify-center space-x-2">
+            {(() => {
+              const totalCount = mergedClientAccounts?.length || 0;
+              const correctedCount = mergedClientAccounts?.filter(acc => replacementCodes[acc.id]?.trim()).length || 0;
+              const uncorrectedCount = totalCount - correctedCount;
+              
+              return (
+                <>
+                  <button
+                    onClick={() => setCorrectionFilter('all')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      correctionFilter === 'all' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Tous ({totalCount})
+                  </button>
+                  <button
+                    onClick={() => setCorrectionFilter('corrected')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      correctionFilter === 'corrected' 
+                        ? 'bg-green-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Corrigés ({correctedCount})
+                  </button>
+                  <button
+                    onClick={() => setCorrectionFilter('uncorrected')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      correctionFilter === 'uncorrected' 
+                        ? 'bg-gray-600 text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Non corrigés ({uncorrectedCount})
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+          
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
               <thead>
@@ -275,6 +324,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               </thead>
               <tbody>
                 {(mergedClientAccounts || [])
+                  .filter(account => {
+                    if (correctionFilter === 'all') return true;
+                    const isCorrected = !!replacementCodes[account.id]?.trim();
+                    return correctionFilter === 'corrected' ? isCorrected : !isCorrected;
+                  })
                   .sort((a, b) => a.number.localeCompare(b.number))
                   .map((account, index) => {
                     const replacementCode = replacementCodes[account.id]?.trim();
