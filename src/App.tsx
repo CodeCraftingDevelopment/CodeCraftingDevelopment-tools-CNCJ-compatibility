@@ -640,15 +640,6 @@ const App: React.FC = () => {
               }
             };
 
-            // Fonction pour obtenir le badge selon la source
-            const getSourceBadge = (source: string | null) => {
-              switch (source) {
-                case 'step2': return '<span class="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">Step 2</span>';
-                case 'step4': return '<span class="inline-block px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full font-medium">Step 4</span>';
-                default: return '';
-              }
-            };
-
             return (
               <div className="space-y-4">
                 {/* Statistiques détaillées */}
@@ -664,11 +655,11 @@ const App: React.FC = () => {
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{step2Count}</div>
-                      <div className="text-gray-600">Modifs Step 2</div>
+                      <div className="text-gray-600">Correction doublons</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-600">{step4Count}</div>
-                      <div className="text-gray-600">Modifs Step 4</div>
+                      <div className="text-gray-600">Suggestions hors CNCJ</div>
                     </div>
                   </div>
                 </div>
@@ -678,11 +669,11 @@ const App: React.FC = () => {
                   <div className="flex items-center justify-center space-x-6 text-sm">
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-blue-50 border-l-4 border-blue-400 rounded"></div>
-                      <span className="text-gray-700">Step 2 - Doublons</span>
+                      <span className="text-gray-700">Correction doublons</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-orange-50 border-l-4 border-orange-400 rounded"></div>
-                      <span className="text-gray-700">Step 4 - Conflits CNCJ</span>
+                      <span className="text-gray-700">Suggestions hors CNCJ</span>
                     </div>
                   </div>
                 </div>
@@ -692,7 +683,6 @@ const App: React.FC = () => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="border border-gray-300 px-4 py-2 text-left">Source</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
@@ -702,19 +692,6 @@ const App: React.FC = () => {
                     <tbody>
                       {finalSummaryData.map((row) => (
                         <tr key={row.id} className={getRowStyle(row.modificationSource)}>
-                          <td className="border border-gray-300 px-4 py-2">
-                            {row.modificationSource ? (
-                              <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${
-                                row.modificationSource === 'step2' 
-                                  ? 'bg-blue-100 text-blue-800' 
-                                  : 'bg-orange-100 text-orange-800'
-                              }`}>
-                                {row.modificationSource === 'step2' ? 'Step 2' : 'Step 4'}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400 text-xs">-</span>
-                            )}
-                          </td>
                           <td className="border border-gray-300 px-4 py-2">{row.title}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
                           <td className="border border-gray-300 px-4 py-2 font-mono">
@@ -743,8 +720,8 @@ const App: React.FC = () => {
                         summary: {
                           totalAccounts: totalCount,
                           modifiedAccounts: modifiedCount,
-                          step2Modifications: step2Count,
-                          step4Modifications: step4Count,
+                          correctionDoublons: step2Count,
+                          suggestionsHorsCncj: step4Count,
                           unmodifiedAccounts: totalCount - modifiedCount
                         },
                         accounts: finalSummaryData.map(row => ({
@@ -753,7 +730,8 @@ const App: React.FC = () => {
                           correctedCode: row.correctedCode === row.originalCode ? null : row.correctedCode,
                           suggestedCode: row.suggestedCode === '-' ? null : row.suggestedCode,
                           wasModified: row.wasModified,
-                          modificationSource: row.modificationSource
+                          modificationSource: row.modificationSource === 'step2' ? 'correction doublons' : 
+                                           row.modificationSource === 'step4' ? 'suggestions hors CNCJ' : null
                         }))
                       };
                       
