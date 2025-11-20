@@ -5,11 +5,13 @@ import { FileMetadata, Account } from '../types/accounts';
 interface Step1FileUploadProps {
   clientFileInfo: FileMetadata | null;
   cncjFileInfo: FileMetadata | null;
+  generalFileInfo: FileMetadata | null;
   loading: boolean;
   clientAccountsCount: number;
   cncjAccountsCount: number;
-  onFileLoaded: (accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => void;
-  onFileCleared: (source: 'client' | 'cncj') => void;
+  generalAccountsCount: number;
+  onFileLoaded: (accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => void;
+  onFileCleared: (source: 'client' | 'cncj' | 'general') => void;
   onError: (errors: string[]) => void;
   onReset: () => void;
 }
@@ -17,9 +19,11 @@ interface Step1FileUploadProps {
 export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
   clientFileInfo,
   cncjFileInfo,
+  generalFileInfo,
   loading,
   clientAccountsCount,
   cncjAccountsCount,
+  generalAccountsCount,
   onFileLoaded,
   onFileCleared,
   onError,
@@ -41,6 +45,16 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         onFileLoaded={onFileLoaded}
         onFileCleared={onFileCleared}
         onError={onError}
+        label="📊 Fichier des comptes généraux"
+        source="general"
+        disabled={loading}
+        fileInfo={generalFileInfo}
+      />
+      
+      <FileUploader
+        onFileLoaded={onFileLoaded}
+        onFileCleared={onFileCleared}
+        onError={onError}
         label="🏛️ Fichier des comptes CNCJ"
         source="cncj"
         disabled={loading}
@@ -48,7 +62,7 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
       />
 
       {/* Reset Button */}
-      {(clientAccountsCount > 0 || cncjAccountsCount > 0) && (
+      {(clientAccountsCount > 0 || cncjAccountsCount > 0 || generalAccountsCount > 0) && (
         <div className="mt-4 text-center space-x-4">
           <button
             onClick={onReset}

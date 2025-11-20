@@ -136,7 +136,7 @@ export interface Account {
   id: string;           // UUID généré
   number: string;       // Numéro de compte
   title: string;        // Libellé
-  fileSource?: 'client' | 'cncj';
+  fileSource?: 'client' | 'cncj' | 'general';
 }
 
 export interface ProcessingResult {

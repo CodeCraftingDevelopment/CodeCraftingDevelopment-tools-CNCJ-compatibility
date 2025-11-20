@@ -20,8 +20,10 @@ import { StepsInfoModal } from './steps/components/StepsInfoModal';
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CNCJ_ACCOUNTS'; payload: Account[] }
+  | { type: 'SET_GENERAL_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CLIENT_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_CNCJ_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_GENERAL_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
@@ -41,8 +43,10 @@ type AppAction =
 const initialState: AppState = {
   clientAccounts: [],
   cncjAccounts: [],
+  generalAccounts: [],
   clientFileInfo: null,
   cncjFileInfo: null,
+  generalFileInfo: null,
   result: null,
   loading: false,
   errors: [],
@@ -64,10 +68,14 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, clientAccounts: action.payload };
     case 'SET_CNCJ_ACCOUNTS':
       return { ...state, cncjAccounts: action.payload };
+    case 'SET_GENERAL_ACCOUNTS':
+      return { ...state, generalAccounts: action.payload };
     case 'SET_CLIENT_FILE_INFO':
       return { ...state, clientFileInfo: action.payload };
     case 'SET_CNCJ_FILE_INFO':
       return { ...state, cncjFileInfo: action.payload };
+    case 'SET_GENERAL_FILE_INFO':
+      return { ...state, generalFileInfo: action.payload };
     case 'SET_RESULT':
       return { ...state, result: action.payload, loading: false };
     case 'SET_LOADING':
@@ -140,7 +148,7 @@ const App: React.FC = () => {
     }, 500);
   }, []);
 
-  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => {
+  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => {
     dispatch({ type: 'CLEAR_ERRORS' });
     
     // Réinitialiser toutes les étapes et données de traitement quand de nouveaux fichiers sont chargés
@@ -172,6 +180,12 @@ const App: React.FC = () => {
           processClientAccounts(mergedAccounts, state.cncjAccounts);
         }
       }
+    } else if (source === 'general') {
+      dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: fileInfo });
+      // Only update accounts if not in loading state
+      if (fileInfo.loadStatus !== 'loading') {
+        dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: accounts });
+      }
     } else {
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
@@ -190,10 +204,13 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
   }, []);
 
-  const handleFileCleared = useCallback((source: 'client' | 'cncj') => {
+  const handleFileCleared = useCallback((source: 'client' | 'cncj' | 'general') => {
     if (source === 'client') {
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
+    } else if (source === 'general') {
+      dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
+      dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
     } else {
       dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
@@ -204,8 +221,10 @@ const App: React.FC = () => {
     console.log('resetData called');
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+    dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
     dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
@@ -500,9 +519,11 @@ const App: React.FC = () => {
             <Step1FileUpload
               clientFileInfo={state.clientFileInfo}
               cncjFileInfo={state.cncjFileInfo}
+              generalFileInfo={state.generalFileInfo}
               loading={state.loading}
               clientAccountsCount={state.clientAccounts.length}
               cncjAccountsCount={state.cncjAccounts.length}
+              generalAccountsCount={state.generalAccounts.length}
               onFileLoaded={handleFileLoaded}
               onFileCleared={handleFileCleared}
               onError={handleError}

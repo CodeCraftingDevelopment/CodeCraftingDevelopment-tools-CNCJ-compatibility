@@ -7,11 +7,11 @@ import { DropZone } from './DropZone';
 import { ImportErrorsModal } from './ImportErrorsModal';
 
 interface FileUploaderProps {
-  onFileLoaded: (accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => void;
-  onFileCleared: (source: 'client' | 'cncj') => void;
+  onFileLoaded: (accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => void;
+  onFileCleared: (source: 'client' | 'cncj' | 'general') => void;
   onError: (errors: string[]) => void;
   label: string;
-  source: 'client' | 'cncj';
+  source: 'client' | 'cncj' | 'general';
   disabled?: boolean;
   fileInfo: FileMetadata | null;
 }

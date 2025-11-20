@@ -2,7 +2,7 @@ export interface Account {
   id: string;
   number: string;
   title?: string;
-  source: 'client' | 'cncj';
+  source: 'client' | 'cncj' | 'general';
 }
 
 export interface NormalizationAccount {
@@ -51,8 +51,10 @@ export interface InvalidRow {
 export interface AppState {
   clientAccounts: Account[];
   cncjAccounts: Account[];
+  generalAccounts: Account[];
   clientFileInfo: FileMetadata | null;
   cncjFileInfo: FileMetadata | null;
+  generalFileInfo: FileMetadata | null;
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];

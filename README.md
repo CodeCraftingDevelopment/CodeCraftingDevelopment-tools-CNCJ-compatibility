@@ -203,7 +203,7 @@ interface Account {
   id: string;
   number: string;
   title?: string;        // Optionnel, pour les descriptions
-  source: 'client' | 'cncj';
+  source: 'client' | 'cncj' | 'general';
 }
 
 interface ProcessingResult {
