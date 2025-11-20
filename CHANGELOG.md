@@ -2,6 +2,22 @@
 
 ## 2024-11-20
 
+### Ajouts du 2025-11-20
+- ajout d'une fenêtre modale d'aide détaillant le déroulé des étapes, accessible depuis la barre de progression ;
+- mise à jour de la barre de progression pour afficher un bouton « ℹ️ Aide étapes » ;
+- harmonisation de la terminologie CNCJ en parlant de « corrections » plutôt que « suggestions ».
+
+#### Fichiers concernés
+- `src/App.tsx`
+- `src/steps/components/ProgressBar.tsx`
+- `src/steps/components/StepsInfoModal.tsx`
+- `src/components/ResultsDisplay.tsx`
+- `src/components/DuplicateRow.tsx`
+- `src/steps/Step6CNCJConflicts.tsx`
+- `src/steps/StepFinalSummary.tsx`
+- `src/utils/stepCleanup.ts`
+- `src/types/accounts.ts`
+
 ### Résumé
 - refonte de `App.tsx` pour consommer une configuration d'étapes dynamique ;
 - ajout d'une configuration centralisée et de composants dédiés au rendu/navigation ;

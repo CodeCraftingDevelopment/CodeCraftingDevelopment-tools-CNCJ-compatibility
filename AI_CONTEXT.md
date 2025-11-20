@@ -34,6 +34,22 @@ Application React/TypeScript pour traiter et comparer des comptes comptables pro
 
 ### Structure des dossiers
 ```
+
+#### Option : Bouton d'aide
+- `onShowInfo` (callback) : si fourni, affiche un bouton « ℹ️ Aide étapes » ouvrant une modale détaillant chaque étape.
+- Le composant `StepsInfoModal` (cf. ci-dessous) est responsable de l'affichage de ces informations.
+
+### StepsInfoModal
+Composant modal présentant un résumé du fonctionnement de chaque étape.
+
+```tsx
+<StepsInfoModal onClose={() => setIsStepsInfoOpen(false)} />
+```
+
+**Comportement :**
+- Liste toutes les entrées de `STEPS_CONFIG` (hors récapitulatif final) avec icône, titre, ordre et description.
+- Fournit un encadré spécifique pour l'étape finale (« Récapitulatif final »).
+- La fermeture se fait via le bouton ✕ ou le bouton d'action « Fermer ».
 src/
 ├── config/
 │   └── stepsConfig.ts          # ⭐ Configuration centralisée des étapes
