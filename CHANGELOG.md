@@ -7,6 +7,11 @@
 - mise à jour de la barre de progression pour afficher un bouton « ℹ️ Aide étapes » ;
 - harmonisation de la terminologie CNCJ en parlant de « corrections » plutôt que « suggestions ».
 
+#### Améliorations import CSV
+- comptage des lignes utiles vs. lignes ignorées lors du parsing des fichiers clients/CNCJ ;
+- remontée d'alertes UI lorsque les lignes importées ne correspondent pas aux lignes détectées ;
+- affichage des statistiques (total, importées, ignorées) dans la carte de fichier.
+
 #### Fichiers concernés
 - `src/App.tsx`
 - `src/steps/components/ProgressBar.tsx`
@@ -17,6 +22,8 @@
 - `src/steps/StepFinalSummary.tsx`
 - `src/utils/stepCleanup.ts`
 - `src/types/accounts.ts`
+- `src/utils/accountUtils.ts`
+- `src/components/FileUploader.tsx`
 
 ### Résumé
 - refonte de `App.tsx` pour consommer une configuration d'étapes dynamique ;

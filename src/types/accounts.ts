@@ -28,12 +28,16 @@ export interface ProcessingResult {
 export interface FileUploadResult {
   accounts: Account[];
   errors: string[];
+  totalRows: number;
+  skippedRows: number;
 }
 
 export interface FileMetadata {
   name: string;
   size: string;
   rowCount: number;
+  totalRows?: number;
+  skippedRows?: number;
   loadStatus: 'success' | 'warning' | 'error' | 'loading';
 }
 

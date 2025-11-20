@@ -42,14 +42,29 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
     try {
       const result: FileUploadResult = await parseCSVFile(file);
-      
-      if (result.accounts.length === 0) {
+      const importedCount = result.accounts.length;
+      const totalRows = result.totalRows;
+      const skippedRows = result.skippedRows;
+      const discrepancy = Math.max(totalRows - importedCount, skippedRows);
+      const hasDiscrepancy = totalRows > 0 && discrepancy > 0;
+      const hasErrors = result.errors.length > 0;
+
+      if (importedCount === 0) {
         const errorFileInfo: FileMetadata = {
           name: file.name,
           size: formatFileSize(file.size),
           rowCount: 0,
+          totalRows,
+          skippedRows,
           loadStatus: 'error'
         };
+        const messages = [...result.errors];
+        if (totalRows > 0) {
+          messages.push(`Aucune ligne n'a pu être importée sur ${totalRows} détectées.`);
+        }
+        if (messages.length > 0) {
+          onError(messages);
+        }
         onFileLoaded([], source, errorFileInfo);
         return;
       }
@@ -62,12 +77,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       const finalFileInfo: FileMetadata = {
         name: file.name,
         size: formatFileSize(file.size),
-        rowCount: result.accounts.length,
-        loadStatus: result.errors.length > 0 ? 'warning' : 'success'
+        rowCount: importedCount,
+        totalRows,
+        skippedRows: discrepancy,
+        loadStatus: hasErrors || hasDiscrepancy ? 'warning' : 'success'
       };
       
-      if (result.errors.length > 0) {
-        onError(result.errors);
+      const feedbackMessages = [...result.errors];
+      if (hasDiscrepancy) {
+        feedbackMessages.push(`Import partiel: ${importedCount} comptes importés sur ${totalRows} lignes détectées (${discrepancy} ignorées).`);
+      }
+      if (feedbackMessages.length > 0) {
+        onError(feedbackMessages);
       }
       
       onFileLoaded(accountsWithSource, source, finalFileInfo);
@@ -76,6 +97,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         name: file.name,
         size: formatFileSize(file.size),
         rowCount: 0,
+        totalRows: 0,
+        skippedRows: 0,
         loadStatus: 'error'
       };
       onError([`Erreur lors de la lecture du fichier: ${error}`]);
@@ -199,7 +222,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{fileInfo?.name}</p>
                   <p className="text-xs text-gray-500">
-                    {fileInfo?.size} {fileInfo?.rowCount && `• ${fileInfo.rowCount} comptes`}
+                    {fileInfo?.size}
+                    {fileInfo?.rowCount !== undefined && fileInfo.rowCount >= 0 && (
+                      <>
+                        {` • ${fileInfo.rowCount} compte${fileInfo.rowCount > 1 ? 's' : ''}`}
+                        {fileInfo?.totalRows !== undefined && fileInfo.totalRows > 0 && fileInfo.totalRows !== fileInfo.rowCount && (
+                          ` / ${fileInfo.totalRows} lignes`
+                        )}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -222,9 +253,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               'text-red-600'
             }`}>
               {fileInfo.loadStatus === 'success' && `${fileInfo.rowCount} comptes chargés avec succès`}
-              {fileInfo.loadStatus === 'warning' && `${fileInfo.rowCount} comptes chargés (avec erreurs)`}
+              {fileInfo.loadStatus === 'warning' && `Import partiel: ${fileInfo.rowCount} compte${fileInfo.rowCount > 1 ? 's' : ''} importé${fileInfo.rowCount > 1 ? 's' : ''}`}
               {fileInfo.loadStatus === 'error' && 'Échec du chargement'}
             </div>
+
+            {fileInfo.skippedRows !== undefined && fileInfo.skippedRows > 0 && (
+              <div className="text-xs text-orange-600">
+                {`${fileInfo.skippedRows} ligne${fileInfo.skippedRows > 1 ? 's' : ''} ignorée${fileInfo.skippedRows > 1 ? 's' : ''}.`}
+              </div>
+            )}
             
             {/* Action buttons */}
             <div className="flex justify-center space-x-2">

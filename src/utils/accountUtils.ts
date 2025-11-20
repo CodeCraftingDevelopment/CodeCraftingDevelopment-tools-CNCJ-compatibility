@@ -5,35 +5,69 @@ import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csv
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
   return new Promise((resolve) => {
     Papa.parse(file, {
+      skipEmptyLines: false,
       complete: (result) => {
         const accounts: Account[] = [];
         const errors: string[] = [];
+        let totalRows = 0;
+        let skippedRows = 0;
         
         result.data.forEach((row: any, index: number) => {
-          // Skip header row if exists
-          if (index === 0 && isNaN(row[0])) {
+          const cells = Array.isArray(row) ? row : Object.values(row ?? {});
+
+          if (cells.length === 0) {
             return;
           }
-          
-          const format = detectCSVFormat(row);
-          const { accountNumber, accountTitle } = extractAccountData(row, format);
-          
-          if (isValidAccountNumber(accountNumber)) {
+
+          const firstCell = typeof cells[0] === 'string' ? cells[0].trim() : cells[0];
+          const isHeaderRow = index === 0 && typeof firstCell === 'string' && firstCell.length > 0 && isNaN(Number(firstCell));
+          if (isHeaderRow) {
+            return;
+          }
+
+          const hasContent = cells.some((cell) => {
+            if (cell === null || cell === undefined) return false;
+            if (typeof cell === 'string') {
+              return cell.trim().length > 0;
+            }
+            return true;
+          });
+
+          if (!hasContent) {
+            return;
+          }
+
+          totalRows += 1;
+
+          const format = detectCSVFormat(cells);
+          const { accountNumber, accountTitle } = extractAccountData(cells, format);
+          const trimmedAccountNumber = accountNumber?.trim();
+
+          if (!trimmedAccountNumber) {
+            skippedRows += 1;
+            errors.push(`Ligne ${index + 1}: aucun numéro de compte détecté`);
+            return;
+          }
+
+          if (isValidAccountNumber(trimmedAccountNumber)) {
             accounts.push({
-              id: `${accountNumber}-${index}`,
-              number: accountNumber,
+              id: `${trimmedAccountNumber}-${index}`,
+              number: trimmedAccountNumber,
               title: accountTitle || undefined,
               source: 'client' // Will be updated by caller
             });
-          } else if (accountNumber) {
-            errors.push(`Ligne ${index + 1}: "${accountNumber}" n'est pas un numéro de compte valide`);
+          } else {
+            skippedRows += 1;
+            errors.push(`Ligne ${index + 1}: "${trimmedAccountNumber}" n'est pas un numéro de compte valide`);
           }
         });
         
-        resolve({ accounts, errors });
+        // Ajuster skippedRows au cas où certains comptes valides n'ont pas été comptés explicitement
+        const computedSkipped = Math.max(totalRows - accounts.length, skippedRows);
+        resolve({ accounts, errors, totalRows, skippedRows: computedSkipped });
       },
       error: (error) => {
-        resolve({ accounts: [], errors: [error.message] });
+        resolve({ accounts: [], errors: [error.message], totalRows: 0, skippedRows: 0 });
       }
     });
   });

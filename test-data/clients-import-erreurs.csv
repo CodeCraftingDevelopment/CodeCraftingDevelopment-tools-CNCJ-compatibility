@@ -1,0 +1,8 @@
+Numéro de compte,Titre
+1234567,Compte valide
+ABC123,Numéro invalide
+,Manque numéro
+7654321,Compte valide 2
+98765A,Titre mixte
+ ,Titre sans numéro
+998877,Compte valide 3

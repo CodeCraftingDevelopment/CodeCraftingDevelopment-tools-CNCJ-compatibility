@@ -12,6 +12,13 @@ Application React/TypeScript pour traiter et comparer des comptes comptables pro
 - **Comptes clients** (fichier CSV)
 - **Comptes CNCJ** (Conseil National des Compagnies Judiciaires - fichier CSV)
 
+#### parseCSVFile
+- Utilise PapaParse pour lire les fichiers CSV clients/CNCJ.
+- Détecte automatiquement le format (séparateur, ordre des colonnes) via `detectCSVFormat`.
+- Retourne `accounts`, `errors`, ainsi que :
+  - `totalRows` : nombre de lignes utiles détectées (hors en-tête et lignes vides) ;
+  - `skippedRows` : lignes ignorées (vides ou avec numéros invalides).
+
 ### Workflow principal
 1. Chargement des fichiers CSV
 2. Fusion automatique des comptes identiques
@@ -23,7 +30,7 @@ Application React/TypeScript pour traiter et comparer des comptes comptables pro
 
 ---
 
-## 🏗️ Architecture Technique
+## Architecture Technique
 
 ### Stack
 - **Framework** : React 18 + TypeScript
@@ -34,22 +41,6 @@ Application React/TypeScript pour traiter et comparer des comptes comptables pro
 
 ### Structure des dossiers
 ```
-
-#### Option : Bouton d'aide
-- `onShowInfo` (callback) : si fourni, affiche un bouton « ℹ️ Aide étapes » ouvrant une modale détaillant chaque étape.
-- Le composant `StepsInfoModal` (cf. ci-dessous) est responsable de l'affichage de ces informations.
-
-### StepsInfoModal
-Composant modal présentant un résumé du fonctionnement de chaque étape.
-
-```tsx
-<StepsInfoModal onClose={() => setIsStepsInfoOpen(false)} />
-```
-
-**Comportement :**
-- Liste toutes les entrées de `STEPS_CONFIG` (hors récapitulatif final) avec icône, titre, ordre et description.
-- Fournit un encadré spécifique pour l'étape finale (« Récapitulatif final »).
-- La fermeture se fait via le bouton ✕ ou le bouton d'action « Fermer ».
 src/
 ├── config/
 │   └── stepsConfig.ts          # ⭐ Configuration centralisée des étapes
