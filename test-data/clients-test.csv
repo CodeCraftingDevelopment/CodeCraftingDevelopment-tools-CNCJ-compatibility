@@ -17,7 +17,8 @@ numero,titre
 30004,Compte test 5
 50000,Compte avec caractères spéciaux: éàçù
 50001,Très long titre de compte qui dépasse la normale pour tester l'affichage et le rendu dans l'interface utilisateur avec beaucoup de texte
-50002,
+50002,Toto
 60000,123 dans le titre
-60001,Compte avec "guillemets"
-60002,Compte avec (parenthèses) et [crochets]
+12345678,Code avec 8 chiffres
+123456789,Code avec 9 chiffres
+401120,Code présent dans cncj-test.csv

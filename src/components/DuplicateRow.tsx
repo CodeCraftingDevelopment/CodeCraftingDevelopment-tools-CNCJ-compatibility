@@ -105,19 +105,13 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
         </div>
       </div>
       
-      {/* Afficher les suggestions pour les conflits CNCJ */}
+      {/* Afficher une erreur pour les conflits CNCJ */}
       {conflictType === 'cncj-conflicts' && suggestions[account.id] && (
         <div className="mt-2 flex items-center space-x-2">
-          <span className="text-xs text-gray-600">Suggestion:</span>
-          {suggestions[account.id] === 'error' ? (
-            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
-              Aucune solution disponible (contrainte dizaine)
-            </span>
-          ) : (
-            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-mono">
-              {account.number} → {suggestions[account.id]}
-            </span>
-          )}
+          <span className="text-xs text-gray-600">Statut:</span>
+          <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+            ⚠️ Erreur de correspondance CNCJ
+          </span>
         </div>
       )}
     </div>
