@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ProcessingResult, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useCorrectionsImport } from '../hooks/useCorrectionsImport';
 import { DropZone } from './DropZone';
 import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
+import { calculateSuggestions } from '../utils/codeSuggestions';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -35,6 +36,22 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
+  
+  // Calculer les suggestions pour les doublons (seulement pour l'étape 4)
+  const suggestions = useMemo(() => {
+    if (conflictType !== 'duplicates' || duplicates.length === 0) {
+      return new Map<string, string | null>();
+    }
+    
+    // Obtenir tous les codes originaux (sauf les doublons)
+    const existingCodes = new Set([
+      ...uniqueClients.map(acc => acc.number),
+      ...matches.map(acc => acc.number),
+      ...unmatchedClients.map(acc => acc.number)
+    ]);
+    
+    return calculateSuggestions(duplicates, existingCodes, replacementCodes);
+  }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType]);
   
   // Utiliser le hook personnalisé pour les corrections
   const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
@@ -210,6 +227,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isCncjCode={isCncjCode}
                       conflictType={conflictType}
                       corrections={corrections}
+                      suggestedCode={suggestions.get(account.id)}
                     />
                   );
                 });

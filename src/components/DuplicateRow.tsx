@@ -9,6 +9,7 @@ interface DuplicateRowProps {
   isCncjCode?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
   corrections?: { [key: string]: string | 'error' };
+  suggestedCode?: string | null;
 }
 
 export const DuplicateRow: React.FC<DuplicateRowProps> = ({
@@ -18,7 +19,8 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isDuplicateCode,
   isCncjCode = false,
   conflictType = 'duplicates',
-  corrections = {}
+  corrections = {},
+  suggestedCode
 }) => {
   const isEmpty = !replacementCode?.trim();
   
@@ -80,7 +82,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
         <label className="text-xs text-gray-600 whitespace-nowrap">
           Code remplacement:
         </label>
-        <div className="relative flex items-center">
+        <div className="relative flex items-center flex-1">
           <input
             type="text"
             value={replacementCode || ''}
@@ -89,20 +91,38 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
             className={`w-32 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 ${focusRingClass} ${inputColorClass}`}
           />
           {isDuplicateCode && (
-            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
+            <div className="absolute left-36 top-1/2 transform -translate-y-1/2 text-red-600">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
           )}
           {isCncjCode && (
-            <div className="absolute -right-5 top-1/2 transform -translate-y-1/2 text-red-600">
+            <div className="absolute left-36 top-1/2 transform -translate-y-1/2 text-red-600">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
           )}
         </div>
+        {/* Bouton de suggestion - uniquement pour l'étape 4 (conflictType === 'duplicates') */}
+        {conflictType === 'duplicates' && !replacementCode?.trim() && (
+          <div className="ml-2">
+            {suggestedCode ? (
+              <button
+                onClick={() => onReplacementCodeChange(account.id, suggestedCode)}
+                className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors whitespace-nowrap"
+                title={`Utiliser le code suggéré: ${suggestedCode}`}
+              >
+                💡 {suggestedCode}
+              </button>
+            ) : account.number.endsWith('9') ? (
+              <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title="Aucune suggestion disponible (code finit par 9)">
+                ⚠️ Erreur
+              </span>
+            ) : null}
+          </div>
+        )}
       </div>
       
       {/* Afficher une erreur pour les conflits CNCJ */}
