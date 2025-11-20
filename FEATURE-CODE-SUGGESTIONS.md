@@ -112,14 +112,28 @@ const suggestions = useMemo(() => {
 
 ## 🎯 Règles d'Incrémentation
 
+### Règle 0 : Premier doublon garde son code original ⭐
+Pour minimiser les changements, le premier doublon d'un groupe garde son code original si celui-ci n'est pas déjà utilisé.
+
+```typescript
+// Exemple : 2 doublons du code "20000"
+Doublon 1 : suggestion = "20000" (garde le code original)
+Doublon 2 : suggestion = "20001" (incrémenté)
+
+// Exemple : 3 doublons du code "140"
+Doublon 1 : suggestion = "140" (garde le code original)
+Doublon 2 : suggestion = "141"
+Doublon 3 : suggestion = "142"
+```
+
 ### Règle 1 : Incrémentation limitée à la dizaine
 Le code suggéré ne dépasse jamais la dizaine du code original.
 
 ```typescript
 // Exemples
-140 → 141, 142, 143, ..., 149 (maximum)
-145 → 146, 147, 148, 149 (maximum)
-200 → 201, 202, 203, ..., 209 (maximum)
+140 → 140, 141, 142, 143, ..., 149 (maximum)
+145 → 145, 146, 147, 148, 149 (maximum)
+200 → 200, 201, 202, 203, ..., 209 (maximum)
 
 // JAMAIS de passage à la dizaine supérieure
 149 → null (pas de suggestion)
@@ -191,9 +205,9 @@ const suggestions = calculateSuggestions(duplicates, existingCodes, replacementC
 
 // Résultat :
 // Map {
-//   'dup1' → '141',
-//   'dup2' → '142',
-//   'dup3' → '143'
+//   'dup1' → '140',  // Premier doublon garde le code original
+//   'dup2' → '141',
+//   'dup3' → '142'
 // }
 ```
 
@@ -213,7 +227,7 @@ const suggestions = calculateSuggestions(duplicates, existingCodes, replacementC
 // Résultat :
 // Map {
 //   'dup1' → null,  // Déjà rempli, pas de suggestion
-//   'dup2' → '142'  // Suggère 142 car 141 est utilisé
+//   'dup2' → '140'  // Premier doublon sans remplacement garde le code original
 // }
 ```
 

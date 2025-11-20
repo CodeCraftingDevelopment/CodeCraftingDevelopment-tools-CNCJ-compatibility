@@ -59,22 +59,43 @@ export function calculateSuggestions(
     }
   });
 
-  // Calculer les suggestions pour chaque doublon
+  // Grouper les doublons par code original
+  const duplicatesByCode = new Map<string, Array<{ id: string; number: string }>>();
   duplicates.forEach(duplicate => {
-    // Si un code de remplacement est déjà saisi, ne pas suggérer
-    const currentReplacement = replacementCodes[duplicate.id]?.trim();
-    if (currentReplacement) {
-      suggestions.set(duplicate.id, null);
-      return;
+    const code = duplicate.number;
+    if (!duplicatesByCode.has(code)) {
+      duplicatesByCode.set(code, []);
     }
+    duplicatesByCode.get(code)!.push(duplicate);
+  });
 
-    const suggestion = suggestNextCode(duplicate.number, allUsedCodes);
-    suggestions.set(duplicate.id, suggestion);
-    
-    // Si une suggestion est trouvée, l'ajouter aux codes utilisés pour éviter les doublons
-    if (suggestion) {
-      allUsedCodes.add(suggestion);
-    }
+  // Calculer les suggestions pour chaque groupe de doublons
+  duplicatesByCode.forEach((group, originalCode) => {
+    group.forEach((duplicate, index) => {
+      // Si un code de remplacement est déjà saisi, ne pas suggérer
+      const currentReplacement = replacementCodes[duplicate.id]?.trim();
+      if (currentReplacement) {
+        suggestions.set(duplicate.id, null);
+        return;
+      }
+
+      let suggestion: string | null;
+
+      // Le premier doublon d'un groupe garde le code original si disponible
+      if (index === 0 && !allUsedCodes.has(originalCode)) {
+        suggestion = originalCode;
+      } else {
+        // Les suivants utilisent l'incrémentation
+        suggestion = suggestNextCode(originalCode, allUsedCodes);
+      }
+
+      suggestions.set(duplicate.id, suggestion);
+      
+      // Si une suggestion est trouvée, l'ajouter aux codes utilisés pour éviter les doublons
+      if (suggestion) {
+        allUsedCodes.add(suggestion);
+      }
+    });
   });
 
   return suggestions;

@@ -7,8 +7,8 @@ Ce fichier permet de tester la nouvelle fonctionnalité de suggestion automatiqu
 ## 📋 Contenu du fichier
 
 Le fichier contient :
-- **3 doublons du code 140** → suggestions attendues : 141, 142, 143
-- **2 doublons du code 145** → suggestions attendues : 146, 147
+- **3 doublons du code 140** → suggestions attendues : 140, 141, 142 (le premier garde son code)
+- **2 doublons du code 145** → suggestions attendues : 145, 146 (le premier garde son code)
 - **2 doublons du code 149** → aucune suggestion (erreur car finit par 9)
 - **2 comptes uniques** : 200, 201 → pas de doublons
 
@@ -19,13 +19,13 @@ Le fichier contient :
 - **"✨ Valider les suggestions"** : applique automatiquement toutes les suggestions disponibles en un clic
 
 ### Pour les doublons de 140 :
-- Premier doublon : bouton **"💡 141"**
-- Deuxième doublon : bouton **"💡 142"**
-- Troisième doublon : bouton **"💡 143"**
+- Premier doublon : bouton **"💡 140"** (garde le code original)
+- Deuxième doublon : bouton **"💡 141"**
+- Troisième doublon : bouton **"💡 142"**
 
 ### Pour les doublons de 145 :
-- Premier doublon : bouton **"💡 146"**
-- Deuxième doublon : bouton **"💡 147"**
+- Premier doublon : bouton **"💡 145"** (garde le code original)
+- Deuxième doublon : bouton **"💡 146"**
 
 ### Pour les doublons de 149 :
 - Premier doublon : badge **"⚠️ Erreur"** (rouge)
@@ -65,16 +65,16 @@ Le fichier contient :
 5. Vérifier les badges d'erreur pour 149
 
 ### Test 2 : Utilisation des suggestions
-1. Cliquer sur "💡 141" pour le premier doublon de 140
-2. Vérifier que le champ est rempli avec "141"
+1. Cliquer sur "💡 140" pour le premier doublon de 140
+2. Vérifier que le champ est rempli avec "140"
 3. Vérifier que le bouton disparaît
 4. Vérifier que la ligne passe au vert (code valide)
 
 ### Test 3 : Gestion des doublons de suggestions
-1. Saisir manuellement "141" pour le premier doublon de 140
-2. Vérifier que le deuxième doublon suggère "142" (pas 141)
-3. Cliquer sur "💡 142"
-4. Vérifier que le troisième doublon suggère "143"
+1. Cliquer sur "💡 140" pour le premier doublon de 140
+2. Vérifier que le deuxième doublon suggère "141" (pas 140 car déjà utilisé)
+3. Cliquer sur "💡 141" pour le deuxième doublon
+4. Vérifier que le troisième doublon suggère "142"
 
 ### Test 4 : Codes se terminant par 9
 1. Vérifier que les doublons de 149 affichent "⚠️ Erreur"
@@ -91,8 +91,8 @@ Le fichier contient :
 2. Vérifier le tooltip indique le nombre de suggestions disponibles
 3. Cliquer sur "✨ Valider les suggestions"
 4. Vérifier que tous les codes suggérés sont appliqués automatiquement :
-   - 140 → 141, 142, 143
-   - 145 → 146, 147
+   - 140 → 140, 141, 142 (premier garde son code)
+   - 145 → 145, 146 (premier garde son code)
    - 149 → reste vide (erreur)
 5. Vérifier que le bouton devient désactivé (grisé) après application
 6. Vérifier que les lignes passent au vert (codes valides)
@@ -132,11 +132,11 @@ Le fichier contient :
 Après application de toutes les suggestions :
 
 ```
-Compte 140 (doublon 1) → 141 ✅
-Compte 140 (doublon 2) → 142 ✅
-Compte 140 (doublon 3) → 143 ✅
-Compte 145 (doublon 1) → 146 ✅
-Compte 145 (doublon 2) → 147 ✅
+Compte 140 (doublon 1) → 140 ✅ (garde son code original)
+Compte 140 (doublon 2) → 141 ✅
+Compte 140 (doublon 3) → 142 ✅
+Compte 145 (doublon 1) → 145 ✅ (garde son code original)
+Compte 145 (doublon 2) → 146 ✅
 Compte 149 (doublon 1) → ⚠️ ERREUR
 Compte 149 (doublon 2) → ⚠️ ERREUR
 Compte 200 → Pas un doublon
@@ -144,3 +144,5 @@ Compte 201 → Pas un doublon
 ```
 
 **Total** : 5 doublons résolus, 2 en erreur
+
+**Note** : Le premier doublon de chaque groupe garde son code original pour minimiser les changements.

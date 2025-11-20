@@ -6,7 +6,8 @@
 
 #### Fonctionnalité : Suggestion automatique de codes pour les doublons
 - **Algorithme de suggestion** : calcul automatique des codes de remplacement pour les doublons
-  - Incrémente le code original de 1 sans jamais passer à la dizaine supérieure (ex: 140→141, 142...149 max)
+  - Le premier doublon garde son code original (ex: 20000→20000, 20001)
+  - Incrémente les suivants de 1 sans jamais passer à la dizaine supérieure (ex: 140→140, 141, 142...149 max)
   - Codes finissant par 9 : affichage d'un badge d'erreur (⚠️ Erreur)
   - Évite automatiquement les doublons en vérifiant tous les codes existants
 - **Boutons de suggestion individuels** : chaque doublon affiche un bouton "💡 [code]" pour appliquer la suggestion
@@ -26,10 +27,11 @@
 - `src/components/ResultsDisplay.tsx` - Intégration du calcul de suggestions et bouton global
 
 #### Règles implémentées
-1. **Incrémentation limitée** : +1 par doublon sans dépasser la dizaine
-2. **Détection d'erreur** : codes finissant par 9 marqués comme non-suggérables
-3. **Évitement des doublons** : vérification complète des codes existants et suggérés
-4. **Application sélective** : ignore les champs déjà remplis et les erreurs
+1. **Premier doublon garde son code** : minimise les changements en gardant le code original pour le premier doublon
+2. **Incrémentation limitée** : +1 par doublon sans dépasser la dizaine
+3. **Détection d'erreur** : codes finissant par 9 marqués comme non-suggérables
+4. **Évitement des doublons** : vérification complète des codes existants et suggérés
+5. **Application sélective** : ignore les champs déjà remplis et les erreurs
 
 ---
 
