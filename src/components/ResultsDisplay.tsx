@@ -167,6 +167,43 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           >
             📥 {conflictType === 'cncj-conflicts' ? 'Exporter les conflits' : 'Exporter les doublons'}
           </button>
+          
+          {/* Bouton pour valider toutes les suggestions - uniquement pour l'étape 4 */}
+          {conflictType === 'duplicates' && (
+            <button
+              onClick={() => {
+                if (!onReplacementCodeChange) return;
+                
+                // Appliquer toutes les suggestions disponibles
+                suggestions.forEach((suggestedCode, accountId) => {
+                  // Appliquer uniquement si :
+                  // 1. Il y a une suggestion (pas null)
+                  // 2. Le champ est vide (pas déjà rempli)
+                  if (suggestedCode && !replacementCodes[accountId]?.trim()) {
+                    onReplacementCodeChange(accountId, suggestedCode);
+                  }
+                });
+              }}
+              disabled={(() => {
+                // Désactiver si aucune suggestion disponible
+                const availableSuggestions = Array.from(suggestions.entries()).filter(
+                  ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+                );
+                return availableSuggestions.length === 0;
+              })()}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              title={(() => {
+                const availableSuggestions = Array.from(suggestions.entries()).filter(
+                  ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+                );
+                return availableSuggestions.length > 0 
+                  ? `Appliquer ${availableSuggestions.length} suggestion(s) automatique(s)`
+                  : 'Aucune suggestion disponible';
+              })()}
+            >
+              ✨ Valider les suggestions
+            </button>
+          )}
         </div>
       )}
 

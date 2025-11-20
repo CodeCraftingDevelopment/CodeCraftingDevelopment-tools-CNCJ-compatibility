@@ -2,6 +2,37 @@
 
 ## 2024-11-20
 
+### Ajouts du 2024-11-20 (Suggestions automatiques - Étape 4)
+
+#### Fonctionnalité : Suggestion automatique de codes pour les doublons
+- **Algorithme de suggestion** : calcul automatique des codes de remplacement pour les doublons
+  - Incrémente le code original de 1 sans jamais passer à la dizaine supérieure (ex: 140→141, 142...149 max)
+  - Codes finissant par 9 : affichage d'un badge d'erreur (⚠️ Erreur)
+  - Évite automatiquement les doublons en vérifiant tous les codes existants
+- **Boutons de suggestion individuels** : chaque doublon affiche un bouton "💡 [code]" pour appliquer la suggestion
+- **Bouton "Valider les suggestions"** : applique toutes les suggestions disponibles en un clic
+  - Visible uniquement à l'étape 4 (résolution des doublons)
+  - État dynamique (actif/désactivé selon disponibilité)
+  - Tooltip indiquant le nombre de suggestions à appliquer
+- **Affichage conditionnel** : les suggestions n'apparaissent que pour les champs vides
+
+#### Fichiers créés
+- `src/utils/codeSuggestions.ts` - Logique de calcul des suggestions
+- `test-data/clients-test-suggestions.csv` - Fichier de test pour les suggestions
+- `test-data/TEST-SUGGESTIONS.md` - Documentation complète des tests
+
+#### Fichiers modifiés
+- `src/components/DuplicateRow.tsx` - Ajout des boutons de suggestion et badge d'erreur
+- `src/components/ResultsDisplay.tsx` - Intégration du calcul de suggestions et bouton global
+
+#### Règles implémentées
+1. **Incrémentation limitée** : +1 par doublon sans dépasser la dizaine
+2. **Détection d'erreur** : codes finissant par 9 marqués comme non-suggérables
+3. **Évitement des doublons** : vérification complète des codes existants et suggérés
+4. **Application sélective** : ignore les champs déjà remplis et les erreurs
+
+---
+
 ### Ajouts du 2025-11-20
 - ajout d'une fenêtre modale d'aide détaillant le déroulé des étapes, accessible depuis la barre de progression ;
 - mise à jour de la barre de progression pour afficher un bouton « ℹ️ Aide étapes » ;

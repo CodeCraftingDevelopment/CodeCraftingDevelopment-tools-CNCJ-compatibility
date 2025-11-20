@@ -78,7 +78,8 @@ src/
 │   ├── accountUtils.ts         # ⭐ Logique métier principale
 │   ├── csvFormatDetector.ts    # Détection format CSV
 │   ├── fileUtils.ts            # Utilitaires fichiers
-│   └── stepCleanup.ts          # Nettoyage état lors navigation arrière
+│   ├── stepCleanup.ts          # Nettoyage état lors navigation arrière
+│   └── codeSuggestions.ts      # ⭐ Suggestions automatiques de codes (Étape 4)
 ├── types/
 │   └── accounts.ts             # ⭐ Types TypeScript
 └── App.tsx                      # ⭐ Composant principal

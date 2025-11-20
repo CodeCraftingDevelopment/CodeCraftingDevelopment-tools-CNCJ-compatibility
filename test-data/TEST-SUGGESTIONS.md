@@ -14,6 +14,10 @@ Le fichier contient :
 
 ## ✅ Comportement attendu à l'Étape 4
 
+### Boutons d'action
+- **"📥 Exporter les doublons"** : exporte les doublons au format CSV
+- **"✨ Valider les suggestions"** : applique automatiquement toutes les suggestions disponibles en un clic
+
 ### Pour les doublons de 140 :
 - Premier doublon : bouton **"💡 141"**
 - Deuxième doublon : bouton **"💡 142"**
@@ -82,6 +86,17 @@ Le fichier contient :
 2. Effacer le code
 3. Vérifier que le bouton de suggestion réapparaît
 
+### Test 6 : Bouton "Valider les suggestions"
+1. À l'étape 4, vérifier que le bouton "✨ Valider les suggestions" est visible
+2. Vérifier le tooltip indique le nombre de suggestions disponibles
+3. Cliquer sur "✨ Valider les suggestions"
+4. Vérifier que tous les codes suggérés sont appliqués automatiquement :
+   - 140 → 141, 142, 143
+   - 145 → 146, 147
+   - 149 → reste vide (erreur)
+5. Vérifier que le bouton devient désactivé (grisé) après application
+6. Vérifier que les lignes passent au vert (codes valides)
+
 ## 🔧 Règles implémentées
 
 ### Règle 1 : Incrémentation limitée
@@ -103,6 +118,14 @@ Le fichier contient :
 - Bouton visible uniquement si : conflictType === 'duplicates' && champ vide
 - Badge d'erreur visible si : code finit par 9 && champ vide
 - Rien affiché si : champ rempli (manuellement ou via suggestion)
+
+### Règle 5 : Bouton "Valider les suggestions"
+- Visible uniquement à l'étape 4 (conflictType === 'duplicates')
+- Applique toutes les suggestions disponibles en un clic
+- Ignore les doublons déjà remplis (manuellement ou via suggestion individuelle)
+- Ignore les doublons sans suggestion (codes finissant par 9)
+- Désactivé (grisé) quand aucune suggestion n'est disponible
+- Tooltip dynamique indiquant le nombre de suggestions à appliquer
 
 ## 📊 Résultats attendus
 
