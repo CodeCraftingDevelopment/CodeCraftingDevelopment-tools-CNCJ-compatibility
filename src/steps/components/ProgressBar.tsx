@@ -5,12 +5,14 @@ interface ProgressBarProps {
   currentStepId: StepId;
   onStepClick?: (stepId: StepId) => void;
   allowNavigation?: boolean;
+  onShowInfo?: () => void;
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStepId,
   onStepClick,
-  allowNavigation = false
+  allowNavigation = false,
+  onShowInfo
 }) => {
   const currentStepOrder = STEPS_CONFIG.find(s => s.id === currentStepId)?.order || 0;
 
@@ -18,9 +20,21 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className="mb-8 bg-white shadow rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-700">Progression</h3>
-        <span className="text-sm text-gray-500">
-          Étape {currentStepOrder} / {STEPS_CONFIG.length}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            Étape {currentStepOrder} / {STEPS_CONFIG.length}
+          </span>
+          {onShowInfo && (
+            <button
+              type="button"
+              onClick={onShowInfo}
+              className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+              aria-label="Afficher l'aide sur les étapes"
+            >
+              ℹ️ Aide étapes
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Barre de progression visuelle */}

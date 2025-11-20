@@ -1,4 +1,5 @@
-import React, { useReducer, useCallback, useMemo } from 'react';
+import React, { useReducer, useCallback, useMemo, useState } from 'react';
+
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
 import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization } from './utils/accountUtils';
@@ -14,6 +15,7 @@ import { Step4DuplicatesResolution } from './steps/Step4DuplicatesResolution';
 import { Step5ReviewCorrections } from './steps/Step5ReviewCorrections';
 import { Step6CNCJConflicts } from './steps/Step6CNCJConflicts';
 import { StepFinalSummary } from './steps/StepFinalSummary';
+import { StepsInfoModal } from './steps/components/StepsInfoModal';
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -126,6 +128,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
 
   const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[]) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -469,7 +472,12 @@ const App: React.FC = () => {
           currentStepId={state.currentStep}
           onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
           allowNavigation={true}
+          onShowInfo={() => setIsStepsInfoOpen(true)}
         />
+
+        {isStepsInfoOpen && (
+          <StepsInfoModal onClose={() => setIsStepsInfoOpen(false)} />
+        )}
 
         {/* Step 1: File Upload */}
         {currentStepConfig && currentStepConfig.id === 'step1' && (
