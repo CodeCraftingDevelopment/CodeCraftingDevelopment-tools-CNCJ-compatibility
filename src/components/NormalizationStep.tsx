@@ -15,11 +15,6 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
   if (accountsNeedingNormalization.length === 0) {
     return (
       <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="mb-6 text-center">
-          <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-            Step 3
-          </span>
-        </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           ✅ Validation des numéros de compte
         </h2>
@@ -52,11 +47,6 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
 
   return (
     <div className="bg-white shadow rounded-lg p-6 mb-6">
-      <div className="mb-6 text-center">
-        <span className="inline-block px-6 py-3 bg-orange-100 text-orange-800 rounded-full text-lg font-bold">
-          Step 3
-        </span>
-      </div>
       <h2 className="text-xl font-semibold text-gray-900 mb-6">
         📏 Validation des numéros de compte (7 chiffres maximum)
       </h2>

@@ -465,13 +465,11 @@ const App: React.FC = () => {
         </div>
 
         {/* Progress Bar */}
-        {state.currentStep !== 'step1' && (
-          <ProgressBar
-            currentStepId={state.currentStep}
-            onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
-            allowNavigation={true}
-          />
-        )}
+        <ProgressBar
+          currentStepId={state.currentStep}
+          onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
+          allowNavigation={true}
+        />
 
         {/* Step 1: File Upload */}
         {currentStepConfig && currentStepConfig.id === 'step1' && (
