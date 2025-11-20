@@ -210,7 +210,8 @@ interface ProcessingResult {
   duplicates: Account[];
   uniqueClients: Account[];
   matches: Account[];
-  unmatchedClients: Account[];
+  unmatchedClients: Account[];  // Comptes dans généraux mais pas dans CNCJ
+  toCreate: Account[];          // Comptes ni dans CNCJ ni dans généraux
 }
 
 interface ImportResult {

@@ -138,12 +138,12 @@ const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
 
-  const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[]) => {
+  const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[], generalAccounts: Account[] = []) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     // Simulate processing delay for better UX
     setTimeout(() => {
-      const result = processAccounts(clientAccounts, cncjAccounts);
+      const result = processAccounts(clientAccounts, cncjAccounts, generalAccounts);
       dispatch({ type: 'SET_RESULT', payload: result });
     }, 500);
   }, []);
@@ -177,7 +177,7 @@ const App: React.FC = () => {
         
         // Process if we have both files and both are fully loaded (not loading)
         if (state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
-          processClientAccounts(mergedAccounts, state.cncjAccounts);
+          processClientAccounts(mergedAccounts, state.cncjAccounts, state.generalAccounts);
         }
       }
     } else if (source === 'general') {
@@ -185,6 +185,12 @@ const App: React.FC = () => {
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: accounts });
+        
+        // Process if we have client and CNCJ files and both are fully loaded (not loading)
+        if (state.clientAccounts.length > 0 && state.cncjAccounts.length > 0 && 
+            state.clientFileInfo?.loadStatus !== 'loading' && state.cncjFileInfo?.loadStatus !== 'loading') {
+          processClientAccounts(state.clientAccounts, state.cncjAccounts, accounts);
+        }
       }
     } else {
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
@@ -194,11 +200,11 @@ const App: React.FC = () => {
         
         // Process if we have both files and both are fully loaded (not loading)
         if (state.clientAccounts.length > 0 && state.clientFileInfo?.loadStatus !== 'loading') {
-          processClientAccounts(state.clientAccounts, accounts);
+          processClientAccounts(state.clientAccounts, accounts, state.generalAccounts);
         }
       }
     }
-  }, [state.cncjAccounts, state.clientAccounts, state.cncjFileInfo, state.clientFileInfo, processClientAccounts]);
+  }, [state.cncjAccounts, state.clientAccounts, state.generalAccounts, state.cncjFileInfo, state.clientFileInfo, processClientAccounts]);
 
   const handleError = useCallback((errors: string[]) => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
@@ -401,7 +407,8 @@ const App: React.FC = () => {
       duplicates: conflicts, // Les conflits CNCJ sont traités comme des "doublons"
       uniqueClients: nonConflicts,
       matches: [], // Pas de correspondances pertinentes pour cette étape
-      unmatchedClients: [] // Pas de non-correspondances pertinentes pour cette étape
+      unmatchedClients: [], // Pas de non-correspondances pertinentes pour cette étape
+      toCreate: [] // Pas de comptes à créer pour cette étape
     };
   }, []);
 

@@ -164,7 +164,8 @@ export const compareAccounts = (
 
 export const processAccounts = (
   clientAccounts: Account[], 
-  cncjAccounts: Account[]
+  cncjAccounts: Account[],
+  generalAccounts: Account[] = []
 ): ProcessingResult => {
   // Étape 1 : Fusionner les comptes identiques (même numéro ET titre)
   // Note: les comptes sont déjà fusionnés dans handleFileLoaded
@@ -177,11 +178,23 @@ export const processAccounts = (
   // Étape 4 : Comparer avec les comptes CNCJ
   const { matches, unmatchedClients } = compareAccounts(uniqueClients, cncjAccounts);
   
+  // Étape 5 : Séparer les comptes à créer (ni dans CNCJ ni dans généraux)
+  const generalAccountNumbers = new Set(generalAccounts.map(acc => acc.number));
+  const toCreate = unmatchedClients.filter(client => 
+    !generalAccountNumbers.has(client.number)
+  );
+  
+  // unmatchedClients devient maintenant les comptes qui sont dans généraux mais pas dans CNCJ
+  const finalUnmatchedClients = unmatchedClients.filter(client => 
+    generalAccountNumbers.has(client.number)
+  );
+  
   return {
     duplicates,
     uniqueClients,
     matches,
-    unmatchedClients
+    unmatchedClients: finalUnmatchedClients,
+    toCreate
   };
 };
 

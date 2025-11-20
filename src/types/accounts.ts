@@ -23,6 +23,7 @@ export interface ProcessingResult {
   uniqueClients: Account[];
   matches: Account[];
   unmatchedClients: Account[];
+  toCreate: Account[];
 }
 
 export interface FileUploadResult {

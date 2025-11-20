@@ -70,7 +70,7 @@ export const StepEmptyState: React.FC<StepEmptyStateProps> = ({ icon, title, des
 // Composant pour afficher une grille de statistiques
 interface StepStatsGridProps {
   children: React.ReactNode;
-  columns?: 2 | 3 | 4 | 5;
+  columns?: 2 | 3 | 4 | 5 | 6;
 }
 
 export const StepStatsGrid: React.FC<StepStatsGridProps> = ({ children, columns = 4 }) => {
@@ -78,7 +78,8 @@ export const StepStatsGrid: React.FC<StepStatsGridProps> = ({ children, columns 
     2: 'grid-cols-2',
     3: 'grid-cols-3',
     4: 'grid-cols-4',
-    5: 'grid-cols-5'
+    5: 'grid-cols-5',
+    6: 'grid-cols-6'
   };
 
   return (

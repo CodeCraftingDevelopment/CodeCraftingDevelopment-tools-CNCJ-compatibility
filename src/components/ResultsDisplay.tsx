@@ -34,7 +34,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   duplicateIdsFromStep4
 }) => {
   // Déclarer les variables avant le useCallback
-  const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
+  const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
   
   // Utiliser le hook personnalisé pour les corrections
   const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
@@ -93,7 +93,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       ) : showOnly !== 'review' ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{uniqueClients.length}</div>
               <div className="text-gray-600">Comptes clients uniques</div>
@@ -111,6 +111,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">{unmatchedClients.length}</div>
               <div className="text-gray-600">Sans correspondance</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{toCreate.length}</div>
+              <div className="text-gray-600">À créer</div>
             </div>
           </div>
         </div>
@@ -286,6 +290,29 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
 
+      {/* À créer */}
+      {showOnly === 'all' && toCreate.length > 0 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-purple-900 mb-3">
+            🔧 Comptes à créer ({toCreate.length})
+          </h3>
+          <div className="max-h-40 overflow-y-auto">
+            <div className="space-y-2">
+              {toCreate.map((account) => (
+                <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="font-mono bg-purple-100 px-2 py-1 rounded">
+                    {account.number}
+                  </div>
+                  <div className="bg-purple-50 px-2 py-1 rounded">
+                    {account.title || 'Sans titre'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Actions - seulement s'il y a du contenu à afficher */}
       {(showOnly === 'all' || showOnly === 'duplicates') && (
         <div className="flex gap-4 justify-center">
@@ -296,7 +323,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const data = {
                 duplicates: duplicates.map(d => d.number),
                 matches: matches.map(m => m.number),
-                unmatched: unmatchedClients.map(u => u.number)
+                unmatched: unmatchedClients.map(u => u.number),
+                toCreate: toCreate.map(t => t.number)
               };
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);

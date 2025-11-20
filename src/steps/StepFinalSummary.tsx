@@ -26,6 +26,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   // Calculer les données du récapitulatif
   const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
   const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+  const toCreateIds = new Set(result?.toCreate?.map(t => t.id) || []);
   
   const finalSummaryData = clientAccounts.map(account => {
     const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
@@ -33,6 +34,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     
     const isStep4Duplicate = step4Ids.has(account.id);
     const isStep6Conflict = step6Ids.has(account.id);
+    const isToCreate = toCreateIds.has(account.id);
     
     let modificationSource = null;
     if (isStep4Duplicate && isStep6Conflict) {
@@ -56,13 +58,15 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       wasModified: replacementCodes[account.id] !== undefined,
       modificationSource,
       isStep4Duplicate,
-      isStep6Conflict
+      isStep6Conflict,
+      isToCreate
     };
   });
 
   const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
   const step4Count = finalSummaryData.filter(row => row.isStep4Duplicate).length;
   const step6Count = finalSummaryData.filter(row => row.isStep6Conflict).length;
+  const toCreateCount = finalSummaryData.filter(row => row.isToCreate).length;
   const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step4+step6').length;
   const totalCount = finalSummaryData.length;
 
@@ -115,11 +119,12 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={5}>
+      <StepStatsGrid columns={6}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={modifiedCount} label="Comptes modifiés" color="green" />
         <StepStat value={step4Count} label="Correction doublons" color="blue" />
         <StepStat value={step6Count} label="Corrections CNCJ" color="orange" />
+        <StepStat value={toCreateCount} label="À créer" color="purple" />
         <StepStat value={doubleModifiedCount} label="Double modification" color="purple" />
       </StepStatsGrid>
 
