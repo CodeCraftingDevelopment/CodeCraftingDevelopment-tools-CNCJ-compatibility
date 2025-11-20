@@ -17,7 +17,7 @@ interface ResultsDisplayProps {
   cncjCodes?: Set<string>;
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
-  duplicateIdsFromStep3?: Set<string>;
+  duplicateIdsFromStep4?: Set<string>;
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -31,7 +31,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   cncjCodes,
   mergedClientAccounts,
   originalClientAccounts,
-  duplicateIdsFromStep3
+  duplicateIdsFromStep4
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [] } = result || {};
@@ -171,7 +171,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           mergedClientAccounts={mergedClientAccounts || []}
           originalClientAccounts={originalClientAccounts || []}
           replacementCodes={replacementCodes || {}}
-          duplicateIdsFromStep3={duplicateIdsFromStep3 || new Set()}
+          duplicateIdsFromStep4={duplicateIdsFromStep4 || new Set()}
         />
       )}
 
@@ -232,10 +232,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       ) : showOnly === 'duplicates' ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-green-900 mb-3">
-            ✅ Aucun doublon détecté
+            ✅ Aucun conflit trouvé
           </h3>
           <p className="text-green-700">
-            Tous les comptes clients sont uniques. Aucune action n'est requise.
+            Aucun compte client ne correspond à un compte CNCJ.
           </p>
         </div>
       ) : null}

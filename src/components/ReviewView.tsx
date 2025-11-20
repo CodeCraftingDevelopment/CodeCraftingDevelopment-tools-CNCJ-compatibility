@@ -5,7 +5,7 @@ interface ReviewViewProps {
   mergedClientAccounts: Account[];
   originalClientAccounts: Account[];
   replacementCodes: { [key: string]: string };
-  duplicateIdsFromStep3: Set<string>;
+  duplicateIdsFromStep4: Set<string>;
 }
 
 type FilterType = 'all' | 'corrected' | 'uncorrected';
@@ -14,7 +14,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
   mergedClientAccounts,
   originalClientAccounts,
   replacementCodes,
-  duplicateIdsFromStep3
+  duplicateIdsFromStep4
 }) => {
   const [correctionFilter, setCorrectionFilter] = useState<FilterType>('all');
 
@@ -30,7 +30,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
     const totalCount = mergedClientAccounts.length;
     const correctedCount = mergedClientAccounts.filter(acc => {
       const isCorrected = !!replacementCodes[acc.id]?.trim();
-      const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(acc.id);
+      const isDuplicateFromStep3 = duplicateIdsFromStep4?.has(acc.id);
       return isDuplicateFromStep3 && isCorrected;
     }).length;
     const uncorrectedCount = totalCount - correctedCount;
@@ -44,7 +44,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
     .filter(account => {
       if (correctionFilter === 'all') return true;
       const isCorrected = !!replacementCodes[account.id]?.trim();
-      const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(account.id);
+      const isDuplicateFromStep3 = duplicateIdsFromStep4?.has(account.id);
       if (correctionFilter === 'corrected') {
         return isDuplicateFromStep3 && isCorrected;
       } else { // non corrigés
@@ -102,7 +102,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
               const replacementCode = replacementCodes[account.id]?.trim();
               const isCorrected = !!replacementCode;
               const originalAccount = originalAccountsById[account.id];
-              const isDuplicateFromStep3 = duplicateIdsFromStep3?.has(account.id);
+              const isDuplicateFromStep3 = duplicateIdsFromStep4?.has(account.id);
               const shouldHighlight = isDuplicateFromStep3 && isCorrected;
               
               return (

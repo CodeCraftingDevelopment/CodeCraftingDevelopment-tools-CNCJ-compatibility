@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { Account, FileUploadResult, ProcessingResult, MergeInfo } from '../types/accounts';
+import { Account, FileUploadResult, ProcessingResult, MergeInfo, NormalizationAccount } from '../types/accounts';
 import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
 
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
@@ -130,7 +130,7 @@ export const processAccounts = (
     !duplicates.some(dup => dup.id === acc.id)
   );
   
-  // Étape 3 : Comparer avec les comptes CNCJ
+  // Étape 4 : Comparer avec les comptes CNCJ
   const { matches, unmatchedClients } = compareAccounts(uniqueClients, cncjAccounts);
   
   return {
@@ -139,4 +139,33 @@ export const processAccounts = (
     matches,
     unmatchedClients
   };
+};
+
+export const findAccountsNeedingNormalization = (accounts: Account[]): NormalizationAccount[] => {
+  return accounts
+    .filter(account => account.source === 'client' && account.number.length > 7)
+    .map(account => ({
+      id: account.id,
+      originalNumber: account.number,
+      normalizedNumber: account.number.slice(0, 7),
+      title: account.title
+    }));
+};
+
+export const applyNormalization = (accounts: Account[], normalizationAccounts: NormalizationAccount[]): Account[] => {
+  const normalizationMap = new Map(
+    normalizationAccounts.map(norm => [norm.id, norm.normalizedNumber])
+  );
+  
+  return accounts.map(account => {
+    const normalizedNumber = normalizationMap.get(account.id);
+    if (normalizedNumber) {
+      return {
+        ...account,
+        number: normalizedNumber,
+        id: `${normalizedNumber}-${account.id.split('-')[1]}` // Mettre à jour l'ID avec le numéro normalisé
+      };
+    }
+    return account;
+  });
 };
