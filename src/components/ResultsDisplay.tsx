@@ -142,30 +142,14 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'doublons-comptes.csv';
+              a.download = 'conflits-cncj.csv';
               a.click();
               URL.revokeObjectURL(url);
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            📥 {conflictType === 'cncj-conflicts' ? 'Exporter les corrections' : 'Exporter les doublons'}
+            📥 {conflictType === 'cncj-conflicts' ? 'Exporter les conflits' : 'Exporter les doublons'}
           </button>
-          {conflictType === 'cncj-conflicts' && (
-            <button
-              onClick={() => {
-                // Appliquer toutes les corrections valides
-                duplicates.forEach(duplicate => {
-                  const correction = corrections[duplicate.id];
-                  if (correction && correction !== 'error') {
-                    onReplacementCodeChange?.(duplicate.id, correction);
-                  }
-                });
-              }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              ✅ Valider les corrections
-            </button>
-          )}
         </div>
       )}
 
@@ -340,7 +324,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           </button>
         )}
 
-        {showOnly === 'duplicates' && conflictType === 'duplicates' && (
+        {showOnly === 'duplicates' && (conflictType === 'duplicates' || conflictType === 'cncj-conflicts') && (
           <div className="w-full max-w-2xl">
             <DropZone
               dragState={dragState}
@@ -352,7 +336,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               onDrop={handlers.handleDrop}
               onClick={!correctionsFileInfo ? handlers.handleButtonClick : undefined}
               onKeyDown={(e) => handlers.handleKeyDown(e, !correctionsFileInfo ? handlers.handleButtonClick : undefined)}
-              ariaLabel={!correctionsFileInfo ? "Zone de dépôt pour les corrections. Glissez-déposez un fichier CSV ou cliquez pour parcourir" : `Fichier de corrections: ${correctionsFileInfo?.name}`}
+              ariaLabel={!correctionsFileInfo
+                ? (conflictType === 'cncj-conflicts'
+                    ? "Zone de dépôt pour les corrections CNCJ. Glissez-déposez un fichier CSV ou cliquez pour parcourir"
+                    : "Zone de dépôt pour les corrections. Glissez-déposez un fichier CSV ou cliquez pour parcourir")
+                : `Fichier de corrections: ${correctionsFileInfo?.name}`}
             >
                     <input
                       ref={fileInputRef}
@@ -370,7 +358,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </svg>
                         </div>
                         <div className="text-sm text-gray-600">
-                          <p className="font-medium text-xs sm:text-sm">Glissez-déposez votre fichier de corrections CSV</p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {conflictType === 'cncj-conflicts'
+                              ? 'Glissez-déposez votre fichier de corrections CNCJ (CSV)'
+                              : 'Glissez-déposez votre fichier de corrections CSV'}
+                          </p>
                           <p className="text-xs">ou cliquez pour parcourir</p>
                         </div>
                       </div>
