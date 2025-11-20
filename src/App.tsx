@@ -1,11 +1,19 @@
 import React, { useReducer, useCallback, useMemo } from 'react';
-import { FileUploader } from './components/FileUploader';
-import { ResultsDisplay } from './components/ResultsDisplay';
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
 import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
+import { getStepConfig, getNextStep, getPreviousStep } from './config/stepsConfig';
+import { StepRenderer } from './steps/components/StepRenderer';
+import { StepNavigation } from './steps/components/StepNavigation';
+import { ProgressBar } from './steps/components/ProgressBar';
+import { Step1FileUpload } from './steps/Step1FileUpload';
+import { Step2MergeVisualization } from './steps/Step2MergeVisualization';
+import { Step4DuplicatesResolution } from './steps/Step4DuplicatesResolution';
+import { Step5ReviewCorrections } from './steps/Step5ReviewCorrections';
+import { Step6CNCJConflicts } from './steps/Step6CNCJConflicts';
+import { StepFinalSummary } from './steps/StepFinalSummary';
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -201,14 +209,30 @@ const App: React.FC = () => {
     dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
   }, []);
 
+  // Navigation générique vers l'étape suivante
+  const handleNavigateNext = useCallback(() => {
+    const nextStep = getNextStep(state.currentStep);
+    if (nextStep) {
+      dispatch({ type: 'SET_CURRENT_STEP', payload: nextStep.id });
+    }
+  }, [state.currentStep]);
+
+  // Navigation générique vers l'étape précédente
+  const handleNavigatePrevious = useCallback(() => {
+    const previousStep = getPreviousStep(state.currentStep);
+    if (previousStep) {
+      dispatch({ type: 'SET_CURRENT_STEP', payload: previousStep.id });
+    }
+  }, [state.currentStep]);
+
   const handleNext = useCallback(() => {
     console.log('Navigation vers l\'étape suivante');
     if (!state.result) {
       dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
       return;
     }
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' });
-  }, [state.result]);
+    handleNavigateNext();
+  }, [state.result, handleNavigateNext]);
 
   const handleMergeNext = useCallback(() => {
     console.log('Visualisation des fusions terminée - passage à la normalisation');
@@ -218,8 +242,8 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: accountsNeedingNormalization });
     
     // Naviguer vers l'étape de normalisation
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' });
-  }, [state.clientAccounts]);
+    handleNavigateNext();
+  }, [state.clientAccounts, handleNavigateNext]);
 
   const handleNormalizationNext = useCallback(() => {
     console.log('Normalisation terminée - passage aux doublons');
@@ -367,8 +391,8 @@ const App: React.FC = () => {
     }
 
     // Naviguer vers l'étape de révision des corrections
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step5' });
-  }, [state.result]);
+    handleNavigateNext();
+  }, [state.result, handleNavigateNext]);
 
   const handleReviewNext = useCallback(() => {
     console.log('Révision terminée - passage aux conflits CNCJ');
@@ -392,9 +416,9 @@ const App: React.FC = () => {
       console.log('Retour à step5 - conservation des conflits CNCJ existants et des modifications manuelles');
     }
 
-    // Étape 5 : Naviguer vers step 6
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step6' });
-  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult]);
+    // Naviguer vers step 6
+    handleNavigateNext();
+  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult, handleNavigateNext]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
@@ -419,12 +443,13 @@ const App: React.FC = () => {
     return new Set(state.cncjAccounts.map(acc => acc.number));
   }, [state.cncjAccounts]);
 
-  // Vérifie si les deux fichiers sont chargés correctement et sans erreurs
-  const canProceed = state.clientAccounts.length > 0 && 
-                    state.cncjAccounts.length > 0 && 
-                    state.errors.length === 0 &&
-                    !state.loading &&
-                    state.result !== null;
+  // Obtenir la configuration de l'étape actuelle
+  const currentStepConfig = getStepConfig(state.currentStep);
+  const previousStepConfig = getPreviousStep(state.currentStep);
+  const nextStepConfig = getNextStep(state.currentStep);
+
+  // Vérifier si on peut passer à l'étape suivante
+  const canProceedToNext = currentStepConfig?.canProceed?.(state) ?? true;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -439,557 +464,151 @@ const App: React.FC = () => {
           </p>
         </div>
 
-        {/* Upload Section - Always rendered */}
-        <div style={{display: state.currentStep === 'step1' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 1
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📁 Chargement des fichiers
-          </h2>
-          
-          <FileUploader
-            onFileLoaded={handleFileLoaded}
-            onFileCleared={handleFileCleared}
-            onError={handleError}
-            label="📋 Fichier des comptes clients"
-            source="client"
-            disabled={state.loading}
-            fileInfo={state.clientFileInfo}
+        {/* Progress Bar */}
+        {state.currentStep !== 'step1' && (
+          <ProgressBar
+            currentStepId={state.currentStep}
+            onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
+            allowNavigation={true}
           />
-          
-          <FileUploader
-            onFileLoaded={handleFileLoaded}
-            onFileCleared={handleFileCleared}
-            onError={handleError}
-            label="🏛️ Fichier des comptes CNCJ"
-            source="cncj"
-            disabled={state.loading}
-            fileInfo={state.cncjFileInfo}
-          />
+        )}
 
-          {/* Reset Button */}
-          {(state.clientAccounts.length > 0 || state.cncjAccounts.length > 0) && (
-            <div className="mt-4 text-center space-x-4">
-              <button
-                onClick={resetData}
-                disabled={state.loading}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                🔄 Réinitialiser
-              </button>
-              
-              {/* Next Button - affiché uniquement si les deux fichiers sont chargés sans erreurs */}
-              {canProceed && (
-                <button
-                  onClick={handleNext}
-                  disabled={state.loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  Suivant →
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Step 1: File Upload */}
+        {currentStepConfig && currentStepConfig.id === 'step1' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step1FileUpload
+              clientFileInfo={state.clientFileInfo}
+              cncjFileInfo={state.cncjFileInfo}
+              loading={state.loading}
+              clientAccountsCount={state.clientAccounts.length}
+              cncjAccountsCount={state.cncjAccounts.length}
+              onFileLoaded={handleFileLoaded}
+              onFileCleared={handleFileCleared}
+              onError={handleError}
+              onReset={resetData}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={canProceedToNext}
+              onNext={handleNext}
+              showPrevious={false}
+            />
+          </StepRenderer>
+        )}
 
-        {/* Merge Visualization Section - Step 2 */}
-        <div style={{display: state.currentStep === 'step2' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          {(console.log('🔍 DEBUG: Step 2 rendering, mergeInfo:', state.mergeInfo, 'length:', state.mergeInfo.length), null)}
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 2
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            🔗 Visualisation des fusions automatiques
-          </h2>
-          
-          {state.mergeInfo.length > 0 ? (
-            <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{state.mergeInfo.length}</div>
-                  <div className="text-gray-600">{state.mergeInfo.length === 1 ? 'fusion' : 'fusions'} automatique{state.mergeInfo.length > 1 ? 's' : ''}</div>
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto max-h-64 overflow-y-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 px-4 py-2 text-left">Numéro</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
-                      <th className="border border-gray-300 px-4 py-2 text-center">Nombre fusionné</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.mergeInfo.map((info, index) => (
-                      <tr key={index} className="bg-blue-50">
-                        <td className="border border-gray-300 px-4 py-2 font-mono">{info.number}</td>
-                        <td className="border border-gray-300 px-4 py-2">{info.title || 'Sans titre'}</td>
-                        <td className="border border-gray-300 px-4 py-2 text-center font-bold text-blue-600">
-                          {info.mergedCount}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <p className="text-sm text-gray-600 text-center">
-                  💡 Les comptes ayant le même numéro ET le même titre ont été automatiquement fusionnés pour éviter les doublons.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-              <div className="text-gray-500">
-                <div className="text-lg mb-2">✅ Aucune fusion nécessaire</div>
-                <p className="text-sm">Tous les comptes sont uniques (même numéro ET titre)</p>
-              </div>
-            </div>
-          )}
-          
-          <div className="mt-6 text-center space-x-4">
-            <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' })}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              ← Retour
-            </button>
-            
-            <button
-              onClick={handleMergeNext}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Suivant →
-            </button>
-          </div>
-        </div>
+        {/* Step 2: Merge Visualization */}
+        {currentStepConfig && currentStepConfig.id === 'step2' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step2MergeVisualization mergeInfo={state.mergeInfo} />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={true}
+              onNext={handleMergeNext}
+              onPrevious={handleNavigatePrevious}
+            />
+          </StepRenderer>
+        )}
 
         {/* Normalization Step - Step 3 */}
-        <div style={{display: state.currentStep === 'step3' ? 'block' : 'none'}}>
+        {state.currentStep === 'step3' && (
           <NormalizationStep
             accountsNeedingNormalization={state.accountsNeedingNormalization}
             onApplyNormalization={handleNormalizationNext}
-            onBack={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step2' })}
+            onBack={handleNavigatePrevious}
           />
-        </div>
+        )}
 
-        {/* Results Section - Step 4 */}
-        <div style={{display: state.currentStep === 'step4' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 4
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📋 Vérification des doublons comptes clients
-          </h2>
-          
-          <ResultsDisplay
-              key={state.currentStep} 
-            result={state.result} 
-            loading={state.loading} 
-            showOnly="duplicates"
-            replacementCodes={state.replacementCodes}
-            onReplacementCodeChange={handleReplacementCodeChange}
-          />
-          
-          <div className="mt-6 text-center space-x-4">
-            <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step3' })}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              ← Retour
-            </button>
-            
-            {/* Bouton Suivant - s'affiche uniquement si tous les doublons sont résolus */}
-            {allDuplicatesResolved && (
-              <button
-                onClick={handleDuplicatesNext}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Suivant →
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Step 4: Duplicates Resolution */}
+        {currentStepConfig && currentStepConfig.id === 'step4' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step4DuplicatesResolution
+              result={state.result}
+              loading={state.loading}
+              replacementCodes={state.replacementCodes}
+              onReplacementCodeChange={handleReplacementCodeChange}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={allDuplicatesResolved}
+              onNext={handleDuplicatesNext}
+              onPrevious={handleNavigatePrevious}
+            />
+          </StepRenderer>
+        )}
 
-        {/* Review Corrections Section - Step 4 */}
-        <div style={{display: state.currentStep === 'step5' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 5
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📋 Révision des corrections ({duplicateCorrectionsCount} corrections doublons appliquées)
-          </h2>
-          
-          <ResultsDisplay
-              key={state.currentStep} 
-            result={state.result} 
-            loading={state.loading} 
-            showOnly="review"
-            replacementCodes={state.replacementCodes}
-            onReplacementCodeChange={undefined}
-            mergedClientAccounts={mergedClientAccounts}
-            originalClientAccounts={state.clientAccounts}
-            duplicateIdsFromStep4={duplicateIdsFromStep4}
-          />
-          
-          <div className="mt-6 text-center space-x-4">
-            <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' })}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              ← Retour
-            </button>
-            
-            <button
-              onClick={handleReviewNext}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Suivant →
-            </button>
-          </div>
-        </div>
+        {/* Step 5: Review Corrections */}
+        {currentStepConfig && currentStepConfig.id === 'step5' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step5ReviewCorrections
+              result={state.result}
+              loading={state.loading}
+              replacementCodes={state.replacementCodes}
+              mergedClientAccounts={mergedClientAccounts}
+              originalClientAccounts={state.clientAccounts}
+              duplicateIdsFromStep4={duplicateIdsFromStep4}
+              duplicateCorrectionsCount={duplicateCorrectionsCount}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={true}
+              onNext={handleReviewNext}
+              onPrevious={handleNavigatePrevious}
+            />
+          </StepRenderer>
+        )}
 
-        {/* CNCJ Reserved Codes Section - Step 5 */}
-        <div style={{display: state.currentStep === 'step6' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Step 6
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            🚫 Codes clients réservés (homologués CNCJ)
-          </h2>
-          
-          <ResultsDisplay
-              key={state.currentStep} 
-            result={state.cncjConflictResult} 
-            loading={state.loading} 
-            showOnly="duplicates"
-            replacementCodes={state.cncjReplacementCodes}
-            onReplacementCodeChange={handleCncjReplacementCodeChange}
-            conflictType="cncj-conflicts"
-            suggestions={state.cncjConflictSuggestions}
-            cncjCodes={cncjCodes}
-          />
-          
-          <div className="mt-6 text-center space-x-4">
-            <button
-              onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step5' })}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              ← Retour
-            </button>
-            
-            {/* Bouton Suivant - s'affiche uniquement si tous les conflits CNCJ sont résolus */}
-            {allCncjConflictsResolved && (
-              <button
-                onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'stepFinal' })}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Suivant →
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Step 6: CNCJ Conflicts */}
+        {currentStepConfig && currentStepConfig.id === 'step6' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step6CNCJConflicts
+              cncjConflictResult={state.cncjConflictResult}
+              loading={state.loading}
+              cncjReplacementCodes={state.cncjReplacementCodes}
+              cncjConflictSuggestions={state.cncjConflictSuggestions}
+              cncjCodes={cncjCodes}
+              onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={allCncjConflictsResolved}
+              onNext={handleNavigateNext}
+              onPrevious={handleNavigatePrevious}
+            />
+          </StepRenderer>
+        )}
 
-        {/* Final Summary Section - Step Final */}
-        <div style={{display: state.currentStep === 'stepFinal' ? 'block' : 'none'}} className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="mb-6 text-center">
-            <span className="inline-block px-6 py-3 bg-green-100 text-green-800 rounded-full text-lg font-bold">
-              Récapitulatif Final
-            </span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            📊 Résumé des corrections appliquées
-          </h2>
-          
-          {/* Préparer les données pour le récapitulatif */}
-          {(() => {
-            // Optimisation: créer des Sets pour les recherches rapides
-            const step4Ids = new Set(state.result?.duplicates?.map(d => d.id) || []);
-            const step6Ids = new Set(state.cncjConflictResult?.duplicates?.map(d => d.id) || []);
-            
-            const finalSummaryData = state.clientAccounts.map(account => {
-              const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
-              const suggestedCode = state.cncjConflictSuggestions[account.id];
-              
-              // Déterminer la source de la modification (gérer les doubles modifications)
-              const isStep4Duplicate = step4Ids.has(account.id);
-              const isStep6Conflict = step6Ids.has(account.id);
-              
-              let modificationSource = null;
-              if (isStep4Duplicate && isStep6Conflict) {
-                modificationSource = 'step4+step6';
-              } else if (isStep6Conflict) {
-                modificationSource = 'step6';
-              } else if (isStep4Duplicate) {
-                modificationSource = 'step4';
-              }
-              
-              // Code corrigé : toujours montrer la correction step 4 si elle existe
-              const correctedCode = isStep4Duplicate 
-                ? (mergedAccount?.number || account.number)
-                : account.number;
-              
-              return {
-                id: account.id,
-                title: account.title || 'Sans titre',
-                originalCode: account.number,
-                correctedCode: correctedCode,
-                suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
-                wasModified: state.replacementCodes[account.id] !== undefined,
-                modificationSource,
-                isStep4Duplicate,
-                isStep6Conflict
-              };
-            });
-
-            const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
-            const step4Count = finalSummaryData.filter(row => row.isStep4Duplicate).length;
-            const step6Count = finalSummaryData.filter(row => row.isStep6Conflict).length;
-            const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step4+step6').length;
-            const totalCount = finalSummaryData.length;
-
-            // Fonction pour obtenir le style de ligne selon la source
-            const getRowStyle = (source: string | null) => {
-              switch (source) {
-                case 'step4': return 'bg-blue-50 border-l-4 border-blue-400';
-                case 'step6': return 'bg-orange-50 border-l-4 border-orange-400';
-                case 'step4+step6': return 'bg-purple-50 border-l-4 border-purple-400';
-                default: return '';
-              }
-            };
-
-            return (
-              <div className="space-y-4">
-                {/* Statistiques détaillées */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="grid grid-cols-5 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{totalCount}</div>
-                      <div className="text-gray-600">Total comptes</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{modifiedCount}</div>
-                      <div className="text-gray-600">Comptes modifiés</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{step4Count}</div>
-                      <div className="text-gray-600">Correction doublons</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">{step6Count}</div>
-                      <div className="text-gray-600">Suggestions hors CNCJ</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{doubleModifiedCount}</div>
-                      <div className="text-gray-600">Double modification</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Légende */}
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-center justify-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-blue-50 border-l-4 border-blue-400 rounded"></div>
-                      <span className="text-gray-700">Correction doublons</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-orange-50 border-l-4 border-orange-400 rounded"></div>
-                      <span className="text-gray-700">Suggestions hors CNCJ</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-purple-50 border-l-4 border-purple-400 rounded"></div>
-                      <span className="text-gray-700">Double modification</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Boutons de filtrage */}
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <div className="mb-4 flex justify-center space-x-2">
-                    {(() => {
-                      const totalCount = finalSummaryData.length;
-                      const step4Count = finalSummaryData.filter(row => row.modificationSource === 'step4').length;
-                      const step6Count = finalSummaryData.filter(row => row.modificationSource === 'step6').length;
-                      const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step4+step6').length;
-                      
-                      return (
-                        <>
-                          <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'all' })}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'all' 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            Tous ({totalCount})
-                          </button>
-                          <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step4' })}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step4' 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            Doublons corrigés ({step4Count})
-                          </button>
-                          <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step6' })}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step6' 
-                                ? 'bg-orange-600 text-white' 
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            Suggestions CNCJ ({step6Count})
-                          </button>
-                          <button
-                            onClick={() => dispatch({ type: 'SET_FINAL_FILTER', payload: 'step4+step6' })}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                              state.finalFilter === 'step4+step6' 
-                                ? 'bg-purple-600 text-white' 
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
-                          >
-                            Double modification ({doubleModifiedCount})
-                          </button>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                {/* Tableau récapitulatif */}
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Code suggéré (CNCJ)</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Code final</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {finalSummaryData
-                        .filter(row => {
-                          if (state.finalFilter === 'all') return true;
-                          return row.modificationSource === state.finalFilter;
-                        })
-                        .map((row) => (
-                        <tr key={row.id} className={getRowStyle(row.modificationSource)}>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <div className="flex items-center space-x-2">
-                              {row.title}
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
-                          <td className="border border-gray-300 px-4 py-2 font-mono">
-                            {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
-                          <td className="border border-gray-300 px-4 py-2 font-mono">
-                            {row.modificationSource === 'step4+step6' ? (
-                              <span className="text-purple-700 font-bold">
-                                {row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode}
-                              </span>
-                            ) : row.modificationSource === 'step4' ? (
-                              <span className="text-blue-700 font-bold">
-                                {row.correctedCode}
-                              </span>
-                            ) : row.modificationSource === 'step6' ? (
-                              <span className="text-orange-700 font-bold">
-                                {row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode}
-                              </span>
-                            ) : (
-                              <span className="text-gray-700">
-                                {row.originalCode}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Boutons d'action */}
-                <div className="mt-6 text-center space-x-4">
-                  <button
-                    onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'step6' })}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                  >
-                    ← Retour
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      // Exporter les résultats finaux en CSV avec titre, code d'origine et code final
-                      const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
-                      
-                      const csvRows = finalSummaryData
-                        .filter(row => {
-                          if (state.finalFilter === 'all') return true;
-                          return row.modificationSource === state.finalFilter;
-                        })
-                        .map(row => {
-                          // Déterminer le code final selon la même logique que le tableau
-                          let finalCode;
-                          if (row.modificationSource === 'step4+step6') {
-                            finalCode = row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode;
-                          } else if (row.modificationSource === 'step4') {
-                            finalCode = row.correctedCode;
-                          } else if (row.modificationSource === 'step6') {
-                            finalCode = row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode;
-                          } else {
-                            finalCode = row.originalCode;
-                          }
-                          
-                          return [
-                            row.title,
-                            row.originalCode,
-                            finalCode
-                          ];
-                        });
-                      
-                      const csvContent = [
-                        csvHeaders.join(','),
-                        ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
-                      ].join('\n');
-                      
-                      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'correspondances-comptes.csv';
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  >
-                    📥 Exporter les correspondances
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        {/* Step Final: Summary */}
+        {currentStepConfig && currentStepConfig.id === 'stepFinal' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <StepFinalSummary
+              clientAccounts={state.clientAccounts}
+              result={state.result}
+              cncjConflictResult={state.cncjConflictResult}
+              replacementCodes={state.replacementCodes}
+              cncjConflictSuggestions={state.cncjConflictSuggestions}
+              mergedClientAccounts={mergedClientAccounts}
+              finalFilter={state.finalFilter}
+              onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={undefined}
+              canProceed={false}
+              onPrevious={handleNavigatePrevious}
+              showNext={false}
+            />
+          </StepRenderer>
+        )}
 
               </div>
     </div>
