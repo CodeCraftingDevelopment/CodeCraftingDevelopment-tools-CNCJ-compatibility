@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
-import { Account, FileUploadResult, FileMetadata } from '../types/accounts';
+import React, { useCallback, useState } from 'react';
+import { Account, FileUploadResult, FileMetadata, InvalidRow } from '../types/accounts';
 import { parseCSVFile } from '../utils/accountUtils';
 import { formatFileSize } from '../utils/fileUtils';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
+import { ImportErrorsModal } from './ImportErrorsModal';
 
 interface FileUploaderProps {
   onFileLoaded: (accounts: Account[], source: 'client' | 'cncj', fileInfo: FileMetadata) => void;
@@ -25,9 +26,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   disabled = false,
   fileInfo
 }) => {
+  const [localErrors, setLocalErrors] = useState<string[]>([]);
+  const [invalidRows, setInvalidRows] = useState<InvalidRow[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const processFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
-      onError(['Veuillez sélectionner un fichier CSV']);
+      const errorMsg = 'Veuillez sélectionner un fichier CSV';
+      onError([errorMsg]);
+      setLocalErrors([errorMsg]);
+      setInvalidRows([]);
       return;
     }
 
@@ -38,10 +46,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       rowCount: 0,
       loadStatus: 'loading'
     };
+    setLocalErrors([]);
+    setInvalidRows([]);
+    setIsModalOpen(false);
     onFileLoaded([], source, loadingFileInfo);
 
     try {
       const result: FileUploadResult = await parseCSVFile(file);
+      setInvalidRows(result.invalidRows);
       const importedCount = result.accounts.length;
       const totalRows = result.totalRows;
       const skippedRows = result.skippedRows;
@@ -65,6 +77,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         if (messages.length > 0) {
           onError(messages);
         }
+        setLocalErrors(messages);
+        setIsModalOpen(true);
         onFileLoaded([], source, errorFileInfo);
         return;
       }
@@ -89,6 +103,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       }
       if (feedbackMessages.length > 0) {
         onError(feedbackMessages);
+        setLocalErrors(result.invalidRows.length === 0 ? feedbackMessages : []);
+      } else {
+        setLocalErrors([]);
       }
       
       onFileLoaded(accountsWithSource, source, finalFileInfo);
@@ -101,7 +118,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         skippedRows: 0,
         loadStatus: 'error'
       };
-      onError([`Erreur lors de la lecture du fichier: ${error}`]);
+      const message = `Erreur lors de la lecture du fichier: ${error}`;
+      onError([message]);
+      setLocalErrors([message]);
+      setInvalidRows([]);
+      setIsModalOpen(true);
       onFileLoaded([], source, errorFileInfo);
     }
   }, [source, onError, onFileLoaded]);
@@ -112,9 +133,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     acceptedTypes: ['.csv']
   });
 
-
   const handleClearFile = useCallback(() => {
     onFileCleared(source);
+    setLocalErrors([]);
+    setInvalidRows([]);
+    setIsModalOpen(false);
   }, [onFileCleared, source]);
 
   const downloadTemplate = useCallback(() => {
@@ -262,6 +285,19 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 {`${fileInfo.skippedRows} ligne${fileInfo.skippedRows > 1 ? 's' : ''} ignorée${fileInfo.skippedRows > 1 ? 's' : ''}.`}
               </div>
             )}
+
+            {(invalidRows.length > 0 || localErrors.length > 0) && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-2 px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-colors flex items-center gap-2"
+                >
+                  <span aria-hidden="true">⚠️</span>
+                  <span>Détails des lignes ignorées</span>
+                </button>
+              </div>
+            )}
             
             {/* Action buttons */}
             <div className="flex justify-center space-x-2">
@@ -280,6 +316,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       <p className="mt-2 text-xs text-gray-500 text-center">
         Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)
       </p>
+
+      {(isModalOpen && (invalidRows.length > 0 || localErrors.length > 0)) && (
+        <ImportErrorsModal
+          invalidRows={invalidRows}
+          genericErrors={localErrors}
+          fileName={fileInfo?.name || 'fichier.csv'}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

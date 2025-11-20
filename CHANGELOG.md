@@ -10,7 +10,8 @@
 #### Améliorations import CSV
 - comptage des lignes utiles vs. lignes ignorées lors du parsing des fichiers clients/CNCJ ;
 - remontée d'alertes UI lorsque les lignes importées ne correspondent pas aux lignes détectées ;
-- affichage des statistiques (total, importées, ignorées) dans la carte de fichier.
+- affichage des statistiques (total, importées, ignorées) dans la carte de fichier ;
+- ajout d'une fenêtre modale détaillant les lignes rejetées avec export CSV des données invalides.
 
 #### Fichiers concernés
 - `src/App.tsx`
@@ -24,6 +25,7 @@
 - `src/types/accounts.ts`
 - `src/utils/accountUtils.ts`
 - `src/components/FileUploader.tsx`
+- `src/components/ImportErrorsModal.tsx`
 
 ### Résumé
 - refonte de `App.tsx` pour consommer une configuration d'étapes dynamique ;

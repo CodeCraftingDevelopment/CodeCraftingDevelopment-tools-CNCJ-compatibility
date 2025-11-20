@@ -18,6 +18,16 @@ Application React/TypeScript pour traiter et comparer des comptes comptables pro
 - Retourne `accounts`, `errors`, ainsi que :
   - `totalRows` : nombre de lignes utiles détectées (hors en-tête et lignes vides) ;
   - `skippedRows` : lignes ignorées (vides ou avec numéros invalides).
+  - `invalidRows` : tableau de `{ lineNumber, values, reason }` pour alimenter la modale d’analyse.
+
+#### FileUploader
+- Gère la sélection (drag & drop ou bouton) et l'envoi à `parseCSVFile`.
+- Met à jour `FileMetadata` (`name`, `size`, `rowCount`, `loadStatus`).
+- Affiche désormais les statistiques d'import : comptes importés, total de lignes détectées, lignes ignorées.
+- Fournit un bouton ⚠️ ouvrant `ImportErrorsModal` pour visualiser/exporter les lignes rejetées.
+
+### ImportErrorsModal
+Fenêtre modale listant les lignes ignorées (tableau, export CSV) et les messages génériques.
 
 ### Workflow principal
 1. Chargement des fichiers CSV

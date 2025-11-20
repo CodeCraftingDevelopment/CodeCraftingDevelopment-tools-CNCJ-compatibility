@@ -467,6 +467,21 @@ const App: React.FC = () => {
           </p>
         </div>
 
+        {/* Upload Errors */}
+        {state.errors.length > 0 && (
+          <div className="mb-6 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg p-4" role="alert">
+            <h3 className="text-sm font-semibold mb-2">Lignes ignorées lors de l'import</h3>
+            <ul className="space-y-1 text-sm">
+              {state.errors.map((error, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="mt-0.5 text-orange-500">•</span>
+                  <span>{error}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Progress Bar */}
         <ProgressBar
           currentStepId={state.currentStep}

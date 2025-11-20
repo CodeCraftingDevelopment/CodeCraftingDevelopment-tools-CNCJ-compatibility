@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { Account, FileUploadResult, ProcessingResult, MergeInfo, NormalizationAccount } from '../types/accounts';
+import { Account, FileUploadResult, ProcessingResult, MergeInfo, NormalizationAccount, InvalidRow } from '../types/accounts';
 import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
 
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
@@ -11,6 +11,7 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
         const errors: string[] = [];
         let totalRows = 0;
         let skippedRows = 0;
+        const invalidRows: InvalidRow[] = [];
         
         result.data.forEach((row: any, index: number) => {
           const cells = Array.isArray(row) ? row : Object.values(row ?? {});
@@ -43,9 +44,19 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
           const { accountNumber, accountTitle } = extractAccountData(cells, format);
           const trimmedAccountNumber = accountNumber?.trim();
 
-          if (!trimmedAccountNumber) {
+          const recordInvalid = (reason: string) => {
             skippedRows += 1;
-            errors.push(`Ligne ${index + 1}: aucun numéro de compte détecté`);
+            const values = cells.map((cell) => (cell ?? '').toString().trim());
+            invalidRows.push({
+              lineNumber: index + 1,
+              values,
+              reason
+            });
+            errors.push(`Ligne ${index + 1}: ${reason}`);
+          };
+
+          if (!trimmedAccountNumber) {
+            recordInvalid(`aucun numéro de compte détecté`);
             return;
           }
 
@@ -57,17 +68,16 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
               source: 'client' // Will be updated by caller
             });
           } else {
-            skippedRows += 1;
-            errors.push(`Ligne ${index + 1}: "${trimmedAccountNumber}" n'est pas un numéro de compte valide`);
+            recordInvalid(`"${trimmedAccountNumber}" n'est pas un numéro de compte valide`);
           }
         });
         
         // Ajuster skippedRows au cas où certains comptes valides n'ont pas été comptés explicitement
         const computedSkipped = Math.max(totalRows - accounts.length, skippedRows);
-        resolve({ accounts, errors, totalRows, skippedRows: computedSkipped });
+        resolve({ accounts, errors, totalRows, skippedRows: computedSkipped, invalidRows });
       },
       error: (error) => {
-        resolve({ accounts: [], errors: [error.message], totalRows: 0, skippedRows: 0 });
+        resolve({ accounts: [], errors: [error.message], totalRows: 0, skippedRows: 0, invalidRows: [] });
       }
     });
   });

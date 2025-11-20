@@ -30,6 +30,7 @@ export interface FileUploadResult {
   errors: string[];
   totalRows: number;
   skippedRows: number;
+  invalidRows: InvalidRow[];
 }
 
 export interface FileMetadata {
@@ -39,6 +40,12 @@ export interface FileMetadata {
   totalRows?: number;
   skippedRows?: number;
   loadStatus: 'success' | 'warning' | 'error' | 'loading';
+}
+
+export interface InvalidRow {
+  lineNumber: number;
+  values: string[];
+  reason: string;
 }
 
 export interface AppState {
