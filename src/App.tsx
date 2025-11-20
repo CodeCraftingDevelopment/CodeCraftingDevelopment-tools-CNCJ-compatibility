@@ -36,7 +36,7 @@ type AppAction =
   | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
-  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' }
+  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: import('./types/accounts').NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean };
 

@@ -9,8 +9,8 @@ interface StepFinalSummaryProps {
   replacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
   mergedClientAccounts: Account[];
-  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6';
-  onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6') => void;
+  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
+  onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate') => void;
 }
 
 export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
@@ -67,10 +67,10 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   const step4Count = finalSummaryData.filter(row => row.isStep4Duplicate).length;
   const step6Count = finalSummaryData.filter(row => row.isStep6Conflict).length;
   const toCreateCount = finalSummaryData.filter(row => row.isToCreate).length;
-  const doubleModifiedCount = finalSummaryData.filter(row => row.modificationSource === 'step4+step6').length;
   const totalCount = finalSummaryData.length;
 
-  const getRowStyle = (source: string | null) => {
+  const getRowStyle = (source: string | null, isToCreate: boolean) => {
+    if (isToCreate) return 'bg-purple-50 border-l-4 border-purple-400';
     switch (source) {
       case 'step4': return 'bg-blue-50 border-l-4 border-blue-400';
       case 'step6': return 'bg-orange-50 border-l-4 border-orange-400';
@@ -81,6 +81,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
 
   const filteredData = finalSummaryData.filter(row => {
     if (finalFilter === 'all') return true;
+    if (finalFilter === 'toCreate') return row.isToCreate;
     return row.modificationSource === finalFilter;
   });
 
@@ -119,13 +120,12 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={6}>
+      <StepStatsGrid columns={5}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={modifiedCount} label="Comptes modifiés" color="green" />
         <StepStat value={step4Count} label="Correction doublons" color="blue" />
         <StepStat value={step6Count} label="Corrections CNCJ" color="orange" />
         <StepStat value={toCreateCount} label="À créer" color="purple" />
-        <StepStat value={doubleModifiedCount} label="Double modification" color="purple" />
       </StepStatsGrid>
 
       {/* Légende */}
@@ -133,7 +133,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
         items={[
           { color: 'bg-blue-50 border-l-4 border-blue-400', label: 'Correction doublons' },
           { color: 'bg-orange-50 border-l-4 border-orange-400', label: 'Corrections CNCJ' },
-          { color: 'bg-purple-50 border-l-4 border-purple-400', label: 'Double modification' }
+          { color: 'bg-purple-50 border-l-4 border-purple-400', label: 'À créer' }
         ]}
       />
 
@@ -171,14 +171,14 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
             Corrections CNCJ ({step6Count})
           </button>
           <button
-            onClick={() => onFilterChange('step4+step6')}
+            onClick={() => onFilterChange('toCreate')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              finalFilter === 'step4+step6' 
+              finalFilter === 'toCreate' 
                 ? 'bg-purple-600 text-white' 
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            Double modification ({doubleModifiedCount})
+            À créer ({toCreateCount})
           </button>
         </div>
       </div>
@@ -192,6 +192,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
               <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé (Client)</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé (CNCJ)</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">À créer ?</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Code final</th>
             </tr>
           </thead>
@@ -214,13 +215,20 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
               }
 
               return (
-                <tr key={row.id} className={getRowStyle(row.modificationSource)}>
+                <tr key={row.id} className={getRowStyle(row.modificationSource, row.isToCreate)}>
                   <td className="border border-gray-300 px-4 py-2">{row.title}</td>
                   <td className="border border-gray-300 px-4 py-2 font-mono">{row.originalCode}</td>
                   <td className="border border-gray-300 px-4 py-2 font-mono">
                     {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 font-mono">{row.cncjCorrection}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {row.isToCreate ? (
+                      <span className="inline-block px-2 py-1 text-sm font-semibold text-purple-700 bg-purple-100 rounded-full">Oui</span>
+                    ) : (
+                      <span className="text-gray-500">Non</span>
+                    )}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2 font-mono">
                     <span className={finalCodeColor}>{finalCode}</span>
                   </td>

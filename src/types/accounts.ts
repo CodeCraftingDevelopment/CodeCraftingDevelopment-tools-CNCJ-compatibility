@@ -65,7 +65,7 @@ export interface AppState {
   mergeInfo: MergeInfo[];
   cncjConflictResult: ProcessingResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
-  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6';
+  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
 }
