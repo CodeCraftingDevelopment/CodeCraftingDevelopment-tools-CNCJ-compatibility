@@ -119,7 +119,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={modifiedCount} label="Comptes modifiés" color="green" />
         <StepStat value={step4Count} label="Correction doublons" color="blue" />
-        <StepStat value={step6Count} label="Suggestions hors CNCJ" color="orange" />
+        <StepStat value={step6Count} label="Corrections CNCJ" color="orange" />
         <StepStat value={doubleModifiedCount} label="Double modification" color="purple" />
       </StepStatsGrid>
 
@@ -127,7 +127,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       <StepLegend
         items={[
           { color: 'bg-blue-50 border-l-4 border-blue-400', label: 'Correction doublons' },
-          { color: 'bg-orange-50 border-l-4 border-orange-400', label: 'Suggestions hors CNCJ' },
+          { color: 'bg-orange-50 border-l-4 border-orange-400', label: 'Corrections CNCJ' },
           { color: 'bg-purple-50 border-l-4 border-purple-400', label: 'Double modification' }
         ]}
       />
@@ -163,7 +163,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            Suggestions CNCJ ({step6Count})
+            Corrections CNCJ ({step6Count})
           </button>
           <button
             onClick={() => onFilterChange('step4+step6')}
@@ -185,8 +185,8 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left">Titre</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Code original</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Code suggéré (CNCJ)</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé (Client)</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Code corrigé (CNCJ)</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Code final</th>
             </tr>
           </thead>
