@@ -13,7 +13,7 @@ interface ResultsDisplayProps {
   replacementCodes?: { [key: string]: string };
   onReplacementCodeChange?: (accountId: string, code: string) => void;
   conflictType?: 'duplicates' | 'cncj-conflicts';
-  suggestions?: { [key: string]: string | 'error' };
+  corrections?: { [key: string]: string | 'error' };
   cncjCodes?: Set<string>;
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
@@ -27,7 +27,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   replacementCodes = {}, 
   onReplacementCodeChange,
   conflictType = 'duplicates',
-  suggestions = {},
+  corrections = {},
   cncjCodes,
   mergedClientAccounts,
   originalClientAccounts,
@@ -144,22 +144,22 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            📥 {conflictType === 'cncj-conflicts' ? 'Exporter les suggestions' : 'Exporter les doublons'}
+            📥 {conflictType === 'cncj-conflicts' ? 'Exporter les corrections' : 'Exporter les doublons'}
           </button>
           {conflictType === 'cncj-conflicts' && (
             <button
               onClick={() => {
-                // Appliquer toutes les suggestions valides
+                // Appliquer toutes les corrections valides
                 duplicates.forEach(duplicate => {
-                  const suggestion = suggestions[duplicate.id];
-                  if (suggestion && suggestion !== 'error') {
-                    onReplacementCodeChange?.(duplicate.id, suggestion);
+                  const correction = corrections[duplicate.id];
+                  if (correction && correction !== 'error') {
+                    onReplacementCodeChange?.(duplicate.id, correction);
                   }
                 });
               }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              ✅ Valider les suggestions
+              ✅ Valider les corrections
             </button>
           )}
         </div>
@@ -221,7 +221,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isDuplicateCode={isDuplicateCode}
                       isCncjCode={isCncjCode}
                       conflictType={conflictType}
-                      suggestions={suggestions}
+                      corrections={corrections}
                     />
                   );
                 });

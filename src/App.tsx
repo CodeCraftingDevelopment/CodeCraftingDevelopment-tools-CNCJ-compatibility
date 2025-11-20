@@ -31,7 +31,7 @@ type AppAction =
   | { type: 'CLEAR_CNCJ_REPLACEMENT_CODES' }
   | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
-  | { type: 'SET_CNCJ_CONFLICT_SUGGESTIONS'; payload: { [key: string]: string | 'error' } }
+  | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
   | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: import('./types/accounts').NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean };
@@ -49,7 +49,7 @@ const initialState: AppState = {
   cncjReplacementCodes: {},
   mergeInfo: [],
   cncjConflictResult: null,
-  cncjConflictSuggestions: {},
+  cncjConflictCorrections: {},
   finalFilter: 'all',
   accountsNeedingNormalization: [],
   isNormalizationApplied: false
@@ -111,8 +111,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, mergeInfo: action.payload };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
-    case 'SET_CNCJ_CONFLICT_SUGGESTIONS':
-      return { ...state, cncjConflictSuggestions: action.payload };
+    case 'SET_CNCJ_CONFLICT_CORRECTIONS':
+      return { ...state, cncjConflictCorrections: action.payload };
     case 'SET_FINAL_FILTER':
       return { ...state, finalFilter: action.payload };
     case 'SET_ACCOUNTS_NEEDING_NORMALIZATION':
@@ -145,7 +145,7 @@ const App: React.FC = () => {
     dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: null });
-    dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: {} });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: {} });
     
     if (source === 'client') {
       // NE vider mergeInfo QUE pour les fichiers clients (pas pendant le chargement)
@@ -320,7 +320,7 @@ const App: React.FC = () => {
       ...mergedClientAccounts.map(acc => acc.number)
     ]);
     
-    const suggestions: { [accountId: string]: string | 'error' } = {};
+    const corrections: { [accountId: string]: string | 'error' } = {};
     
     // Trier les conflits pour des résultats déterministes
     const sortedConflicts = [...conflicts].sort((a, b) => a.number.localeCompare(b.number));
@@ -331,30 +331,30 @@ const App: React.FC = () => {
       const maxAttempts = 9; // Maximum 9 tentatives avant de changer de dizaine
       
       while (attempts < maxAttempts) {
-        const suggestedCode = incrementCodeWithConstraint(currentCode);
+        const correctedCode = incrementCodeWithConstraint(currentCode);
         
-        if (suggestedCode === null) {
-          suggestions[conflict.id] = 'error';
+        if (correctedCode === null) {
+          corrections[conflict.id] = 'error';
           break;
         }
         
         // Vérifier que le code n'est ni dans CNCJ, ni dans les clients fusionnés, ni déjà suggéré
-        if (!usedCodes.has(suggestedCode)) {
-          suggestions[conflict.id] = suggestedCode;
-          usedCodes.add(suggestedCode); // Ajouter immédiatement pour éviter les conflits avec les prochaines suggestions
+        if (!usedCodes.has(correctedCode)) {
+          corrections[conflict.id] = correctedCode;
+          usedCodes.add(correctedCode); // Ajouter immédiatement pour éviter les conflits avec les prochaines corrections
           break;
         }
         
-        currentCode = suggestedCode;
+        currentCode = correctedCode;
         attempts++;
       }
       
       if (attempts >= maxAttempts) {
-        suggestions[conflict.id] = 'error';
+        corrections[conflict.id] = 'error';
       }
     });
     
-    return suggestions;
+    return corrections;
   }, [incrementCodeWithConstraint]);
 
   // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
@@ -409,9 +409,9 @@ const App: React.FC = () => {
       const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
       dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
 
-      // Étape 2 : Générer les suggestions d'auto-correction
-      const suggestions = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
-      dispatch({ type: 'SET_CNCJ_CONFLICT_SUGGESTIONS', payload: suggestions });
+      // Étape 2 : Générer les corrections automatiques
+      const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
+      dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
     } else {
       console.log('Retour à step5 - conservation des conflits CNCJ existants et des modifications manuelles');
     }
@@ -569,7 +569,7 @@ const App: React.FC = () => {
               cncjConflictResult={state.cncjConflictResult}
               loading={state.loading}
               cncjReplacementCodes={state.cncjReplacementCodes}
-              cncjConflictSuggestions={state.cncjConflictSuggestions}
+              cncjConflictCorrections={state.cncjConflictCorrections}
               cncjCodes={cncjCodes}
               onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
             />
@@ -592,7 +592,7 @@ const App: React.FC = () => {
               result={state.result}
               cncjConflictResult={state.cncjConflictResult}
               replacementCodes={state.replacementCodes}
-              cncjConflictSuggestions={state.cncjConflictSuggestions}
+              cncjConflictCorrections={state.cncjConflictCorrections}
               mergedClientAccounts={mergedClientAccounts}
               finalFilter={state.finalFilter}
               onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}

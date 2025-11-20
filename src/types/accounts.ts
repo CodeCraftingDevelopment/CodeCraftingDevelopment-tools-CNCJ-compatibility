@@ -50,7 +50,7 @@ export interface AppState {
   cncjReplacementCodes: { [key: string]: string };
   mergeInfo: MergeInfo[];
   cncjConflictResult: ProcessingResult | null;
-  cncjConflictSuggestions: { [key: string]: string | 'error' };
+  cncjConflictCorrections: { [key: string]: string | 'error' };
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;

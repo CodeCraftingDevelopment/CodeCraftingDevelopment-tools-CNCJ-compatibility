@@ -7,7 +7,7 @@ interface StepFinalSummaryProps {
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
   replacementCodes: { [key: string]: string };
-  cncjConflictSuggestions: { [key: string]: string | 'error' };
+  cncjConflictCorrections: { [key: string]: string | 'error' };
   mergedClientAccounts: Account[];
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6';
   onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6') => void;
@@ -18,7 +18,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   result,
   cncjConflictResult,
   replacementCodes,
-  cncjConflictSuggestions,
+  cncjConflictCorrections,
   mergedClientAccounts,
   finalFilter,
   onFilterChange
@@ -29,7 +29,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   
   const finalSummaryData = clientAccounts.map(account => {
     const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
-    const suggestedCode = cncjConflictSuggestions[account.id];
+    const correctedByCncj = cncjConflictCorrections[account.id];
     
     const isStep4Duplicate = step4Ids.has(account.id);
     const isStep6Conflict = step6Ids.has(account.id);
@@ -52,7 +52,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       title: account.title || 'Sans titre',
       originalCode: account.number,
       correctedCode: correctedCode,
-      suggestedCode: suggestedCode === 'error' ? 'Erreur' : (suggestedCode || '-'),
+      cncjCorrection: correctedByCncj === 'error' ? 'Erreur' : (correctedByCncj || '-'),
       wasModified: replacementCodes[account.id] !== undefined,
       modificationSource,
       isStep4Duplicate,
@@ -86,11 +86,11 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     const csvRows = filteredData.map(row => {
       let finalCode;
       if (row.modificationSource === 'step4+step6') {
-        finalCode = row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode;
+        finalCode = row.cncjCorrection === 'Erreur' ? row.correctedCode : row.cncjCorrection;
       } else if (row.modificationSource === 'step4') {
         finalCode = row.correctedCode;
       } else if (row.modificationSource === 'step6') {
-        finalCode = row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode;
+        finalCode = row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
       } else {
         finalCode = row.originalCode;
       }
@@ -196,13 +196,13 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
               let finalCodeColor = 'text-gray-700';
               
               if (row.modificationSource === 'step4+step6') {
-                finalCode = row.suggestedCode === 'Erreur' ? row.correctedCode : row.suggestedCode;
+                finalCode = row.cncjCorrection === 'Erreur' ? row.correctedCode : row.cncjCorrection;
                 finalCodeColor = 'text-purple-700 font-bold';
               } else if (row.modificationSource === 'step4') {
                 finalCode = row.correctedCode;
                 finalCodeColor = 'text-blue-700 font-bold';
               } else if (row.modificationSource === 'step6') {
-                finalCode = row.suggestedCode === 'Erreur' ? row.originalCode : row.suggestedCode;
+                finalCode = row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
                 finalCodeColor = 'text-orange-700 font-bold';
               } else {
                 finalCode = row.originalCode;
@@ -215,7 +215,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                   <td className="border border-gray-300 px-4 py-2 font-mono">
                     {row.correctedCode === row.originalCode ? '-' : row.correctedCode}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 font-mono">{row.suggestedCode}</td>
+                  <td className="border border-gray-300 px-4 py-2 font-mono">{row.cncjCorrection}</td>
                   <td className="border border-gray-300 px-4 py-2 font-mono">
                     <span className={finalCodeColor}>{finalCode}</span>
                   </td>

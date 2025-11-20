@@ -5,7 +5,7 @@ type Step = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'stepFin
 interface CleanupConfig {
   replacementCodes?: boolean;
   cncjConflictResult?: boolean;
-  cncjConflictSuggestions?: boolean;
+  cncjConflictCorrections?: boolean;
   finalFilter?: boolean;
   accountsNeedingNormalization?: boolean;
   isNormalizationApplied?: boolean;
@@ -16,7 +16,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
   step1: {
     replacementCodes: true,
     cncjConflictResult: true,
-    cncjConflictSuggestions: true,
+    cncjConflictCorrections: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
     isNormalizationApplied: true
@@ -24,7 +24,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
   step2: {
     replacementCodes: true,
     cncjConflictResult: true,
-    cncjConflictSuggestions: true,
+    cncjConflictCorrections: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
     isNormalizationApplied: true
@@ -32,14 +32,14 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
   step3: {
     replacementCodes: true,
     cncjConflictResult: true,
-    cncjConflictSuggestions: true,
+    cncjConflictCorrections: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
     isNormalizationApplied: true
   },
   step4: {
     cncjConflictResult: true,
-    cncjConflictSuggestions: true,
+    cncjConflictCorrections: true,
     finalFilter: true
   },
   step5: {
@@ -62,8 +62,8 @@ export const cleanupFutureSteps = (state: AppState, targetStep: Step): AppState 
   if (config.cncjConflictResult) {
     newState.cncjConflictResult = null;
   }
-  if (config.cncjConflictSuggestions) {
-    newState.cncjConflictSuggestions = {};
+  if (config.cncjConflictCorrections) {
+    newState.cncjConflictCorrections = {};
   }
   if (config.finalFilter) {
     newState.finalFilter = 'all';

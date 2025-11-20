@@ -8,7 +8,7 @@ interface DuplicateRowProps {
   isDuplicateCode: boolean;
   isCncjCode?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
-  suggestions?: { [key: string]: string | 'error' };
+  corrections?: { [key: string]: string | 'error' };
 }
 
 export const DuplicateRow: React.FC<DuplicateRowProps> = ({
@@ -18,7 +18,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isDuplicateCode,
   isCncjCode = false,
   conflictType = 'duplicates',
-  suggestions = {}
+  corrections = {}
 }) => {
   const isEmpty = !replacementCode?.trim();
   
@@ -106,7 +106,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
       </div>
       
       {/* Afficher une erreur pour les conflits CNCJ */}
-      {conflictType === 'cncj-conflicts' && suggestions[account.id] && (
+      {conflictType === 'cncj-conflicts' && corrections[account.id] && (
         <div className="mt-2 flex items-center space-x-2">
           <span className="text-xs text-gray-600">Statut:</span>
           <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">

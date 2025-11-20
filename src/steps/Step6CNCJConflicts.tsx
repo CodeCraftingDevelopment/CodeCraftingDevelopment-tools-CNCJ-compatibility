@@ -6,7 +6,7 @@ interface Step6CNCJConflictsProps {
   cncjConflictResult: ProcessingResult | null;
   loading: boolean;
   cncjReplacementCodes: { [key: string]: string };
-  cncjConflictSuggestions: { [key: string]: string | 'error' };
+  cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjCodes: Set<string>;
   onCncjReplacementCodeChange: (accountId: string, code: string) => void;
 }
@@ -15,7 +15,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   cncjConflictResult,
   loading,
   cncjReplacementCodes,
-  cncjConflictSuggestions,
+  cncjConflictCorrections,
   cncjCodes,
   onCncjReplacementCodeChange
 }) => {
@@ -28,7 +28,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       replacementCodes={cncjReplacementCodes}
       onReplacementCodeChange={onCncjReplacementCodeChange}
       conflictType="cncj-conflicts"
-      suggestions={cncjConflictSuggestions}
+      corrections={cncjConflictCorrections}
       cncjCodes={cncjCodes}
     />
   );
