@@ -33,9 +33,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictCorrections: true,
-    finalFilter: true,
-    accountsNeedingNormalization: true,
-    isNormalizationApplied: true
+    finalFilter: true
   },
   step4: {
     cncjConflictResult: true,

@@ -3,12 +3,14 @@ import { NormalizationAccount } from '../types/accounts';
 
 interface NormalizationStepProps {
   accountsNeedingNormalization: NormalizationAccount[];
+  isNormalizationApplied: boolean;
   onApplyNormalization: () => void;
   onBack: () => void;
 }
 
 export const NormalizationStep: React.FC<NormalizationStepProps> = ({
   accountsNeedingNormalization,
+  isNormalizationApplied,
   onApplyNormalization,
   onBack
 }) => {
@@ -21,8 +23,17 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
         
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <div className="text-gray-500">
-            <div className="text-lg mb-2">✅ Tous les numéros de compte sont valides</div>
-            <p className="text-sm">Tous les comptes clients ont déjà 7 chiffres ou moins</p>
+            {isNormalizationApplied ? (
+              <>
+                <div className="text-lg mb-2">✅ Normalisation appliquée</div>
+                <p className="text-sm">Tous les comptes ont été tronqués à 7 chiffres maximum.</p>
+              </>
+            ) : (
+              <>
+                <div className="text-lg mb-2">✅ Tous les numéros de compte sont valides</div>
+                <p className="text-sm">Tous les comptes clients ont déjà 7 chiffres ou moins</p>
+              </>
+            )}
           </div>
         </div>
         
@@ -61,6 +72,12 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
           </div>
         </div>
       </div>
+
+      {isNormalizationApplied && (
+        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+          ✅ Les numéros présentés ci-dessous ont déjà été normalisés. Vous pouvez vérifier les changements ou continuer.
+        </div>
+      )}
       
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-6">
         <p className="text-sm text-gray-600 text-center">
@@ -107,9 +124,9 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
         
         <button
           onClick={onApplyNormalization}
-          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+          className={`px-6 py-2 text-white rounded-lg transition-colors font-medium ${isNormalizationApplied ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'}`}
         >
-          📏 Normaliser les codes →
+          {isNormalizationApplied ? 'Continuer →' : '📏 Normaliser les codes →'}
         </button>
       </div>
     </div>

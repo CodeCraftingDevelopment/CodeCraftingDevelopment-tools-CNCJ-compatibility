@@ -281,7 +281,6 @@ const App: React.FC = () => {
       const normalizedClientAccounts = applyNormalization(state.clientAccounts, state.accountsNeedingNormalization);
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: normalizedClientAccounts });
       dispatch({ type: 'SET_NORMALIZATION_APPLIED', payload: true });
-      dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: [] });
       
       // Reprocesser les comptes avec les données normalisées
       processClientAccounts(normalizedClientAccounts, state.cncjAccounts);
@@ -576,6 +575,7 @@ const App: React.FC = () => {
         {state.currentStep === 'step3' && (
           <NormalizationStep
             accountsNeedingNormalization={state.accountsNeedingNormalization}
+            isNormalizationApplied={state.isNormalizationApplied}
             onApplyNormalization={handleNormalizationNext}
             onBack={handleNavigatePrevious}
           />
