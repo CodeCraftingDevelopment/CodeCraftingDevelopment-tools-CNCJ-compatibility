@@ -1,10 +1,10 @@
-Numéro compte,Titre compte
-140,Compte test 1 - suggéré 141
-140,Compte test 2 - suggéré 142
-140,Compte test 3 - suggéré 143
-145,Compte test 4 - suggéré 146
-145,Compte test 5 - suggéré 147
-149,Compte test 6 - ERREUR (finit par 9)
-149,Compte test 7 - ERREUR (finit par 9)
-200,Compte unique 1
-201,Compte unique 2
+Numéro compte;Titre compte
+140;Compte test 1 - suggéré 141
+140;Compte test 2 - suggéré 142
+140;Compte test 3 - suggéré 143
+145;Compte test 4 - suggéré 146
+145;Compte test 5 - suggéré 147
+149;Compte test 6 - ERREUR (finit par 9)
+149;Compte test 7 - ERREUR (finit par 9)
+200;Compte unique 1
+201;Compte unique 2

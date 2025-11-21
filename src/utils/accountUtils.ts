@@ -5,6 +5,7 @@ import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csv
 export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
   return new Promise((resolve) => {
     Papa.parse(file, {
+      delimiter: ';',
       skipEmptyLines: false,
       complete: (result) => {
         const accounts: Account[] = [];

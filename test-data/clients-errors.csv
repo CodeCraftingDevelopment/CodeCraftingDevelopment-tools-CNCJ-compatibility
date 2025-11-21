@@ -1,8 +1,8 @@
-numero,titre
-abc123,Compte avec texte
-123abc,Numéro mixte
-texte,Pas de nombre
-123.45,Nombre décimal
--12345,Nombre négatif
-12345,Compte valide
-67890,Autre compte valide
+numero;titre
+abc123;Compte avec texte
+123abc;Numéro mixte
+texte;Pas de nombre
+123.45;Nombre décimal
+-12345;Nombre négatif
+12345;Compte valide
+67890;Autre compte valide

@@ -141,7 +141,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   }, [onFileCleared, source]);
 
   const downloadTemplate = useCallback(() => {
-    const csvContent = "Numéro de compte,Titre\r\n12345678,Compte exemple\r\n87654321,Autre compte";
+    const csvContent = "Numéro de compte;Titre\r\n12345678;Compte exemple\r\n87654321;Autre compte";
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);

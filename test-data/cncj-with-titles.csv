@@ -1,6 +1,6 @@
-numero,titre
-10000,Compte caisse CNCJ
-10001,Banque CNCJ
-10002,Clients CNCJ
-40000,Compte extra 1
-40001,Compte extra 2
+numero;titre
+10000;Compte caisse CNCJ
+10001;Banque CNCJ
+10002;Clients CNCJ
+40000;Compte extra 1
+40001;Compte extra 2

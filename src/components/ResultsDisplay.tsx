@@ -151,8 +151,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               ]);
               
               const csvContent = [
-                csvHeaders.join(','),
-                ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
+                csvHeaders.join(';'),
+                ...csvRows.map(row => row.map(cell => `"${cell}"`).join(';'))
               ].join('\n');
               
               const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

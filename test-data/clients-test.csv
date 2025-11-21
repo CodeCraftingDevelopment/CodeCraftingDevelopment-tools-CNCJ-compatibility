@@ -1,24 +1,24 @@
-numero,titre
-10000,Caisse principale
-10001,Banque BNP
-10002,Compte clients
-10003,Fournisseurs
-10004,Immobilisations
-20000,Véhicules
-20000,Véhicules
-20000,Voitures de société
-20001,Équipements
-20001,Matériel informatique
-20003,Test correction doublon
-30000,Compte test 1
-30001,Compte test 2
-30002,Compte test 3
-30003,Compte test 4
-30004,Compte test 5
-50000,Compte avec caractères spéciaux: éàçù
-50001,Très long titre de compte qui dépasse la normale pour tester l'affichage et le rendu dans l'interface utilisateur avec beaucoup de texte
-50002,Toto
-60000,123 dans le titre
-12345678,Code avec 8 chiffres
-123456789,Code avec 9 chiffres
-401120,Code présent dans cncj-test.csv
+numero;titre
+10000;Caisse principale
+10001;Banque BNP
+10002;Compte clients
+10003;Fournisseurs
+10004;Immobilisations
+20000;Véhicules
+20000;Véhicules
+20000;Voitures de société
+20001;Équipements
+20001;Matériel informatique
+20003;Test correction doublon
+30000;Compte test 1
+30001;Compte test 2
+30002;Compte test 3
+30003;Compte test 4
+30004;Compte test 5
+50000;Compte avec caractères spéciaux: éàçù
+50001;Très long titre de compte qui dépasse la normale pour tester l'affichage et le rendu dans l'interface utilisateur avec beaucoup de texte
+50002;Toto
+60000;123 dans le titre
+12345678;Code avec 8 chiffres
+123456789;Code avec 9 chiffres
+401120;Code présent dans cncj-test.csv

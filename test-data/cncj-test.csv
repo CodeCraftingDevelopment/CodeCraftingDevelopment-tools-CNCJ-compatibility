@@ -1,60 +1,60 @@
-numero,titre
-108000,compte du commissaire de justice
-108100,commissaire de justice - compte prélèvements
-108200,commissaire de justice - apports (compte permanent)
-401120,fournisseurs liés aux comptes clients (toutes activités sauf ventes judiciaires)
-401130,fournisseurs liés aux comptes clients (activité de ventes judiciaires)
-411000,clients - prestations de service facturées (toutes activités sauf ventes judiciaires)
-412000,clients - prestations de service facturées (activité de ventes judiciaires)
-419600,fonds détenus pour le compte des clients (toutes activités sauf ventes judiciaires)1
-419630,fonds détenus pour le compte des clients (activité de ventes judiciaires)1
-419699,clients ouverture informatique
-419800,clients en attente d'imputation
-419899,clients virements inter dossiers
-436200,assurance maladie des professions libérales
-436300,caisse de retraite des commissaires de justice - CAVOM
-436800,autres organismes sociaux et de retraite des commissaires de justice
-455000,prélèvements des commissaires de justice associés
-455200,charges sociales des commissaires de justice associés
-455500,CSG déductible des commissaires de justice associés
-455600,frais divers des commissaires de justice associés
-467000,débours (toutes activités sauf ventes judiciaires)
-467030,débours (activité de ventes judiciaires)
-467100,ventes judiciaires - compte créditeur de regroupement des comptes auxiliaires
-467200,ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires
-54,banques établissements dépositaires autorisés
-542000,banques établissements dépositaires autorisés - comptes clients1
-542100,banques établissements dépositaires autorisés - comptes de placement financier1
-628100,cotisations SCT
-628110,cotisations COFRER
-628120,cotisations chambres
-628121,cotisations chambre nationale
-628122,cotisations chambre régionale
-628200,contribution volontaire obligatoire - CVO
-628300,cotisations professionnelles volontaires
-644000,rémunération des commissaires de justice associés
-646200,cotisations de retraite - CAVOM
-706100,émoluments - prestations tarifées
-706110,actes (toutes activités sauf ventes judiciaires)
-706120,formalités (toutes activités sauf ventes judiciaires)
-706130,droits proportionnels
-706140,ventes judiciaires, inventaires et prisées
-706150,aide juridictionnelle
-706160,actes pénaux
-706170,service des audiences
-706180,prestations – tarifs spéciaux
-706200,honoraires - prestations non tarifées
-706210,honoraires conventionnels sur les actes
-706220,honoraires conventionnels sur les constats
-706230,honoraires conventionnels sur le recouvrement amiable
-706240,honoraires conventionnels sur les conseils, assistance, représentation, pilotage
-706250,honoraires des activités accessoires autorisées
-706260,ventes judiciaires - honoraires d'inventaires, prisées et expertises
-706270,honoraires divers
-706280,frais de transport pour les honoraires – prestations non tarifées
-706800,autres produits HT
-708800,débours récupérés
-709400,débours payés irrécupérables
-709500,honoraires rétrocédés
-758100,versements du SCT
-758300,versements de la CVO
+numero;titre
+108000;compte du commissaire de justice
+108100;commissaire de justice - compte prélèvements
+108200;commissaire de justice - apports (compte permanent)
+401120;fournisseurs liés aux comptes clients (toutes activités sauf ventes judiciaires)
+401130;fournisseurs liés aux comptes clients (activité de ventes judiciaires)
+411000;clients - prestations de service facturées (toutes activités sauf ventes judiciaires)
+412000;clients - prestations de service facturées (activité de ventes judiciaires)
+419600;fonds détenus pour le compte des clients (toutes activités sauf ventes judiciaires)1
+419630;fonds détenus pour le compte des clients (activité de ventes judiciaires)1
+419699;clients ouverture informatique
+419800;clients en attente d'imputation
+419899;clients virements inter dossiers
+436200;assurance maladie des professions libérales
+436300;caisse de retraite des commissaires de justice - CAVOM
+436800;autres organismes sociaux et de retraite des commissaires de justice
+455000;prélèvements des commissaires de justice associés
+455200;charges sociales des commissaires de justice associés
+455500;CSG déductible des commissaires de justice associés
+455600;frais divers des commissaires de justice associés
+467000;débours (toutes activités sauf ventes judiciaires)
+467030;débours (activité de ventes judiciaires)
+467100;ventes judiciaires - compte créditeur de regroupement des comptes auxiliaires
+467200;ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires
+54;banques établissements dépositaires autorisés
+542000;banques établissements dépositaires autorisés - comptes clients1
+542100;banques établissements dépositaires autorisés - comptes de placement financier1
+628100;cotisations SCT
+628110;cotisations COFRER
+628120;cotisations chambres
+628121;cotisations chambre nationale
+628122;cotisations chambre régionale
+628200;contribution volontaire obligatoire - CVO
+628300;cotisations professionnelles volontaires
+644000;rémunération des commissaires de justice associés
+646200;cotisations de retraite - CAVOM
+706100;émoluments - prestations tarifées
+706110;actes (toutes activités sauf ventes judiciaires)
+706120;formalités (toutes activités sauf ventes judiciaires)
+706130;droits proportionnels
+706140;ventes judiciaires; inventaires et prisées
+706150;aide juridictionnelle
+706160;actes pénaux
+706170;service des audiences
+706180;prestations – tarifs spéciaux
+706200;honoraires - prestations non tarifées
+706210;honoraires conventionnels sur les actes
+706220;honoraires conventionnels sur les constats
+706230;honoraires conventionnels sur le recouvrement amiable
+706240;honoraires conventionnels sur les conseils; assistance; représentation; pilotage
+706250;honoraires des activités accessoires autorisées
+706260;ventes judiciaires - honoraires d'inventaires; prisées et expertises
+706270;honoraires divers
+706280;frais de transport pour les honoraires – prestations non tarifées
+706800;autres produits HT
+708800;débours récupérés
+709400;débours payés irrécupérables
+709500;honoraires rétrocédés
+758100;versements du SCT
+758300;versements de la CVO

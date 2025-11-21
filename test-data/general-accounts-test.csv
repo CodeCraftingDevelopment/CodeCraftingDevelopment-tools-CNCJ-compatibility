@@ -1,53 +1,53 @@
-numero,titre
-1010000,Capital social
-1060000,Réserves
-1200000,Résultat de l'exercice
-1510000,Provisions pour risques
-2030000,Frais de développement
-2150000,Installations techniques, matériel et outillage industriels
-2180000,Autres immobilisations corporelles
-2610000,Participations
-2740000,Prêts
-3100000,Matières premières
-3150000,Produits intermédiaires
-3550000,Produits finis
-3910000,Provisions pour dépréciation des stocks
-4010000,Fournisseurs
-4030000,Fournisseurs - Effets à payer
-4040000,Fournisseurs d'immobilisations
-4110000,Clients
-4130000,Clients - Effets à recevoir
-4180000,Clients - Créances sur cessions d'immobilisations
-4210000,Personnel - Rémunérations dues
-4310000,Sécurité sociale et autres organismes sociaux
-4440000,État - Impôts sur les bénéfices
-4860000,Charges constatées d'avance
-5000000,Valeurs mobilières de placement
-5120000,Banques
-5140000,Chèques postaux
-5310000,Caisse
-6010000,Achats de matières premières
-6060000,Achats non stockés de matières et fournitures
-6070000,Achats de marchandises
-6090000,Rabais, remises et ristournes obtenus sur achats
-6130000,Locations
-6160000,Primes d'assurance
-6210000,Rémunérations du personnel
-6310000,Impôts, taxes et versements assimilés
-6410000,Charges de sécurité sociale et de prévoyance
-6510000,Charges d'intérêts
-6540000,Pertes sur créances irrécouvrables
-6810000,Dotations aux amortissements et provisions
-7010000,Ventes de produits finis
-7060000,Prestations de services
-7070000,Ventes de marchandises
-7080000,Produits des activités annexes
-7130000,Subventions d'exploitation
-7220000,Production immobilisée
-7410000,Subventions d'équilibre
-7510000,Produits des cessions d'éléments d'actif
-7580000,Produits divers de gestion courante
-7610000,Produits de participations
-7620000,Produits des autres immobilisations financières
-7650000,Escomptes obtenus
-7710000,Produits exceptionnels sur opérations de gestion
+numero;titre
+1010000;Capital social
+1060000;Réserves
+1200000;Résultat de l'exercice
+1510000;Provisions pour risques
+2030000;Frais de développement
+2150000;Installations techniques; matériel et outillage industriels
+2180000;Autres immobilisations corporelles
+2610000;Participations
+2740000;Prêts
+3100000;Matières premières
+3150000;Produits intermédiaires
+3550000;Produits finis
+3910000;Provisions pour dépréciation des stocks
+4010000;Fournisseurs
+4030000;Fournisseurs - Effets à payer
+4040000;Fournisseurs d'immobilisations
+4110000;Clients
+4130000;Clients - Effets à recevoir
+4180000;Clients - Créances sur cessions d'immobilisations
+4210000;Personnel - Rémunérations dues
+4310000;Sécurité sociale et autres organismes sociaux
+4440000;État - Impôts sur les bénéfices
+4860000;Charges constatées d'avance
+5000000;Valeurs mobilières de placement
+5120000;Banques
+5140000;Chèques postaux
+5310000;Caisse
+6010000;Achats de matières premières
+6060000;Achats non stockés de matières et fournitures
+6070000;Achats de marchandises
+6090000;Rabais; remises et ristournes obtenus sur achats
+6130000;Locations
+6160000;Primes d'assurance
+6210000;Rémunérations du personnel
+6310000;Impôts; taxes et versements assimilés
+6410000;Charges de sécurité sociale et de prévoyance
+6510000;Charges d'intérêts
+6540000;Pertes sur créances irrécouvrables
+6810000;Dotations aux amortissements et provisions
+7010000;Ventes de produits finis
+7060000;Prestations de services
+7070000;Ventes de marchandises
+7080000;Produits des activités annexes
+7130000;Subventions d'exploitation
+7220000;Production immobilisée
+7410000;Subventions d'équilibre
+7510000;Produits des cessions d'éléments d'actif
+7580000;Produits divers de gestion courante
+7610000;Produits de participations
+7620000;Produits des autres immobilisations financières
+7650000;Escomptes obtenus
+7710000;Produits exceptionnels sur opérations de gestion

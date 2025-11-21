@@ -26,7 +26,7 @@ export const useCorrectionsImport = ({
   };
 
   const parseCSVLine = (line: string): [string, string, string] | null => {
-    const match = line.match(/^"?([^"]*)"?,\s*"?([^"]*)"?,\s*"?([^"]*)"?,?/);
+    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;?/);
     if (!match) return null;
     
     return [
@@ -86,7 +86,7 @@ export const useCorrectionsImport = ({
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[0].split(';').map(h => h.trim().replace(/^"|"$/g, ''));
       if (!validateHeaders(headers)) {
         setCorrectionsFileInfo({
           name: file.name,

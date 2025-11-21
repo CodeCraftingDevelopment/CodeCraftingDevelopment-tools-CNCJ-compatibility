@@ -1,55 +1,55 @@
-Numéro de compte,Titre
-1234567,Compte valide
-ABC123,Numéro invalide
-,Manque numéro
-7654321,Compte valide 2
-98765A,Titre mixte
- ,Titre sans numéro
-998877,Compte valide 3
-00000A1,Numéro alphanumérique
-12345B,Caractère lettre en fin
-12 3456,Espace dans numéro
-12-3456,Caractère spécial
-ABCDEF,Numéro totalement invalide
-000000,Numéro trop court
-999999999,Numéro trop long
-,Titre uniquement
- ,Titre avec espace
-1A2B3C,Mix alphanumérique
-AB12CD,Titre mixte 2
-1234 567,Espace interne
-12?456,Symbole question
-!23456,Symbole début
-123456#,Symbole fin
-1 2 3 4 5 6,Espaces multiples
-１２３４５６,Numéros en unicode
-１２３Ａ５６,Unicode mixte
--,Juste tirets
-0000  ,Numéro vide avec espaces
-   ,Ligne vide multiple
-AA BB,Deux groupes lettres
-1234	567,Tabulation interne
-00A00,Plusieurs zéros lettres
-Z12345,Lettre tête
-12345Z,Lettre queue
-1234,Numéro très court
-123456789012,Numéro très long
-0x1234,Préfixe hexadécimal
-1234x0,Suffixe lettre
-1,Un seul chiffre
-ABC,Seulement lettres
-12345.,Point final
-123,Numéro insuffisant
-123456.,Point final long
-..1234,Double point
-,Titre manquant 2
-   ,Titre manquant 3
----,Tirets uniquement
-***,Astérisques
-12,,Titre vide
-13,,Titre vide bis
- ,
-0 0 0 0,Espaces intercalés
-   123,Espaces avant
-123   ,Espaces après
-N/A,Non disponible
+Numéro de compte;Titre
+1234567;Compte valide
+ABC123;Numéro invalide
+;Manque numéro
+7654321;Compte valide 2
+98765A;Titre mixte
+ ;Titre sans numéro
+998877;Compte valide 3
+00000A1;Numéro alphanumérique
+12345B;Caractère lettre en fin
+12 3456;Espace dans numéro
+12-3456;Caractère spécial
+ABCDEF;Numéro totalement invalide
+000000;Numéro trop court
+999999999;Numéro trop long
+;Titre uniquement
+ ;Titre avec espace
+1A2B3C;Mix alphanumérique
+AB12CD;Titre mixte 2
+1234 567;Espace interne
+12?456;Symbole question
+!23456;Symbole début
+123456#;Symbole fin
+1 2 3 4 5 6;Espaces multiples
+１２３４５６;Numéros en unicode
+１２３Ａ５６;Unicode mixte
+-;Juste tirets
+0000  ;Numéro vide avec espaces
+   ;Ligne vide multiple
+AA BB;Deux groupes lettres
+1234	567;Tabulation interne
+00A00;Plusieurs zéros lettres
+Z12345;Lettre tête
+12345Z;Lettre queue
+1234;Numéro très court
+123456789012;Numéro très long
+0x1234;Préfixe hexadécimal
+1234x0;Suffixe lettre
+1;Un seul chiffre
+ABC;Seulement lettres
+12345.;Point final
+123;Numéro insuffisant
+123456.;Point final long
+..1234;Double point
+;Titre manquant 2
+   ;Titre manquant 3
+---;Tirets uniquement
+***;Astérisques
+12;;Titre vide
+13;;Titre vide bis
+ ;
+0 0 0 0;Espaces intercalés
+   123;Espaces avant
+123   ;Espaces après
+N/A;Non disponible

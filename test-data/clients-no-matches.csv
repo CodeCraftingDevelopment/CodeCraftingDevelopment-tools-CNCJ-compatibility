@@ -1,6 +1,6 @@
-numero,titre
-90000,Compte sans correspondance 1
-90001,Compte sans correspondance 2
-90002,Compte sans correspondance 3
-90003,Compte sans correspondance 4
-90004,Compte sans correspondance 5
+numero;titre
+90000;Compte sans correspondance 1
+90001;Compte sans correspondance 2
+90002;Compte sans correspondance 3
+90003;Compte sans correspondance 4
+90004;Compte sans correspondance 5
