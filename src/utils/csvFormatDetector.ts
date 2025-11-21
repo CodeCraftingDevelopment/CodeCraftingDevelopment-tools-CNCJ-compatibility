@@ -51,17 +51,17 @@ export const extractAccountData = (row: any, format: CSVFormat): CSVRowData => {
       };
     
     case 'axelor':
-      // Format Axelor: code (col 1) -> numéro, accountType.importId (col 4) -> titre
+      // Format Axelor: code -> numéro, name -> titre
       if (Array.isArray(row)) {
         return {
           accountNumber: row[1]?.toString().trim() || '', // code
-          accountTitle: row[4]?.toString().trim() || ''    // accountType.importId
+          accountTitle: row[3]?.toString().trim() || ''    // name
         };
       } else if (row && typeof row === 'object') {
-        const keys = Object.keys(row);
+        // Accès direct par nom de colonne (PapaParse crée un objet avec les noms d'en-têtes)
         return {
-          accountNumber: row[keys[1]]?.toString().trim() || row['code']?.toString().trim() || '',
-          accountTitle: row[keys[4]]?.toString().trim() || row['accountType.importId']?.toString().trim() || ''
+          accountNumber: row['code']?.toString().trim() || '',
+          accountTitle: row['name']?.toString().trim() || ''
         };
       }
       return {
@@ -95,8 +95,9 @@ export const isValidAccountNumber = (accountNumber: string, allowAlphanumeric: b
   if (!accountNumber) return false;
   
   // Accepter les codes alphanumériques pour les comptes généraux (format Axelor)
+  // Inclut lettres, chiffres, underscores et tirets
   if (allowAlphanumeric) {
-    return /^[A-Za-z0-9]+$/.test(accountNumber);
+    return /^[A-Za-z0-9_-]+$/.test(accountNumber);
   }
   
   // Format standard : uniquement des chiffres
