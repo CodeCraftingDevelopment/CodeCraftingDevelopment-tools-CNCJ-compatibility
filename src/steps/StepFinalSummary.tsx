@@ -51,7 +51,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     const isStep6Conflict = step6Ids.has(account.id);
     const isToCreate = toCreateIds.has(account.id);
     
-    let modificationSource = null;
+    let modificationSource: ModificationSource = null;
     if (isStep4Duplicate && isStep6Conflict) {
       modificationSource = 'step4+step6';
     } else if (isStep6Conflict) {
@@ -83,16 +83,6 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   const step6Count = finalSummaryData.filter(row => row.isStep6Conflict).length;
   const toCreateCount = finalSummaryData.filter(row => row.isToCreate).length;
   const totalCount = finalSummaryData.length;
-
-  const getRowStyle = (source: string | null, isToCreate: boolean) => {
-    if (isToCreate) return 'bg-purple-50 border-l-4 border-purple-400';
-    switch (source) {
-      case 'step4': return 'bg-blue-50 border-l-4 border-blue-400';
-      case 'step6': return 'bg-orange-50 border-l-4 border-orange-400';
-      case 'step4+step6': return 'bg-purple-50 border-l-4 border-purple-400';
-      default: return '';
-    }
-  };
 
   const filteredData = finalSummaryData.filter(row => {
     if (finalFilter === 'all') return true;
@@ -174,19 +164,6 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     }
 
     return badges;
-  };
-
-  const formatModificationLabel = (row: SummaryRow): string => {
-    switch (row.modificationSource) {
-      case 'step4':
-        return 'Doublon corrigé (Étape 4)';
-      case 'step6':
-        return 'Correction CNCJ (Étape 6)';
-      case 'step4+step6':
-        return 'Doublon & CNCJ corrigés';
-      default:
-        return row.wasModified ? 'Modifié' : 'Aucune correction';
-    }
   };
 
   const handleExport = () => {
