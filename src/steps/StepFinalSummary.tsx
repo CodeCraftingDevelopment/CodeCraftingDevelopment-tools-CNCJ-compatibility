@@ -319,15 +319,15 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                      <div className="flex items-center gap-2 min-w-[10rem]">
+                    <div className="flex flex-wrap items-start gap-3 text-sm text-gray-700">
+                      <div className="flex items-start gap-2 min-w-[10rem]">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-gray-200 text-gray-700 uppercase">
                           Code original
                         </span>
                         <span className="font-mono text-sm">{row.originalCode}</span>
                       </div>
 
-                      <div className="flex items-center gap-2 min-w-[10rem]">
+                      <div className="flex items-start gap-2 min-w-[10rem]">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-200 text-blue-800 uppercase">
                           Correction doublon
                         </span>
@@ -336,7 +336,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 min-w-[10rem]">
+                      <div className="flex items-start gap-2 min-w-[10rem]">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-200 text-orange-800 uppercase">
                           Correction CNCJ
                         </span>
@@ -351,7 +351,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 min-w-[10rem]">
+                      <div className="flex items-start gap-2 min-w-[10rem]">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-green-200 text-green-800 uppercase">
                           Code final
                         </span>
