@@ -38,7 +38,7 @@ numero;titre
 706110;actes (toutes activités sauf ventes judiciaires)
 706120;formalités (toutes activités sauf ventes judiciaires)
 706130;droits proportionnels
-706140;ventes judiciaires; inventaires et prisées
+706140;ventes judiciaires, inventaires et prisées
 706150;aide juridictionnelle
 706160;actes pénaux
 706170;service des audiences
@@ -47,9 +47,9 @@ numero;titre
 706210;honoraires conventionnels sur les actes
 706220;honoraires conventionnels sur les constats
 706230;honoraires conventionnels sur le recouvrement amiable
-706240;honoraires conventionnels sur les conseils; assistance; représentation; pilotage
+706240;honoraires conventionnels sur les conseils, assistance, représentation, pilotage
 706250;honoraires des activités accessoires autorisées
-706260;ventes judiciaires - honoraires d'inventaires; prisées et expertises
+706260;ventes judiciaires - honoraires d'inventaires, prisées et expertises
 706270;honoraires divers
 706280;frais de transport pour les honoraires – prestations non tarifées
 706800;autres produits HT

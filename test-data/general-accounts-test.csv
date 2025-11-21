@@ -4,7 +4,7 @@ numero;titre
 1200000;Résultat de l'exercice
 1510000;Provisions pour risques
 2030000;Frais de développement
-2150000;Installations techniques; matériel et outillage industriels
+2150000;Installations techniques, matériel et outillage industriels
 2180000;Autres immobilisations corporelles
 2610000;Participations
 2740000;Prêts
@@ -29,11 +29,11 @@ numero;titre
 6010000;Achats de matières premières
 6060000;Achats non stockés de matières et fournitures
 6070000;Achats de marchandises
-6090000;Rabais; remises et ristournes obtenus sur achats
+6090000;Rabais, remises et ristournes obtenus sur achats
 6130000;Locations
 6160000;Primes d'assurance
 6210000;Rémunérations du personnel
-6310000;Impôts; taxes et versements assimilés
+6310000;Impôts, taxes et versements assimilés
 6410000;Charges de sécurité sociale et de prévoyance
 6510000;Charges d'intérêts
 6540000;Pertes sur créances irrécouvrables
