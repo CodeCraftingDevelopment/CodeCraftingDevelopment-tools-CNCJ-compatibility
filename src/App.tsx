@@ -281,14 +281,21 @@ const App: React.FC = () => {
       const normalizedClientAccounts = applyNormalization(state.clientAccounts, state.accountsNeedingNormalization);
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: normalizedClientAccounts });
       dispatch({ type: 'SET_NORMALIZATION_APPLIED', payload: true });
+      dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: [] });
       
       // Reprocesser les comptes avec les données normalisées
       processClientAccounts(normalizedClientAccounts, state.cncjAccounts);
-    } else {
-      // Pas de normalisation nécessaire ou déjà appliquée
-      dispatch({ type: 'SET_CURRENT_STEP', payload: 'step4' });
     }
-  }, [state.clientAccounts, state.cncjAccounts, state.accountsNeedingNormalization, state.isNormalizationApplied, processClientAccounts]);
+
+    handleNavigateNext();
+  }, [
+    state.clientAccounts,
+    state.cncjAccounts,
+    state.accountsNeedingNormalization,
+    state.isNormalizationApplied,
+    processClientAccounts,
+    handleNavigateNext
+  ]);
 
   // Générer la liste fusionnée de clients (originaux + corrections surchargées)
   const generateMergedClientAccounts = useCallback((clientAccounts: Account[], replacementCodes: { [key: string]: string }): Account[] => {
@@ -528,20 +535,24 @@ const App: React.FC = () => {
               cncjFileInfo={state.cncjFileInfo}
               generalFileInfo={state.generalFileInfo}
               loading={state.loading}
-              clientAccountsCount={state.clientAccounts.length}
-              cncjAccountsCount={state.cncjAccounts.length}
-              generalAccountsCount={state.generalAccounts.length}
               onFileLoaded={handleFileLoaded}
               onFileCleared={handleFileCleared}
               onError={handleError}
-              onReset={resetData}
             />
             <StepNavigation
               currentStep={currentStepConfig}
               nextStep={nextStepConfig}
               canProceed={canProceedToNext}
               onNext={handleNext}
-              showPrevious={false}
+              customPreviousButton={
+                <button
+                  onClick={resetData}
+                  disabled={state.loading}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  🔄 Réinitialiser
+                </button>
+              }
             />
           </StepRenderer>
         )}

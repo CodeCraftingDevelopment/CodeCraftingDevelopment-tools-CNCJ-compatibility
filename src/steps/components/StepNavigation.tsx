@@ -9,6 +9,7 @@ interface StepNavigationProps {
   onNext?: () => void;
   onPrevious?: () => void;
   customNextButton?: React.ReactNode;
+  customPreviousButton?: React.ReactNode;
   showNext?: boolean;
   showPrevious?: boolean;
 }
@@ -21,23 +22,26 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
   onNext,
   onPrevious,
   customNextButton,
+  customPreviousButton,
   showNext = true,
   showPrevious = true
 }) => {
+  const hasPrevious = showPrevious && (Boolean(previousStep) || Boolean(customPreviousButton));
+
   return (
-    <div className="mt-6 text-center space-x-4">
-      {/* Bouton Retour */}
-      {showPrevious && previousStep && (
-        <button
-          onClick={onPrevious}
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-          aria-label={`Retour à l'étape précédente: ${previousStep.title}`}
-        >
-          ← Retour
-        </button>
+    <div className="mt-6 flex flex-wrap justify-center gap-4">
+      {hasPrevious && (
+        customPreviousButton ?? (
+          <button
+            onClick={onPrevious}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            aria-label={`Retour à l'étape précédente: ${previousStep?.title ?? 'étape précédente'}`}
+          >
+            ← Retour
+          </button>
+        )
       )}
 
-      {/* Bouton Suivant ou personnalisé */}
       {showNext && nextStep && (
         customNextButton ? (
           customNextButton
