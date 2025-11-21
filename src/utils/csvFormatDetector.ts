@@ -1,11 +1,25 @@
-export type CSVFormat = 'string' | 'array' | 'object' | 'unknown';
+export type CSVFormat = 'string' | 'array' | 'object' | 'axelor' | 'unknown';
 
 export interface CSVRowData {
   accountNumber: string;
   accountTitle: string;
 }
 
-export const detectCSVFormat = (row: any): CSVFormat => {
+export const detectCSVFormat = (row: any, headers?: any): CSVFormat => {
+  // Détecter le format Axelor (account_account.csv)
+  if (headers && typeof headers === 'object') {
+    const headerKeys = Array.isArray(headers) ? headers : Object.values(headers);
+    const hasAxelorHeaders = headerKeys.some((h: any) => 
+      typeof h === 'string' && (
+        h.includes('accountType.importId') || 
+        h.includes('importId') && h.includes('code')
+      )
+    );
+    if (hasAxelorHeaders) {
+      return 'axelor';
+    }
+  }
+  
   if (typeof row === 'string') {
     return 'string';
   } else if (Array.isArray(row)) {
@@ -35,6 +49,25 @@ export const extractAccountData = (row: any, format: CSVFormat): CSVRowData => {
         accountNumber: row[0]?.toString().trim() || '',
         accountTitle: row[1]?.toString().trim() || ''
       };
+    
+    case 'axelor':
+      // Format Axelor: code (col 1) -> numéro, accountType.importId (col 4) -> titre
+      if (Array.isArray(row)) {
+        return {
+          accountNumber: row[1]?.toString().trim() || '', // code
+          accountTitle: row[4]?.toString().trim() || ''    // accountType.importId
+        };
+      } else if (row && typeof row === 'object') {
+        const keys = Object.keys(row);
+        return {
+          accountNumber: row[keys[1]]?.toString().trim() || row['code']?.toString().trim() || '',
+          accountTitle: row[keys[4]]?.toString().trim() || row['accountType.importId']?.toString().trim() || ''
+        };
+      }
+      return {
+        accountNumber: '',
+        accountTitle: ''
+      };
       
     case 'object':
       if (row.account) {
@@ -58,6 +91,14 @@ export const extractAccountData = (row: any, format: CSVFormat): CSVRowData => {
   }
 };
 
-export const isValidAccountNumber = (accountNumber: string): boolean => {
-  return !!accountNumber && /^\d+$/.test(accountNumber);
+export const isValidAccountNumber = (accountNumber: string, allowAlphanumeric: boolean = false): boolean => {
+  if (!accountNumber) return false;
+  
+  // Accepter les codes alphanumériques pour les comptes généraux (format Axelor)
+  if (allowAlphanumeric) {
+    return /^[A-Za-z0-9]+$/.test(accountNumber);
+  }
+  
+  // Format standard : uniquement des chiffres
+  return /^\d+$/.test(accountNumber);
 };

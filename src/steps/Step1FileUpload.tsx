@@ -10,6 +10,9 @@ interface Step1FileUploadProps {
   onFileLoaded: (accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => void;
   onFileCleared: (source: 'client' | 'cncj' | 'general') => void;
   onError: (errors: string[]) => void;
+  clientAccounts?: Account[];
+  cncjAccounts?: Account[];
+  generalAccounts?: Account[];
 }
 
 export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
@@ -19,7 +22,10 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
   loading,
   onFileLoaded,
   onFileCleared,
-  onError
+  onError,
+  clientAccounts = [],
+  cncjAccounts = [],
+  generalAccounts = []
 }) => {
   return (
     <>
@@ -31,6 +37,7 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         source="client"
         disabled={loading}
         fileInfo={clientFileInfo}
+        loadedAccounts={clientAccounts}
       />
       
       <FileUploader
@@ -41,6 +48,7 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         source="general"
         disabled={loading}
         fileInfo={generalFileInfo}
+        loadedAccounts={generalAccounts}
       />
       
       <FileUploader
@@ -51,6 +59,7 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         source="cncj"
         disabled={loading}
         fileInfo={cncjFileInfo}
+        loadedAccounts={cncjAccounts}
       />
     </>
   );

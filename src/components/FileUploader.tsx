@@ -5,6 +5,7 @@ import { formatFileSize } from '../utils/fileUtils';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
 import { ImportErrorsModal } from './ImportErrorsModal';
+import { DataPreviewModal } from './DataPreviewModal';
 
 interface FileUploaderProps {
   onFileLoaded: (accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => void;
@@ -14,6 +15,7 @@ interface FileUploaderProps {
   source: 'client' | 'cncj' | 'general';
   disabled?: boolean;
   fileInfo: FileMetadata | null;
+  loadedAccounts?: Account[];
 }
 
 
@@ -24,11 +26,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   label,
   source,
   disabled = false,
-  fileInfo
+  fileInfo,
+  loadedAccounts = []
 }) => {
   const [localErrors, setLocalErrors] = useState<string[]>([]);
   const [invalidRows, setInvalidRows] = useState<InvalidRow[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const processFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
@@ -52,7 +56,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     onFileLoaded([], source, loadingFileInfo);
 
     try {
-      const result: FileUploadResult = await parseCSVFile(file);
+      // Autoriser les codes alphanumériques pour les comptes généraux (format Axelor)
+      const allowAlphanumeric = source === 'general';
+      const result: FileUploadResult = await parseCSVFile(file, allowAlphanumeric);
       setInvalidRows(result.invalidRows);
       const importedCount = result.accounts.length;
       const totalRows = result.totalRows;
@@ -303,6 +309,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             <div className="flex justify-center space-x-2">
               <button
                 type="button"
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full hover:bg-green-100 transition-colors flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Consulter les données
+              </button>
+              <button
+                type="button"
                 onClick={handlers.handleButtonClick}
                 className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
               >
@@ -314,7 +331,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       </DropZone>
       
       <p className="mt-2 text-xs text-gray-500 text-center">
-        Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)
+        {source === 'general' 
+          ? "Format CSV attendu: deux colonnes (numéro de compte et titre) ou format Axelor (détection automatique)"
+          : "Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)"
+        }
       </p>
 
       {(isModalOpen && (invalidRows.length > 0 || localErrors.length > 0)) && (
@@ -323,6 +343,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           genericErrors={localErrors}
           fileName={fileInfo?.name || 'fichier.csv'}
           onClose={() => setIsModalOpen(false)}
+        />
+      )}
+
+      {isPreviewModalOpen && loadedAccounts.length > 0 && (
+        <DataPreviewModal
+          accounts={loadedAccounts}
+          fileName={fileInfo?.name || 'fichier.csv'}
+          onClose={() => setIsPreviewModalOpen(false)}
         />
       )}
     </div>

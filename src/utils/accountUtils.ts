@@ -2,7 +2,7 @@ import Papa from 'papaparse';
 import { Account, FileUploadResult, ProcessingResult, MergeInfo, NormalizationAccount, InvalidRow } from '../types/accounts';
 import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
 
-export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
+export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Promise<FileUploadResult> => {
   return new Promise((resolve) => {
     Papa.parse(file, {
       delimiter: ';',
@@ -13,6 +13,8 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
         let totalRows = 0;
         let skippedRows = 0;
         const invalidRows: InvalidRow[] = [];
+        let headers: any = null;
+        let detectedFormat: any = null;
         
         result.data.forEach((row: any, index: number) => {
           const cells = Array.isArray(row) ? row : Object.values(row ?? {});
@@ -24,6 +26,7 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
           const firstCell = typeof cells[0] === 'string' ? cells[0].trim() : cells[0];
           const isHeaderRow = index === 0 && typeof firstCell === 'string' && firstCell.length > 0 && isNaN(Number(firstCell));
           if (isHeaderRow) {
+            headers = cells;
             return;
           }
 
@@ -41,7 +44,12 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
 
           totalRows += 1;
 
-          const format = detectCSVFormat(cells);
+          // Détecter le format une seule fois avec les headers
+          if (!detectedFormat) {
+            detectedFormat = detectCSVFormat(cells, headers);
+          }
+          
+          const format = detectedFormat;
           const { accountNumber, accountTitle } = extractAccountData(cells, format);
           const trimmedAccountNumber = accountNumber?.trim();
 
@@ -61,7 +69,11 @@ export const parseCSVFile = (file: File): Promise<FileUploadResult> => {
             return;
           }
 
-          if (isValidAccountNumber(trimmedAccountNumber)) {
+          // Valider en fonction du format détecté
+          const isAxelorFormat = format === 'axelor';
+          const shouldAllowAlpha = allowAlphanumeric || isAxelorFormat;
+          
+          if (isValidAccountNumber(trimmedAccountNumber, shouldAllowAlpha)) {
             accounts.push({
               id: `${trimmedAccountNumber}-${index}`,
               number: trimmedAccountNumber,

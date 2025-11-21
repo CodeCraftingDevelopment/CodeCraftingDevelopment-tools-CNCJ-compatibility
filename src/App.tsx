@@ -537,6 +537,9 @@ const App: React.FC = () => {
               onFileLoaded={handleFileLoaded}
               onFileCleared={handleFileCleared}
               onError={handleError}
+              clientAccounts={state.clientAccounts}
+              cncjAccounts={state.cncjAccounts}
+              generalAccounts={state.generalAccounts}
             />
             <StepNavigation
               currentStep={currentStepConfig}
