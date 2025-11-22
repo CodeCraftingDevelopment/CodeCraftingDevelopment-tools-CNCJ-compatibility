@@ -256,13 +256,24 @@ export const processAccounts = (
 
 export const findAccountsNeedingNormalization = (accounts: Account[]): NormalizationAccount[] => {
   return accounts
-    .filter(account => account.source === 'client' && account.number.length > 7)
-    .map(account => ({
-      id: account.id,
-      originalNumber: account.number,
-      normalizedNumber: account.number.slice(0, 7),
-      title: account.title
-    }));
+    .filter(account => account.source === 'client' && account.number.length !== 7)
+    .map(account => {
+      let normalizedNumber: string;
+      if (account.number.length > 7) {
+        // Tronquer si trop long
+        normalizedNumber = account.number.slice(0, 7);
+      } else {
+        // Ajouter des zéros en fin si trop court
+        normalizedNumber = account.number.padEnd(7, '0');
+      }
+      
+      return {
+        id: account.id,
+        originalNumber: account.number,
+        normalizedNumber,
+        title: account.title
+      };
+    });
 };
 
 export const applyNormalization = (accounts: Account[], normalizationAccounts: NormalizationAccount[]): Account[] => {
