@@ -8,6 +8,8 @@ interface MetadataRow {
   finalCode: string;
   inheritedData: Record<string, any>;
   isInherited: boolean;
+  hasClosestMatch: boolean; // true si la recherche a abouti, false sinon
+  isInPcg: boolean; // pour le filtrage correct
 }
 
 interface Step7MetadataCompletionProps {
@@ -83,13 +85,14 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
       
       let inheritedData: Record<string, any> = {};
       let isInherited = false;
+      let matchingPcgAccounts: Account[] = [];
 
       if (!isInPcg && finalCode.length >= 4) {
         const prefix = finalCode.substring(0, 4);
         const codeNum = parseInt(finalCode);
         
         if (!isNaN(codeNum)) {
-          const matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
+          matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
           
           if (matchingPcgAccounts.length > 0) {
             const closestPcgAccount = matchingPcgAccounts.reduce((closest, current) => {
@@ -112,13 +115,17 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
         title: account.title || 'Sans titre',
         finalCode,
         inheritedData,
-        isInherited: !isInPcg && isInherited
+        isInherited: !isInPcg && isInherited,
+        hasClosestMatch: !isInPcg && isInherited && matchingPcgAccounts.length > 0,
+        isInPcg
       };
     });
   }, [clientAccounts, generalAccounts, replacementCodes, cncjReplacementCodes]);
 
   // Comptes qui nécessitent une attention (non présents dans PCG)
-  const accountsNeedingMetadata = metadataData.filter(row => row.isInherited);
+  const accountsNeedingMetadata = metadataData.filter(row => !row.isInPcg);
+  const accountsWithClosestMatch = accountsNeedingMetadata.filter(row => row.hasClosestMatch);
+  const accountsWithoutClosestMatch = accountsNeedingMetadata.filter(row => !row.hasClosestMatch);
   const totalCount = metadataData.length;
   const needingMetadataCount = accountsNeedingMetadata.length;
 
@@ -162,9 +169,10 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={3}>
+      <StepStatsGrid columns={4}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
-        <StepStat value={needingMetadataCount} label="Comptes avec métadonnées manquantes" color="orange" />
+        <StepStat value={accountsWithClosestMatch.length} label="Avec correspondance proche" color="green" />
+        <StepStat value={accountsWithoutClosestMatch.length} label="Sans correspondance" color="red" />
         <StepStat value={needingMetadataCount > 0 ? Math.round((needingMetadataCount / totalCount) * 100) : 0} label="% avec métadonnées manquantes" color="purple" />
       </StepStatsGrid>
 
@@ -173,8 +181,11 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
         <h3 className="text-sm font-semibold text-blue-800 mb-2">📋 Instructions</h3>
         <p className="text-sm text-blue-700">
           Cette étape affiche les comptes clients qui ne sont pas présents dans le plan comptable général (PCG) 
-          et qui nécessitent un remplissage des métadonnées. Les valeurs proposées sont héritées automatiquement 
-          des comptes PCG les plus proches. Vous pouvez les modifier si nécessaire.
+          et qui nécessitent un remplissage des métadonnées. 
+          <span className="font-semibold text-green-700">Les cartes vertes</span> indiquent qu'une correspondance proche a été trouvée 
+          et les métadonnées sont pré-remplies. 
+          <span className="font-semibold text-red-700">Les cartes rouges</span> indiquent qu'aucune correspondance n'a été trouvée 
+          et les métadonnées doivent être saisies manuellement.
         </p>
       </div>
 
@@ -210,15 +221,23 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
               {filteredData.map((row) => (
                 <div
                   key={row.id}
-                  className="border border-orange-200 bg-orange-50 rounded-lg p-4 shadow-sm"
+                  className={`border rounded-lg p-4 shadow-sm ${
+                    row.hasClosestMatch 
+                      ? 'border-green-200 bg-green-50' 
+                      : 'border-red-200 bg-red-50'
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">{row.title}</h3>
                       <p className="text-sm text-gray-600 font-mono">{row.finalCode}</p>
                     </div>
-                    <span className="px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full">
-                      Métadonnées manquantes
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                      row.hasClosestMatch
+                        ? 'bg-green-600 text-white'
+                        : 'bg-red-600 text-white'
+                    }`}>
+                      {row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance'}
                     </span>
                   </div>
 
@@ -236,7 +255,11 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
                             <select
                               value={value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
-                              className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
+                                row.hasClosestMatch
+                                  ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                                  : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              }`}
                             >
                               {field.options?.map((option) => (
                                 <option key={option} value={option}>
@@ -249,7 +272,11 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
                               type="text"
                               value={value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
-                              className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
+                                row.hasClosestMatch
+                                  ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                                  : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              }`}
                               placeholder={field.key.includes('importId') ? 'AT001' : ''}
                             />
                           )}
