@@ -428,7 +428,11 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       data = accountsWithoutClosestMatch;
     }
     
-    return data;
+    return data.sort((a, b) => {
+      const codeA = parseInt(a.finalCode) || 0;
+      const codeB = parseInt(b.finalCode) || 0;
+      return codeA - codeB;
+    });
   }, [selectedAccountId, filterType, accountsNeedingMetadata, accountsWithClosestMatch, accountsWithoutClosestMatch]);
 
   // Champs de métadonnées importants à afficher/éditer
