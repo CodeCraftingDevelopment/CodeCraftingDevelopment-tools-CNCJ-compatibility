@@ -52,7 +52,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   onMetadataChange
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('withoutMatch');
 
   // Normaliser un code à 7 chiffres pour l'affichage
   const normalizeForDisplay = (code: string): string => {
