@@ -29,6 +29,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     canProceed: (state) => {
       return state.clientAccounts.length > 0 && 
              state.cncjAccounts.length > 0 && 
+             state.generalAccounts.length > 0 &&
              state.errors.length === 0 &&
              !state.loading &&
              state.result !== null;

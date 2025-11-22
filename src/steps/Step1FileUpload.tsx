@@ -4,28 +4,24 @@ import { FileMetadata, Account } from '../types/accounts';
 
 interface Step1FileUploadProps {
   clientFileInfo: FileMetadata | null;
-  cncjFileInfo: FileMetadata | null;
-  generalFileInfo: FileMetadata | null;
+  pcgCncjFileInfo: FileMetadata | null;
   loading: boolean;
-  onFileLoaded: (accounts: Account[], source: 'client' | 'cncj' | 'general', fileInfo: FileMetadata) => void;
-  onFileCleared: (source: 'client' | 'cncj' | 'general') => void;
+  onFileLoaded: (accounts: Account[], source: 'client' | 'pcg_cncj', fileInfo: FileMetadata) => void;
+  onFileCleared: (source: 'client' | 'pcg_cncj') => void;
   onError: (errors: string[]) => void;
   clientAccounts?: Account[];
-  cncjAccounts?: Account[];
-  generalAccounts?: Account[];
+  pcgCncjAccounts?: Account[];
 }
 
 export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
   clientFileInfo,
-  cncjFileInfo,
-  generalFileInfo,
+  pcgCncjFileInfo,
   loading,
   onFileLoaded,
   onFileCleared,
   onError,
   clientAccounts = [],
-  cncjAccounts = [],
-  generalAccounts = []
+  pcgCncjAccounts = []
 }) => {
   return (
     <>
@@ -44,22 +40,11 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         onFileLoaded={onFileLoaded}
         onFileCleared={onFileCleared}
         onError={onError}
-        label="📊 Fichier des comptes généraux"
-        source="general"
+        label="📊 Fichier Comptes_PCG_CNCJ (plan comptable + comptes CNCJ)"
+        source="pcg_cncj"
         disabled={loading}
-        fileInfo={generalFileInfo}
-        loadedAccounts={generalAccounts}
-      />
-      
-      <FileUploader
-        onFileLoaded={onFileLoaded}
-        onFileCleared={onFileCleared}
-        onError={onError}
-        label="🏛️ Fichier des comptes CNCJ"
-        source="cncj"
-        disabled={loading}
-        fileInfo={cncjFileInfo}
-        loadedAccounts={cncjAccounts}
+        fileInfo={pcgCncjFileInfo}
+        loadedAccounts={pcgCncjAccounts}
       />
     </>
   );
