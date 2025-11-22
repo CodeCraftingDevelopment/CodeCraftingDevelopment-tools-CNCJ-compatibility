@@ -256,70 +256,85 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       // Combiner : tous les comptes PCG existants + comptes clients non présents dans PCG
       const csvRows: string[][] = [];
 
-      // 1. Ajouter tous les comptes PCG existants avec leurs données
-      generalAccounts.forEach((account, index) => {
-        const importId = `PCG${String(index + 1).padStart(4, '0')}`;
+      // 1. Préparer les comptes PCG existants avec leurs données préservées
+      const pcgAccountRows = generalAccounts.map((account, index) => {
+        const data = account.rawData || {};
+        const importId = data.importId || `PCG${String(index + 1).padStart(4, '0')}`;
         
-        csvRows.push([
-          importId,
-          account.number,
-          '', // parent_code
-          account.title || '',
-          'AT001', // accountType.importId - valeur par défaut car pas dans type Account
-          'false', // isRegulatoryAccount
-          '0', // commonPosition
-          '', // reconcileOk
-          '', // compatibleAccounts
-          '', // useForPartnerBalance
-          '', // isTaxAuthorizedOnMoveLine
-          '', // isTaxRequiredOnMoveLine
-          '', // defaultTaxSet
-          '', // vatSystemSelect
-          '', // isRetrievedOnPaymentSession
-          '', // serviceType.code
-          '', // manageCutOffPeriod
-          '', // hasAutomaticApplicationAccountingDate
-          '', // analyticDistributionAuthorized
-          '', // analyticDistributionRequiredOnInvoiceLines
-          '', // analyticDistributionRequiredOnMoveLines
-          '', // analyticDistributionTemplate.importId
-          '1', // statusSelect
-          'false' // isCNCJ
-        ]);
+        return {
+          code: parseInt(account.number) || 0,
+          row: [
+            importId,
+            account.number,
+            data.parent_code || '',
+            account.title || '',
+            data['accountType.importId'] || 'AT001',
+            data.isRegulatoryAccount || 'false',
+            data.commonPosition || '0',
+            data.reconcileOk || '',
+            data.compatibleAccounts || '',
+            data.useForPartnerBalance || '',
+            data.isTaxAuthorizedOnMoveLine || '',
+            data.isTaxRequiredOnMoveLine || '',
+            data.defaultTaxSet || '',
+            data.vatSystemSelect || '',
+            data.isRetrievedOnPaymentSession || '',
+            data['serviceType.code'] || '',
+            data.manageCutOffPeriod || '',
+            data.hasAutomaticApplicationAccountingDate || '',
+            data.analyticDistributionAuthorized || '',
+            data.analyticDistributionRequiredOnInvoiceLines || '',
+            data.analyticDistributionRequiredOnMoveLines || '',
+            data['analyticDistributionTemplate.importId'] || '',
+            data.statusSelect || '1',
+            data.isCNCJ || 'false'
+          ]
+        };
       });
 
-      // 2. Ajouter les comptes clients qui ne sont pas dans PCG
-      clientCodesNotInPcg.forEach((row, index) => {
+      // 2. Préparer les comptes clients qui ne sont pas dans PCG
+      const clientAccountRows = clientCodesNotInPcg.map((row, index) => {
         const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
         const code = normalizeForDisplay(computeFinalCode(row));
         const name = row.title;
         
-        csvRows.push([
-          importId,
-          code,
-          '', // parent_code
-          name,
-          'AT001', // accountType.importId
-          'false', // isRegulatoryAccount
-          '0', // commonPosition
-          '', // reconcileOk
-          '', // compatibleAccounts
-          '', // useForPartnerBalance
-          '', // isTaxAuthorizedOnMoveLine
-          '', // isTaxRequiredOnMoveLine
-          '', // defaultTaxSet
-          '', // vatSystemSelect
-          '', // isRetrievedOnPaymentSession
-          '', // serviceType.code
-          '', // manageCutOffPeriod
-          '', // hasAutomaticApplicationAccountingDate
-          '', // analyticDistributionAuthorized
-          '', // analyticDistributionRequiredOnInvoiceLines
-          '', // analyticDistributionRequiredOnMoveLines
-          '', // analyticDistributionTemplate.importId
-          '1', // statusSelect
-          'false' // isCNCJ
-        ]);
+        return {
+          code: parseInt(code) || 0,
+          row: [
+            importId,
+            code,
+            '', // parent_code
+            name,
+            'AT001', // accountType.importId
+            'false', // isRegulatoryAccount
+            '0', // commonPosition
+            '', // reconcileOk
+            '', // compatibleAccounts
+            '', // useForPartnerBalance
+            '', // isTaxAuthorizedOnMoveLine
+            '', // isTaxRequiredOnMoveLine
+            '', // defaultTaxSet
+            '', // vatSystemSelect
+            '', // isRetrievedOnPaymentSession
+            '', // serviceType.code
+            '', // manageCutOffPeriod
+            '', // hasAutomaticApplicationAccountingDate
+            '', // analyticDistributionAuthorized
+            '', // analyticDistributionRequiredOnInvoiceLines
+            '', // analyticDistributionRequiredOnMoveLines
+            '', // analyticDistributionTemplate.importId
+            '1', // statusSelect
+            'false' // isCNCJ
+          ]
+        };
+      });
+
+      // 3. Combiner et trier tous les comptes par ordre de code numérique
+      const allAccounts = [...pcgAccountRows, ...clientAccountRows].sort((a, b) => a.code - b.code);
+      
+      // 4. Ajouter les lignes triées au CSV
+      allAccounts.forEach(account => {
+        csvRows.push(account.row);
       });
       
       // Échapper aussi les en-têtes pour la cohérence

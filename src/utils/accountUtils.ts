@@ -7,6 +7,7 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
     Papa.parse(file, {
       delimiter: ';',
       skipEmptyLines: false,
+      header: false, // Forcer le parsing en tableaux pour garantir l'alignement
       complete: (result) => {
         const accounts: Account[] = [];
         const errors: string[] = [];
@@ -75,12 +76,30 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
           const shouldAllowAlpha = allowAlphanumeric || isAxelorFormat;
           
           if (isValidAccountNumber(trimmedAccountNumber, shouldAllowAlpha)) {
+            // Stocker les données brutes pour les fichiers PCG (format axelor)
+            let rawData: Record<string, any> | undefined;
+            if (isAxelorFormat && headers && Array.isArray(headers)) {
+              rawData = {};
+              // S'assurer que cells a la même longueur que headers pour éviter les décalages
+              const alignedCells = [...cells];
+              while (alignedCells.length < headers.length) {
+                alignedCells.push(''); // Ajouter des cellules vides si nécessaire
+              }
+              
+              headers.forEach((header: any, index: number) => {
+                if (typeof header === 'string' && index < alignedCells.length) {
+                  rawData[header.trim()] = alignedCells[index] || '';
+                }
+              });
+            }
+
             accounts.push({
               id: `${trimmedAccountNumber}-${index}`,
               number: trimmedAccountNumber,
               title: accountTitle || undefined,
               source: 'client', // Will be updated by caller
-              originalNumber: trimmedAccountNumber // Stocker le code original 8 chiffres
+              originalNumber: trimmedAccountNumber, // Stocker le code original 8 chiffres
+              rawData // Stocker les données brutes pour PCG
             });
           } else {
             recordInvalid(`"${trimmedAccountNumber}" n'est pas un numéro de compte valide`);

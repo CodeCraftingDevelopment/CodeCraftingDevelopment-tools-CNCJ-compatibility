@@ -4,6 +4,7 @@ export interface Account {
   title?: string;
   source: 'client' | 'cncj' | 'general';
   originalNumber?: string; // Code original 8 chiffres du fichier d'import
+  rawData?: Record<string, any>; // Données brutes du CSV (pour PCG avec 24 colonnes)
 }
 
 export interface NormalizationAccount {
