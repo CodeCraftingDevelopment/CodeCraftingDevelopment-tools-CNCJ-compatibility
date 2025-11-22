@@ -2,7 +2,7 @@ import React, { useReducer, useCallback, useMemo, useState } from 'react';
 
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
-import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization, normalizeAccountCode } from './utils/accountUtils';
+import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
 import { getStepConfig, getNextStep, getPreviousStep } from './config/stepsConfig';
@@ -392,16 +392,16 @@ const App: React.FC = () => {
 
   // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
   const processCncjConflicts = useCallback((mergedClientAccounts: Account[], cncjAccounts: Account[]): ProcessingResult => {
-    // Créer un Set des codes CNCJ normalisés pour une recherche rapide
-    const cncjCodes = new Set(cncjAccounts.map(acc => normalizeAccountCode(acc.number)));
+    // Utiliser les codes CNCJ tels quels (données de référence avec isCNCJ=true)
+    const cncjCodes = new Set(cncjAccounts.map(acc => acc.number));
     
     // Identifier les comptes clients qui sont en conflit avec les codes CNCJ
     const conflicts: Account[] = [];
     const nonConflicts: Account[] = [];
     
     mergedClientAccounts.forEach(clientAccount => {
-      const normalizedClientNumber = normalizeAccountCode(clientAccount.number);
-      if (cncjCodes.has(normalizedClientNumber)) {
+      // Les comptes clients sont déjà normalisés à 7 chiffres à l'étape 3
+      if (cncjCodes.has(clientAccount.number)) {
         conflicts.push(clientAccount);
       } else {
         nonConflicts.push(clientAccount);
@@ -475,9 +475,9 @@ const App: React.FC = () => {
     mergedClientAccounts
   });
 
-  // Créer un Set des codes CNCJ pour la validation en temps réel (optimisé avec useMemo)
+  // Créer un Set des codes CNCJ pour la validation en temps réel (sans normalisation)
   const cncjCodes = useMemo(() => {
-    return new Set(state.cncjAccounts.map(acc => normalizeAccountCode(acc.number)));
+    return new Set(state.cncjAccounts.map(acc => acc.number));
   }, [state.cncjAccounts]);
 
   // Obtenir la configuration de l'étape actuelle

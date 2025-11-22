@@ -221,14 +221,14 @@ export const compareAccounts = (
   matches: Account[];
   unmatchedClients: Account[];
 } => {
-  // Normaliser les codes CNCJ pour la comparaison
-  const normalizedCncjNumbers = new Set(cncjAccounts.map(acc => normalizeAccountCode(acc.number)));
+  // Utiliser les codes CNCJ tels quels (données de référence avec isCNCJ=true)
+  const cncjNumbers = new Set(cncjAccounts.map(acc => acc.number));
   const matches: Account[] = [];
   const unmatchedClients: Account[] = [];
   
   clientAccounts.forEach(clientAccount => {
     const normalizedClientNumber = normalizeAccountCode(clientAccount.number);
-    if (normalizedCncjNumbers.has(normalizedClientNumber)) {
+    if (cncjNumbers.has(normalizedClientNumber)) {
       matches.push(clientAccount);
     } else {
       unmatchedClients.push(clientAccount);
