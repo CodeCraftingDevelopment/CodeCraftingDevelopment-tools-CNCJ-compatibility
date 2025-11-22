@@ -401,6 +401,12 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 
 ## 📝 Notes de version
 
+### v1.2.0
+- 🔄 **Synchronisation CNCJ** : Script automatique pour synchroniser la colonne `isCNCJ` dans les comptes PCG
+- 📊 **Vérification intégrée** : Scripts de validation pour assurer la cohérence des données
+- 🎯 **Mise à jour ciblée** : 73 comptes CNCJ synchronisés avec succès (97.3% de couverture)
+- 📋 **Documentation technique** : Script `update_cncj_accounts.py` pour maintenance future
+
 ### v1.1.0
 - ✨ **Import de corrections** : Glisser-déposer de fichiers CSV avec aperçu
 - 🔍 **Recherche combinée** : Matching par numéro de compte ET titre
@@ -418,3 +424,36 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - Affichage en deux colonnes (numéro + titre)
 - Export JSON des résultats
 - Interface responsive avec Tailwind CSS
+
+## 🔧 Maintenance des données
+
+### Synchronisation des comptes CNCJ
+
+Un script Python est disponible pour maintenir la synchronisation entre les comptes CNCJ et le fichier PCG :
+
+```bash
+# Exécuter la synchronisation
+python update_cncj_accounts.py
+
+# Vérifier la synchronisation
+python -c "
+import csv
+# [script de vérification intégré]
+"
+```
+
+#### Fichiers concernés
+- `prod-data/Comptes_CNCJ.csv` - Référence des comptes CNCJ
+- `prod-data/Comptes_PCG_CNCJ.csv` - Fichier PCG avec colonne `isCNCJ`
+- `update_cncj_accounts.py` - Script de synchronisation
+
+#### Statistiques actuelles
+- **75 comptes CNCJ** définis dans la référence
+- **73 comptes** synchronisés dans PCG (97.3%)
+- **2 comptes** manquants : 1081000, 1082000
+
+#### Procédure de mise à jour
+1. Mettre à jour `Comptes_CNCJ.csv` avec les nouveaux comptes
+2. Exécuter `python update_cncj_accounts.py`
+3. Vérifier la synchronisation avec le script de validation
+4. Documenter les modifications dans le changelog

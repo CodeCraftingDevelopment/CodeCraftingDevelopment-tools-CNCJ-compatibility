@@ -157,4 +157,34 @@ export const STEPS_CONFIG: StepConfig[] = [
 
 ---
 
-*Dernière mise à jour : 20/11/2024*
+## 2024-11-22
+
+### Ajouts du 2024-11-22 (Synchronisation des comptes CNCJ)
+
+#### Fonctionnalité : Synchronisation automatique de la colonne isCNCJ
+- **Script de synchronisation** : Création du script `update_cncj_accounts.py` pour mettre à jour automatiquement la colonne `isCNCJ` dans `Comptes_PCG_CNCJ.csv`
+- **Comparaison des comptes** : Le script compare automatiquement les comptes présents dans `Comptes_CNCJ.csv` avec ceux du fichier PCG
+- **Mise à jour ciblée** : Seuls les comptes existant dans les deux fichiers sont marqués comme CNCJ
+- **Vérification intégrée** : Scripts de vérification pour s'assurer que la synchronisation est correcte
+- **Gestion des erreurs** : Détection des comptes CNCJ manquants dans le fichier PCG
+
+#### Fichiers créés
+- `update_cncj_accounts.py` - Script principal de synchronisation des comptes CNCJ
+
+#### Fichiers modifiés
+- `prod-data/Comptes_PCG_CNCJ.csv` - Mise à jour de la colonne `isCNCJ` pour 73 comptes
+
+#### Statistiques de synchronisation
+- **75 comptes CNCJ** définis dans le fichier de référence
+- **73 comptes** synchronisés avec succès (97.3%)
+- **2 comptes** non présents dans le fichier PCG (1081000, 1082000)
+- **1 649 comptes** maintenus à `false` (non CNCJ)
+
+#### Scripts de vérification
+- Vérification de la présence des comptes CNCJ dans le fichier PCG
+- Validation que tous les comptes CNCJ sont bien marqués `true`
+- Confirmation que les comptes non CNCJ restent `false`
+
+---
+
+*Dernière mise à jour : 22/11/2024*
