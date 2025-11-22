@@ -13,7 +13,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
       aria-modal="true"
       aria-labelledby="steps-info-title"
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4">
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 id="steps-info-title" className="text-lg font-semibold text-gray-900">
             Parcours de traitement
