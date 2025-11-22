@@ -33,6 +33,7 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
   onPrevious
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('all');
 
   // Normaliser un code à 7 chiffres pour l'affichage
   const normalizeForDisplay = (code: string): string => {
@@ -129,9 +130,19 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
   const totalCount = metadataData.length;
   const needingMetadataCount = accountsNeedingMetadata.length;
 
-  const filteredData = selectedAccountId 
-    ? metadataData.filter(row => row.id === selectedAccountId)
-    : accountsNeedingMetadata;
+  const filteredData = useMemo(() => {
+    let data = accountsNeedingMetadata;
+    
+    if (selectedAccountId) {
+      data = data.filter(row => row.id === selectedAccountId);
+    } else if (filterType === 'withMatch') {
+      data = accountsWithClosestMatch;
+    } else if (filterType === 'withoutMatch') {
+      data = accountsWithoutClosestMatch;
+    }
+    
+    return data;
+  }, [selectedAccountId, filterType, accountsNeedingMetadata, accountsWithClosestMatch, accountsWithoutClosestMatch]);
 
   // Champs de métadonnées importants à afficher/éditer
   const metadataFields = [
@@ -194,14 +205,43 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex justify-center space-x-2 flex-wrap">
             <button
-              onClick={() => setSelectedAccountId(null)}
+              onClick={() => {
+                setSelectedAccountId(null);
+                setFilterType('all');
+              }}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                !selectedAccountId 
+                filterType === 'all' && !selectedAccountId
                   ? 'bg-orange-600 text-white' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
               Tous les comptes avec métadonnées manquantes ({needingMetadataCount})
+            </button>
+            <button
+              onClick={() => {
+                setSelectedAccountId(null);
+                setFilterType('withMatch');
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filterType === 'withMatch' && !selectedAccountId
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Avec correspondance proche ({accountsWithClosestMatch.length})
+            </button>
+            <button
+              onClick={() => {
+                setSelectedAccountId(null);
+                setFilterType('withoutMatch');
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filterType === 'withoutMatch' && !selectedAccountId
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Sans correspondance ({accountsWithoutClosestMatch.length})
             </button>
           </div>
         </div>
