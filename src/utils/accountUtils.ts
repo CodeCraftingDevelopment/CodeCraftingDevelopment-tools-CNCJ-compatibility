@@ -45,6 +45,13 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
 
           totalRows += 1;
 
+          // Check line count limit during parsing
+          if (totalRows > 100000) {
+            errors.push(`Le fichier contient plus de 100 000 lignes. Pour des raisons de performance, veuillez diviser ce fichier en plusieurs parties plus petites.`);
+            resolve({ accounts: [], errors, totalRows, skippedRows: totalRows, invalidRows });
+            return;
+          }
+
           // Logique pour les fichiers standards
           // Détecter le format une seule fois avec les headers
           if (!detectedFormat) {

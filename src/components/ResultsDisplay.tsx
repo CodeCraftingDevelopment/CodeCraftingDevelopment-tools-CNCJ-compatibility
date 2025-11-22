@@ -7,6 +7,7 @@ import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
 import { calculateSuggestions } from '../utils/codeSuggestions';
 import { getDisplayCode, normalizeAccountCode } from '../utils/accountUtils';
+import { sanitizeCsvValue } from '../utils/fileUtils';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -179,7 +180,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               
               const csvContent = [
                 csvHeaders.join(';'),
-                ...csvRows.map(row => row.map(cell => `"${cell}"`).join(';'))
+                ...csvRows.map(row => row.map(cell => `"${sanitizeCsvValue(cell).replace(/"/g, '""')}"`).join(';'))
               ].join('\n');
               
               const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

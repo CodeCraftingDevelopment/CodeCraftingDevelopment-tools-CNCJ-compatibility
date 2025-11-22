@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { InvalidRow } from '../types/accounts';
+import { sanitizeCsvValue } from '../utils/fileUtils';
 
 interface ImportErrorsModalProps {
   invalidRows: InvalidRow[];
@@ -31,7 +32,7 @@ export const ImportErrorsModal: React.FC<ImportErrorsModalProps> = ({
 
     const allRows = [header, ...rows];
     return allRows
-      .map((cells) => cells.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(';'))
+      .map((cells) => cells.map((cell) => `"${sanitizeCsvValue(cell).replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
   }, [hasInvalidRows, invalidRows]);
 

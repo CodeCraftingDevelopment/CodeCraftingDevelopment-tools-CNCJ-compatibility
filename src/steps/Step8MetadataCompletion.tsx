@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Account, ProcessingResult } from '../types/accounts';
 import { StepStatsGrid, StepStat, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
+import { sanitizeCsvValue } from '../utils/fileUtils';
 
 type ModificationSource = 'step4' | 'step6' | 'step4+step6' | null;
 
@@ -130,7 +131,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     if (cell === undefined || cell === null) return '""';
     const cellStr = String(cell);
     const cleaned = cellStr.replace(/[\r\n]+/g, ' ');
-    const escaped = cleaned.replace(/"/g, '""');
+    const escaped = sanitizeCsvValue(cleaned).replace(/"/g, '""');
     return `"${escaped}"`;
   };
 

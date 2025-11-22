@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Account, FileUploadResult, FileMetadata, InvalidRow } from '../types/accounts';
 import { parseCSVFile } from '../utils/accountUtils';
-import { formatFileSize } from '../utils/fileUtils';
+import { formatFileSize, validateFileSize } from '../utils/fileUtils';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
 import { ImportErrorsModal } from './ImportErrorsModal';
@@ -35,6 +35,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const processFile = useCallback(async (file: File) => {
+    // Validate file size first
+    const sizeValidation = validateFileSize(file);
+    if (!sizeValidation.isValid) {
+      const errorMsg = sizeValidation.error || 'Veuillez sélectionner un fichier valide';
+      onError([errorMsg]);
+      setLocalErrors([errorMsg]);
+      setInvalidRows([]);
+      return;
+    }
+
     if (!file.name.endsWith('.csv')) {
       const errorMsg = 'Veuillez sélectionner un fichier CSV';
       onError([errorMsg]);
