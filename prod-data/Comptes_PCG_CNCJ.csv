@@ -602,7 +602,7 @@ A600;6226;622;Honoraires;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A601;6227;622;Frais d'actes et de contentieux;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A602;6228;622;Divers;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A603;6231;623;Annonces et insertions;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A604;6231;623;Echantillons;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A604;6232;623;Echantillons;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A605;6233;623;Foires et expositions;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A606;6234;623;Cadeaux à la clientèle;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A607;6235;623;Primes;AT001;true;0;;;;;;;;;;;;;;;;1;false
@@ -610,7 +610,7 @@ A608;6236;623;Catalogues et imprimés;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A609;6237;623;Publications;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A610;6238;623;Divers (pourboires, dons courants);AT001;true;0;;;;;;;;;;;;;;;;1;false
 A611;6241;624;Transports sur achats;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A612;6241;624;Transports sur ventes;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A612;6242;624;Transports sur ventes;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A613;6243;624;Transports entre établissements ou chantiers;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A614;6244;624;Transports administratifs;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A615;6247;624;Transports collectifs du personnel;AT001;true;0;;;;;;;;;;;;;;;;1;false
@@ -641,7 +641,7 @@ A639;6353;635;Impôts indirects;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A640;6354;635;Droits d'enregistrement et de timbre;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A641;6358;635;Autres droits;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A642;6371;637;Contribution sociale de solidarité à la charge des sociétés;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A643;6371;637;Taxes perçues par les organismes publics internationaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A643;6372;637;Taxes perçues par les organismes publics internationaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A644;6374;637;Impôts et taxes exigibles à l'étranger;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A645;6378;637;Taxes diverses;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A646;6411;641;Salaires, appointements;AT001;true;0;;;;;;;;;;;;;;;;1;false
@@ -702,7 +702,7 @@ A700;6981;698;Intégration fiscale - Charges;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A701;6989;698;Intégration fiscale - Produits;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A702;7081;708;Produits des services exploités dans l'intérêt du personnel;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A703;7082;708;Commissions et courtages;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A704;7082;708;Locations diverses;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A704;7083;708;Locations diverses;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A705;7084;708;Mise à disposition du personnel facturée;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A706;7085;708;Ports et frais accessoires facturés;AT001;true;0;;;;;;;;;;;;;;;;1;false
 A707;7086;708;Bonis sur reprises d'emballages consignés;AT001;true;0;;;;;;;;;;;;;;;;1;false
@@ -877,779 +877,774 @@ A875;1064000;106;Réserves réglementées;AT007;;1;;;;;;;;;;;;;;;;1;false
 A876;1068000;106;Autres réserves;AT007;;1;;;;;;;;;;;;;;;;1;false
 A877;1070000;107;Ecart d'équivalence;AT007;;1;;;;;;;;;;;;;;;;1;false
 A878;1080000;108;Compte du commissaire de justice;AT007;;1;;;;;;;;;;;;;;;;1;true
-A882;1090000;109;Actionnaires : capital souscrit - non appelé;AT007;;1;;;;;;;;;;;;;;;;1;false
-A883;1100000;110;Report à nouveau - solde débiteur;AT007;;1;;;;;;;;;;;;;;;;1;false
-A884;1190000;119;Report à nouveau - solde créditeur;AT007;;1;;;;;;;;;;;;;;;;1;false
-A885;1200000;120;"Résultat de l""exercice - Bénéfice";AT007;;2;;;;;;;;;;;;;;;;1;false
-A886;1209000;120;Acomptes sur dividendes;AT007;;1;;;;;;;;;;;;;;;;1;false
-A887;1290000;129;Résultat de l'exercice - Perte;AT007;;1;;;;;;;;;;;;;;;;1;false
-A888;1310000;131;Subventions d'investissement octroyées;AT007;;1;;;;;;;;;;;;;;;;1;false
-A889;1390000;139;Subventions d'investissement inscrites au compte de résultat;AT007;;1;;;;;;;;;;;;;;;;1;false
-A890;1430000;143;Provisions réglementées pour hausse de prix;AT007;;1;;;;;;;;;;;;;;;;1;false
-A891;1450000;145;Amortissements dérogatoires;AT007;;1;;;;;;;;;;;;;;;;1;false
-A892;1480000;148;Autres provisions réglementées;AT007;;1;;;;;;;;;;;;;;;;1;false
-A893;1510000;151;Provisions pour risques;AT007;;1;;;;;;;;;;;;;;;;1;false
-A894;1511000;151;Provisions pour litiges;AT007;;1;;;;;;;;;;;;;;;;1;false
-A895;1512000;151;Provisions pour garanties données aux clients;AT007;;1;;;;;;;;;;;;;;;;1;false
-A896;1514000;151;Provisions pour amendes et pénalités;AT007;;1;;;;;;;;;;;;;;;;1;false
-A897;1515000;151;Provisions pour pertes de change;AT007;;1;;;;;;;;;;;;;;;;1;false
-A898;1516000;151;Provision pour pertes sur contrats;AT007;;1;;;;;;;;;;;;;;;;1;false
-A899;1518000;151;Autres provisions pour risques;AT007;;1;;;;;;;;;;;;;;;;1;false
-A900;1520000;152;Provisions pour charges;AT007;;1;;;;;;;;;;;;;;;;1;false
-A901;1521000;152;Provsions pour pensions et obligations similaires;AT007;;1;;;;;;;;;;;;;;;;1;false
-A902;1522000;152;Provisions pour restructuration;AT007;;1;;;;;;;;;;;;;;;;1;false
-A903;1523000;152;Provisions pour impôts;AT007;;1;;;;;;;;;;;;;;;;1;false
-A904;1524000;152;Provisions pour renouvellement des immobilisations - entreprises concessionnaires;AT007;;1;;;;;;;;;;;;;;;;1;false
-A905;1525000;152;Provisions pour gros entretien ou grandes révisions;AT007;;1;;;;;;;;;;;;;;;;1;false
-A906;1526000;152;Provisions pour remise en état;AT007;;1;;;;;;;;;;;;;;;;1;false
-A907;1527000;152;Autres provisions pour charges;AT007;;1;;;;;;;;;;;;;;;;1;false
-A908;1610000;161;Emprunts obligataires convertibles;AT007;;1;;;;;;;;;;;;;;;;1;false
-A909;1618000;161;Intérêts courus sur emprunts obligataires convertibles;AT007;;1;;;;;;;;;;;;;;;;1;false
-A910;1620000;162;Obligations réprésentatives de passifs nets remis en fiducie;AT007;;1;;;;;;;;;;;;;;;;1;false
-A911;1630000;163;Autres emprunts obligatires;AT007;;1;;;;;;;;;;;;;;;;1;false
-A912;1638000;163;Intérêts courus sur autres emprunts obligataires;AT007;;1;;;;;;;;;;;;;;;;1;false
-A913;1640000;164;Emprunts auprès des établissements de crédits;AT007;;1;;;;;;;;;;;;;;;;1;false
-A917;1648000;164;Intérêts courus sur emprunts auprès des établissements de crédit;AT007;;1;;;;;;;;;;;;;;;;1;false
-A918;1650000;165;Dépôts et cautionnements reçus;AT007;;1;;;;;;;;;;;;;;;;1;false
-A919;1651000;165;Dépôts;AT007;;1;;;;;;;;;;;;;;;;1;false
-A920;1655000;165;Cautionnements;AT007;;1;;;;;;;;;;;;;;;;1;false
-A921;1658000;165;Intérêts courus sur dépôts et cautionnements reçus;AT007;;1;;;;;;;;;;;;;;;;1;false
-A922;1660000;166;Participation des salariés aux résultats;AT007;;1;;;;;;;;;;;;;;;;1;false
-A923;1661000;166;Comptes bloqués;AT007;;1;;;;;;;;;;;;;;;;1;false
-A924;1662000;166;Fons de participation;AT007;;1;;;;;;;;;;;;;;;;1;false
-A925;1668000;166;Intérêts courus sur participation des salariés;AT007;;1;;;;;;;;;;;;;;;;1;false
-A926;1670000;167;Emprunts et dettes assorties de conditions particulières;AT007;;1;;;;;;;;;;;;;;;;1;false
-A927;1671000;167;Emissions de titres participatifs;AT007;;1;;;;;;;;;;;;;;;;1;false
-A928;1674000;167;Avances conditionnées de l'Etat;AT007;;1;;;;;;;;;;;;;;;;1;false
-A929;1675000;167;Emprunts participatifs;AT007;;1;;;;;;;;;;;;;;;;1;false
-A930;1680000;167;Autres emprunts et dettes assimilées;AT007;;1;;;;;;;;;;;;;;;;1;false
-A931;1681000;168;Autres emprunts;AT007;;1;;;;;;;;;;;;;;;;1;false
-A932;1685000;168;Rentes viagères capitalisées;AT007;;1;;;;;;;;;;;;;;;;1;false
-A933;1687000;168;Autres dettes;AT007;;1;;;;;;;;;;;;;;;;1;false
-A934;1688000;168;Intérêts courus sur autres emprunts et dettes assimilées;AT007;;1;;;;;;;;;;;;;;;;1;false
-A936;1690000;169;Prime de remboursement des emprunts;AT007;;1;;;;;;;;;;;;;;;;1;false
-A937;1710000;171;Dettes rattachées à des participations - groupe;AT007;;1;;;;;;;;;;;;;;;;1;false
-A938;1740000;174;Dettes rattachées à des participations - hors groupe;AT007;;1;;;;;;;;;;;;;;;;1;false
-A939;1780000;178;Dettes rattachées à des sociétés en participation;AT007;;1;;;;;;;;;;;;;;;;1;false
-A940;1810000;181;Comptes de liaison des établissement;AT007;;1;;;;;;;;;;;;;;;;1;false
-A941;1860000;186;Biens et prestations de services échangés entre établissements - charges;AT007;;1;;;;;;;;;;;;;;;;1;false
-A942;1870000;187;Biens et prestations de services échangés entre établissements - produits;AT007;;1;;;;;;;;;;;;;;;;1;false
-A943;1880000;188;Comptes de liaison des sociétés en participation;AT007;;1;;;;;;;;;;;;;;;;1;false
-A944;2010000;201;Frais d'établissement;AT002;;2;;;;;;;;;;;;;;;;1;false
-A945;2011000;201;Frais de constitution;AT002;;2;;;;;;;;;;;;;;;;1;false
-A946;2012000;201;Frais de premier établissement;AT002;;2;;;;;;;;;;;;;;;;1;false
-A947;2013000;201;Frais d'augmentation de capital et d'opérations diverses - fusions, scissions, transformations;AT002;;2;;;;;;;;;;;;;;;;1;false
-A948;2030000;203;Frais de développement;AT002;;2;;;;;;;;;;;;;;;;1;false
-A949;2050000;205;Concessions et droits similaires, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT002;;2;;;;;;;;;;;;;;;;1;false
-A950;2060000;206;Droit au bail;AT002;;2;;;;;;;;;;;;;;;;1;false
-A951;2070000;207;Fond commercial;AT002;;2;;;;;;;;;;;;;;;;1;false
-A952;2080000;208;Autres immobilisations incorporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
-A953;2081000;208;Mali de fusion sur actifs incorporels;AT002;;2;;;;;;;;;;;;;;;;1;false
-A954;2110000;211;Terrains;AT002;;2;;;;;;;;;;;;;;;;1;false
-A955;2111000;211;Terrains nus;AT002;;2;;;;;;;;;;;;;;;;1;false
-A956;2112000;211;Terrains aménagés;AT002;;2;;;;;;;;;;;;;;;;1;false
-A957;2113000;211;Sous-sols et sur-sols;AT002;;2;;;;;;;;;;;;;;;;1;false
-A958;2114000;211;Terrains de carrières (tréfonds);AT002;;2;;;;;;;;;;;;;;;;1;false
-A959;2115000;211;Terrains bâtis;AT002;;2;;;;;;;;;;;;;;;;1;false
-A960;2120000;212;Agencements et aménagements de terrains (même ventilation que le compte 211);AT002;;2;;;;;;;;;;;;;;;;1;false
-A961;2130000;213;Constructions;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A962;2131000;213;Bâtiments;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A963;2135000;213;installations générales - agencements - aménagements des constructions;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A964;2138000;213;Ouvrages d'infrastructure;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A965;2140000;214;Construction sur sol d'autrui (même ventilation que le compte 213);AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A966;2150000;215;Installations techniques, matériels et outillages industriels;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A967;2151000;215;Installations complexes spécialisées;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A968;2153000;215;Installations à caractère spécifique;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A969;2154000;215;Matériel industriel;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A970;2155000;215;Outillage industriel;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A971;2157000;215;Agencements et aménagements des matériels et outillages industriels;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A972;2180000;218;Autres immobilisations corporelles;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A973;2181000;218;Installations générales, agencements, aménagements divers;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A974;2182000;218;Matériel de transport;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A975;2183000;218;Matériel de bureau et informatique;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A976;2184000;218;Mobilier;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
-A977;2185000;218;Cheptel;AT002;;2;;;;;;;;;;;;;;;;1;false
-A978;2186000;218;Emballages récupérables;AT002;;2;;;;;;;;;;;;;;;;1;false
-A979;2187000;218;Mali de fusion sur actifs corporels;AT002;;2;;;;;;;;;;;;;;;;1;false
-A980;2290000;229;Droit au concédant;AT002;;2;;;;;;;;;;;;;;;;1;false
-A981;2310000;231;Immobilisations corporelles en cours;AT002;;2;;;;;;;;;;;;;;;;1;false
-A982;2320000;232;Immobilisations incorporelles en cours;AT002;;2;;;;;;;;;;;;;;;;1;false
-A983;2370000;237;Avances et acomptes versés sur commandes d'immobilisations incorporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
-A984;2380000;238;Avances et acomptes versés sur commandes d'immobilisations corporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
-A985;2610000;261;Titres de participation;AT002;;2;;;;;;;;;;;;;;;;1;false
-A986;2611000;261;Actions;AT002;;2;;;;;;;;;;;;;;;;1;false
-A987;2618000;261;Autres titres;AT002;;2;;;;;;;;;;;;;;;;1;false
-A988;2620000;262;Titres évalués par équivalence;AT002;;2;;;;;;;;;;;;;;;;1;false
-A989;2660000;266;Autres formes de participation;AT002;;2;;;;;;;;;;;;;;;;1;false
-A990;2661000;266;Droits représentatifs d'actifs nets remis en fiducie;AT002;;2;;;;;;;;;;;;;;;;1;false
-A991;2670000;267;Créances rattachées à des participations;AT002;;2;;;;;;;;;;;;;;;;1;false
-A992;2671000;267;Créances rattachées à des participations - groupe;AT002;;2;;;;;;;;;;;;;;;;1;false
-A993;2674000;267;Créances rattachées à des participations - hors groupe;AT002;;2;;;;;;;;;;;;;;;;1;false
-A994;2675000;267;Versements représentatifs d'apports non capitalisés - appels de fonds;AT002;;2;;;;;;;;;;;;;;;;1;false
-A995;2676000;267;Avances consolidables;AT002;;2;;;;;;;;;;;;;;;;1;false
-A996;2677000;267;Autres créances rattachées à des participations;AT002;;2;;;;;;;;;;;;;;;;1;false
-A997;2678000;267;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
-A998;2680000;268;Créances rattachées à des sociétés en participation;AT002;;2;;;;;;;;;;;;;;;;1;false
-A999;2681000;268;Principal;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1000;2688000;268;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1001;2690000;269;Versements restants à effectuer sur titres de participation non libérés;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1002;2710000;271;Titres immobilisés autres que les titres immobilisés de l'activité de portefeuille (droit de propriété);AT002;;2;;;;;;;;;;;;;;;;1;false
-A1003;2711000;271;Actions;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1004;2718000;271;Autres titres;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1005;2720000;272;Titres immobilisés (droit de créance);AT002;;2;;;;;;;;;;;;;;;;1;false
-A1006;2721000;272;Obligations;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1007;2722000;272;Bons;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1008;2730000;273;Titres immobilisés de l'activité de portefeuille;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1009;2740000;274;Prêts;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1010;2741000;274;Prêts participatifs;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1011;2742000;274;Prêts aux associés;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1012;2743000;274;Prêts au personnel;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1013;2748000;274;Autres prêts;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1014;2750000;275;Dépots et cautionnements versés;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1015;2751000;275;Dépôts;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1016;2755000;275;Cautionnements;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1017;2760000;276;Autres créances immobilisées;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1018;2761000;276;Créances diverses;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1019;2768000;276;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1020;2770000;277;Actions propres ou parts propres;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1021;2771000;277;Actions propres ou parts propres;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1022;2772000;277;Actions propres ou parts propres en vois d'annulation;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1023;2780000;278;Mali de fusion sur actifs financiers;AT002;;2;;;;;;;;;;;;;;;;1;false
-A1024;2790000;279;Versements restants à effectuer sur titres immobilisés non libérés;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1025;2800000;280;Amortissements des immobilisations incoporelles et des frais d'établissement (même ventilation que celle du compte 20);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1026;2801000;280;Frais d'établissement (même ventilation que celle du compte 201);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1027;2803000;280;Frais de développement;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1028;2805000;280;Concessions et droits similaires, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1029;2806000;280;Droit au bail;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1030;2807000;280;Fonds commercial;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1031;2808000;280;Autres immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1032;2810000;281;Amortissements des immobilisations corporelles (même ventilation que celle du compte 21);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1033;2812000;281;Agencements, aménagements de terrains (même ventilation que celle du compte 212);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1034;2813000;281;Constructions (même ventilation que celle du compte 213);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1035;2814000;281;Constructions sur sol d'autrui (même ventilation que celle du compte 214);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1036;2815000;281;Installations techniques, matériels et outillages industriels (même ventilation que celle du compte 215);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1037;2818000;281;Autres immobilisations corporelles (même ventilation que celle du compte 218);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1038;2818100;281;Amortissement installations générales, agencements, aménagements divers;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1039;2818200;281;Amortissement du matériel de transport;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1040;2818300;281;Amortissement matériel de bureau;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1041;2818400;281;Amortissement mobilier;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1042;2820000;282;Amortissements des immobilisations mises en concession;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1043;2900000;290;Dépréciations des immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1044;2901000;290;Frais d'établissement;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1045;2903000;290;Frais de développement;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1046;2905000;290;Marques, procédés, droits et valeurs similaires;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1047;2906000;290;Droit au bail;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1048;2907000;290;Fonds commercial;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1049;2908000;290;Autres immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1050;2910000;291;Dépréciations des immobilisations corporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1051;2911000;291;Terrains;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1052;2912000;291;Agencements et aménagements de terrains;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1053;2913000;291;Constructions;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1054;2914000;291;Constructions sur sol d'autrui;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1055;2915000;291;Installations techniques, matériels et outillages industriels;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1056;2918000;291;Autres immobilisations corporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1057;2920000;292;Dépréciations des immobilisations mises en concessions;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1058;2930000;293;Dépréciations des immobilisations en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1059;2931000;293;Immobilisations coporelles en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1060;2932000;293;Immobilisations incorporelles en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1061;2960000;296;Dépréciations des participations et créances rattachées à des participations;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1062;2961000;296;Titres de participation;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1063;2962000;296;Titres évalués par équivalence;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1064;2966000;296;Autres formes de participation;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1065;2967000;296;Créances rattachées à des participations (même ventilation que celle du compte 267);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1066;2968000;296;Créances rattachées à des sociétés en participation (même ventilation que celle du compte 268);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1067;2970000;297;Dépréciations des autres immobilisations financières;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1068;2971000;297;Titres immobilisés autres que les titres immobilisés de l'activité de portefeuille (droit de propriété);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1069;2972000;297;Titres immobilisés (droit de créance);AT002;;1;;;;;;;;;;;;;;;;1;false
-A1070;2973000;297;Titres immobilisés de l'activité de portefeuille;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1071;2974000;297;Prêts;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1072;2975000;297;Dépôts et cautionnements versés;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1073;2976000;297;Autres créances immobilisées;AT002;;1;;;;;;;;;;;;;;;;1;false
-A1074;3210000;321;Matières consommables;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1075;3220000;322;Fournitures consommables;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1076;3221000;322;Combustibles;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1077;3222000;322;Produits d'entretien;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1078;3223000;322;Fournitures d'atelier et d'usine;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1079;3224000;322;Fournitures de magasin;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1080;3225000;322;Fournitures de bureau;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1081;3260000;326;Emballages;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1082;3261000;326;Emballages perdus;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1083;3265000;326;Emballages récupérables non identifiables;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1084;3267000;326;Emballages à usage mixte;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1085;3310000;331;Produits en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1086;3350000;335;Travaux en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1087;3410000;341;Etudes en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1088;3450000;345;Prestations de services en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1089;3510000;351;Produits intermédiaires;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1090;3550000;355;Produits finis;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1091;3580000;358;Produits résiduels ou matières de récupération;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1092;3581000;358;Déchets;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1093;3585000;358;Rebuts;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1094;3586000;358;Matières de récupération;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1095;3910000;391;Dépréciations des matières premières et fournitures;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1096;3920000;392;Dépréciations des autres approvisionnements;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1097;3930000;393;Dépréciations des en-cours de production de biens;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1098;3940000;394;Dépréciations des en-cours de production de services;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1099;3950000;395;Dépréciations des stocks de produits;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1100;3970000;397;Dépréciations des stocks de marchandises;AT003;;1;;;;;;;;;;;;;;;;1;false
-A1101;4010000;401;Fournisseurs;AT010;;1;;;;;;;;;;;;;;;;1;false
-A1103;4011000;401;Fournisseurs - Achats de biens et de prestations de services;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1104;4011100;401;Fournisseurs de l'office;AT010;;1;true;;true;;;;1;true;;;;;;;;1;true
-A1106;4011300;401;Fournisseurs liés aux comptes clients (activité de ventes judiciaires);AT010;;1;true;;true;;;;1;true;;;;;;;;1;true
-A1107;4017000;401;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1108;4030000;403;Fournisseurs - Effets à payer;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1109;4040000;404;Fournisseurs d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1110;4041000;404;Fournisseurs - Achats d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1111;4047000;404;Fournisseurs d'immobilisations - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1112;4050000;405;Fournisseurs d'immobilisations - Effets à payer;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1113;4080000;408;Fournisseurs - Factures non parvenues;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
-A1115;4084000;408;Fournisseurs d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1116;4088000;408;Fournisseurs - Intérêts courus;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
-A1117;4090000;409;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
-A1118;4091000;409;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1119;4096000;409;Fournisseurs - Créances pour emballages et matériels à rendre;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1120;4097000;409;Fournisseurs - Autres avoirs;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1121;4098000;409;Rabais, remises, ristournes à obtenir et autres avoirs non encore reçus;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
-A1122;4110000;411;Clients;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1124;4111000;411;Clients - Ventes de biens ou de prestations de services;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
-A1126;4117000;411;Clients - Retenues de garanties;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
-A1127;4120000;411;Clients - Prestations de service facturées (activité de ventes judiciaires);AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
-A1128;4130000;413;Clients - Effets à recevoir;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
-A1129;4160000;416;Clients douteux ou litigieux;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1131;4180000;418;Clients - Produits non encore facturés;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1131;4181000;418;Clients - Factures à établir;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1133;4188000;418;Clients - Intérêts courus;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1134;4190000;419;Clients créditeurs;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1135;4191000;419;Clients - Avances et acomptes reçus;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1137;4196000;419;Clients - Dettes pour emballages et matériels consignés;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1138;4196300;419;Fonds détenus pour le compte des clients (activité de ventes judiciaires);AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
-A1139;4196990;419;Clients ouverture informatique;AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
-A1140;4197000;419;Clients - Autres avoirs;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
-A1141;4198000;419;Clients en attente d'imputation;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
-A1142;4198990;419;Clients virements inter dossiers;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1143;4210000;421;Rénumérations dues;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1145;4220000;422;Comité social et économique;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1146;4240000;424;Participation des salariés aux résultats;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1147;4246000;424;Réserve spéciale;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1148;4248000;424;Comptes courants;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1149;4250000;425;Personnel - Avances, acomptes et autres comptes débiteurs;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1150;4260000;426;Personnel - Dépôts;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1151;4270000;427;Personnel - Opposition;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1152;4280000;428;Personnel - Charges à payer;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1153;4282000;428;Dettes provisionnées pour congés péayés;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1154;4284000;428;Dettes provisionnées pour participation des salariés aux résultats;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1155;4286000;428;Autres charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1157;4310000;431;Sécurité sociale;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1164;4362000;438;Assurance maladie des professions libérales;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1165;4363000;438;Caisse de retraite des commissaires de justice - CAVOM;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1166;4368000;438;Autres organismes sociaux et de retraite des commissaires de justice;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1167;4370000;437;Autres organismes sociaux;AT010;;1;true;;;;;;;;;;;;;;;1;false
-A1173;4380000;438;Organismes sociaux - Charges à payer;AT010;;1;true;;;;;;;;;;;;;;;1;false
-A1174;4382000;438;Charges sociales sur congés payés;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1175;4386000;438;Autres charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1177;4390000;439;Organismes sociaux - Produits à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1178;4410000;441;Etat - Subventions et aides à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1179;4420000;442;Contributions, impôts et taxes recouvrés pour le compte de l'Etat;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1180;4421000;442;Prélèvements à la source (Impôt sur le revenu);AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1181;4422000;442;Prélèvements forfaitaires non libératoires;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1182;4423000;442;Retenues et prélèvements sur les distributions;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1183;4440000;444;Etat - Impôts sur les bénéfices;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1184;4450000;445;Etat - Taxes sur le chiffre d'affaires;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1185;4452000;445;TVA due intracommunautaire;AT011;;1;true;;;;;;;;;;;;;;;1;false
-A1186;4455000;445;Taxes sur le chiffre d'affaires à encaisser;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1187;4455100;4455;Tva à décaisser;AT010;;2;true;;;;;;;;;;;;;;;1;false
-A1187;4455800;4455;Taxes assimilés à la TVA;AT010;;2;true;;;;;;;;;;;;;;;1;false
-A1188;4456000;445;Taxes sur le chiffre d'affaires déductibles;AT011;;2;true;;;;;;1;;;;;;;;;1;false
-A1189;4456200;4456;TVA sur immobilisations;AT011;;2;true;;;;;;1;;;;;;;;;1;false
-A1189;4456300;4456;Tva transférée par d'autres entités;AT011;;2;true;;;;;;1;;;;;;;;;1;false
-A1190;4456600;4456;Tva sur autres biens et services;AT011;;2;true;;;;;;1;;;;;;;;;1;false
-A1191;4456660;4456;TVA déductible sur autres biens et services payés - encaissement;AT011;;2;true;;;;;;1;;;;;;;;;1;true
-A1198;4456620;4456;TVA déductible - Adjugé 5,5%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
-A1199;4456630;4456;TVA déductible - Adjugé 10%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
-A1200;4456640;4456;TVA déductible - Adjugé 20%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
-A1201;4456662;4456;TVA Déductible Intracom;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1202;4456700;4456;Crédit de TVA;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1202;4456800;4456;Taxes assimilées à la TVA;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1203;4457000;445;Taxes sur le chiffre d'affaires collectées;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1212;4457100;4457;Tva Collectée;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1212;4457110;4457;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires);AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1213;4457111;4457;TVA collectée honoraires - ventes judiciaires 5,5%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1214;4457112;4457;TVA collectée honoraires - ventes judiciaires 10%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1215;4457113;4457;TVA collectée honoraires - ventes judiciaires 20%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1216;4457114;4457;TVA collectée - Adjugé ventes judiciaires 5,5%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1217;4457115;4457;TVA collectée - Adjugé ventes judiciaires 10%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1218;4457116;4457;TVA collectée - Adjugé ventes judiciaires 20%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1225;4457180;4457;Tva Collectée facturée sur autres produits HT;AT011;;1;true;;;;;;1;;;;;;;;;1;true
-A1228;4458000;445;Taxes sur le chiffre d'affaires à régulariser ou en attente;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1228;4458100;445;Acomptes - Régimes simplifié d'imposition;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1229;4458300;445;Remboursement de taxes sur le chiffre d'affaires demandé;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1229;4458400;445;TVA récupérée d'avance;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1230;4458600;4458;Taxes sur le chiffre d'affaires sur factures non parvenues;AT011;;2;true;;;;;;1;;;;;;;;;1;false
-A1231;4458700;4458;Taxes sur le chiffre d'affaires sur factures à établir;AT011;;1;true;;;;;;1;;;;;;;;;1;false
-A1232;4460000;446;Obligations cautionnées;AT005;;1;true;;;;;;;;;;;;;;;1;false
-A1233;4470000;447;Autres impots, taxes et versements assimilés;AT005;;1;true;;;;;;;;;;;;;;;1;false
-A1234;4480000;448;Etat - Charges à payer et produits à recevoir;AT005;;1;true;;;;;;;;;;;;;;;1;false
-A1235;4481000;448;Etat - Charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1236;4482000;448;Etat - Produits à recevoir;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1239;4490000;449;Quotas d'émission à acquérir;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1240;4510000;451;Groupe;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1241;4550000;455;Associés - comptes courants;AT010;;2;true;;;;;;;;;;;;;;;1;false
-A1242;4551000;455;Principal;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1244;4552000;455;Charges sociales des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1245;4555000;455;CSG déductible des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1246;4556000;455;Frais divers des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1247;4558000;455;Intérets courus;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1248;4560000;456;Associés - Opérations sur le capital;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1249;4561000;456;Associés - Comptes d'apport en société;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1250;4562000;456;Apporteurs - Capital appelé, non versé;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1251;4563000;456;Associés - Versements reçus sur augmentation de capital;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1252;4564000;456;Associés - Versements anticipés;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1253;4566000;456;Actionnaires défaillants;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1254;4567000;456;Associés - Capital à rembourser;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1255;4570000;457;Associés - Dividences à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1256;4580000;458;Associés - Opérations faites en commun et en GIE;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1257;4581000;458;Opérations courantes;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1258;4588000;458;intérêts courus;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1259;4620000;462;Créances sur cessions d'immobilisations;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1260;4640000;464;Dettes sur acquisitions de valeurs mobilières de placement;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1261;4650000;465;Créances sur cessions de valeurs mobilières de placement;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1262;4670000;467;Divers comptes débiteurs et produits à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1283;4670300;467;Débours (activité de ventes judiciaires);AT016;;2;true;;;;;;;;;;;;;;;1;true
-A1291;4671000;467;Ventes judiciaires - Compte créditeur de regroupement des comptes auxiliaires;AT010;;1;true;;;;;;;;;;;;;;;1;true
-A1294;4672000;467;Ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires;AT005;;2;true;;;;;;;;;;;;;;;1;true
-A1305;4680000;468;Divers comptes créditeurs et charges à payer;AT016;;2;true;;;;;;1;;;;;;;;;1;false
-A1306;4681000;468;Commissaires de justice - Divers comptes créditeurs et charges à payer;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1307;4682000;468;Ventes judiciaires - Compte adjudication;AT016;;2;true;;;true;;|A55|;1;;;;;;;;;1;true
-A1308;4682010;468;Ventes judiciaires - Adjudications assujetties 5,5%;AT016;;2;true;;;true;;|A10|;1;;;;;;;;;1;true
-A1309;4682020;468;Ventes judiciaires - Adjudications assujetties 10%;AT016;;2;true;;;true;;|A20|;1;;;;;;;;;1;true
-A1310;4682030;468;Ventes judiciaires - Adjudications assujetties 20%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1311;4682040;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 5,5%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1312;4682050;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 10%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1313;4682060;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 20%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1314;4682070;468;Ventes judiciaires - Adjudications non assujetties Livraison CEE exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1315;4682080;468;Ventes judiciaires - Adjudications non assujetties Export eco TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1316;4682090;468;Ventes judiciaires - Adjudications non assujetties Franchise exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1317;4682100;468;Ventes judiciaires - Adjudications assujetties Livraison CEE exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1318;4682110;468;Ventes judiciaires - Adjudications assujetties Export eco TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1319;4682120;468;Ventes judiciaires - Adjudications assujetties Franchise exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
-A1321;4710000;471;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1322;4720000;472;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1323;4730000;473;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1324;4740000;474;Différences d'évaluation - Actif;AT005;;2;true;;;;;;;;;;;;;;;1;false
-A1325;4741000;474;Différences d'évaluation sur les instruments financiers à terme - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1326;4742000;474;Différences d'évaluation sur jetons détenus - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1327;4746000;474;Différences d'évaluation de jetons sur des passifs - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1328;4750000;475;Différences d'évaluation - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1329;4751000;475;Différences d'évaluation sur instruments financiers à terme - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1330;4752000;475;Différences d'évaluation sur jetons détenus - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1331;4756000;475;Différences d'évaluation de jetons sur des passifs - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1332;4760000;476;Différences de conversion - Actif;AT005;;2;;;;;;;;;;;;;;;;1;false
-A1333;4761000;476;Diminution des créances;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1334;4762000;476;Augmentation des dettes;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1335;4768000;476;Différences compensées par couverture de change;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1336;4770000;477;Différences de conversion - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1337;4771000;477;Augmentation des créances;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1338;4772000;477;Diminution des dettes;AT005;;2;;;;;;;;;;;;;;;;1;false
-A1339;4778000;477;Différences compensées par couverture de change;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1340;4780000;478;Autres comptes transitoires;AT005;;1;;;;;;;;;;;;;;;;1;false
-A1341;4781000;478;Mali de fusion sur actif circulant;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1343;4810000;481;Frais d'émission des emprunts;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1344;4860000;486;Charges constatées d'avance;AT008;;2;true;;;;;;;;;;;;;;;1;false
-A1345;4870000;487;Produits constatés d'avance;AT005;;1;true;;;;;;;;;;;;;;;1;false
-A1346;4871000;487;Produits constatés d'avance sur jetons émis;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1347;4880000;488;Comptes de répartition périodique des charges et des produits;AT016;;1;;;;;;;;;;;;;;;;1;false
-A1348;4886000;488;Charges;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1349;4887000;488;Produits;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1351;4910000;491;Dépréciations des comptes clients;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1352;4950000;495;Dépréciations des comptes du groupe et des associés;AT009;;1;true;;;;;;;;;;;;;;;1;false
-A1353;4951000;495;Comptes du groupe;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1354;4955000;495;Comptes courants des associés;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1355;4958000;495;Opérations faites en commun et en GIE;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1356;4960000;496;Dépréciations des comptes de débiteurs divers;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1357;4962000;496;Créances sur cessions d'immobilisations;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1358;4965000;496;Créances sur cessions de valeurs mobilières de placement;AT009;;2;true;;;;;;;;;;;;;;;1;false
-A1359;4967000;496;Autres comptes débiteurs;AT009;;2;;;;;;;;;;;;;;;;1;false
-A1360;5020000;502;Actions propres;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1361;5021000;502;Actions destinées à être attribuées aux employés et affectées à des plans déterminés;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1362;5022000;502;Actions disponibles pour les attribuées aux employés ou par la régularisation des cours de Bourse;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1363;5030000;503;Actions;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1364;5031000;503;Titres cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1365;5035000;503;Titres non cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1366;5040000;504;Autres titres conférant un droit de propriété;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1367;5050000;505;Obligations et bons émis par la société et rachetés par elle;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1368;5060000;506;Obligations;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1369;5061000;506;Titres cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1370;5065000;506;Titres non cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1371;5070000;507;Bon du Trésor et bons de caisse à court terme;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1372;5080000;508;Autres valeurs mobilières de placement et autres créances assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1373;5081000;508;Autres valeurs mobilières;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1374;5082000;508;Bons de souscription;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1375;5088000;508;intérêts courus sur obligations, bons et valeurs assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1376;5090000;509;Versement restant à effectuer sur valeurs mobilières de placement non libérées;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1377;5110000;511;Valeurs à l'encaissement;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1378;5111000;511;Coupons échus à l'encaissement;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1379;5112000;511;Chèques à encaisser;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1380;5113000;511;Effets à l'encaissement;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1381;5114000;511;Effets à l'escompte;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1382;5120000;512;Banques;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1384;5121000;512;Comptes en euros;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1387;5124000;512;Comptes en devises;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1388;5170000;517;Autres organismes financiers;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1389;5180000;518;Intérêts courus;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1390;5181000;518;Intérêts courus à payer;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1393;5188000;518;Intérêts courus à recevoir;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1394;5190000;519;Concours bancaires courants;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1395;5191000;519;Crédit de mobilisation de créances commerciales;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1396;5193000;519;Mobilisation de créances nées à l'étranger;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1397;5198000;519;Intérêts courus sur concours bancaires courants;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1398;5210000;521;Instruments financiers à terme;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1399;5220000;522;Jetons détenus;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1400;5230000;523;Jetons auto-détenus;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1401;5240000;524;Jetons empruntés;AT004;;1;;;;;;;;;;;;;;;;1;false
-A1402;5300000;530;Caisse;AT004;;2;;;;;;;;;;;;;;;;1;false
-A1404;5420000;512;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64;AT004;;2;;;;;;;;;;;;;;;;1;true
-A1405;5421000;512;Banques établissements dépositaires autorisés - compte de placement;AT004;;2;;;;;;;;;;;;;;;;1;true
-A1406;5800000;580;Virements internes;AT009;;2;;;;;;;;;;;;;;;;1;true
-A1407;5810000;580;Virements internes - Banues établissements dépositaires autorisés;AT009;;2;;;;;;;;;;;;;;;;1;true
-A1408;5900000;590;Dépréciations des valeurs mobilières de placement;AT009;;1;;;;;;;;;;;;;;;;1;false
-A1409;5903000;590;Actions;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1410;5904000;590;Autres titres conférant un droit de propriété;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1411;5906000;590;Obligations;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1412;5908000;590;Autres valeurs mobilières de placement et créances assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
-A1413;6010000;601;Achats stockés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1414;6010000;601;Achats stockés - Matières premières et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1415;6020000;602;Achats stockés - Autres approvisionnements;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1416;6021000;602;Matières consommables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1417;6022000;602;Fournitures consommables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1418;6022200;602;Produits d'entretien;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1418;6022300;602;Fournitures d'atelier et d'usine;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1418;6022400;602;Fournitures de magasin;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1419;6022500;602;Fournitures de bureau;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1420;6026000;602;Emballages;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1420;6026100;602;Emballages perdus;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1420;6026200;602;Malis sur emballages;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1420;6026500;602;Emballages récupérables non identifiables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1420;6026700;602;Emballages à usage mixte ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1421;6030000;603;Variation des stocks d'approvisionnements et de marchandises;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1422;6031000;603;Variation des stocks de matières premières et fournitures;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1423;6032000;603;Variation des stocks des autres approvisionnements;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1424;6037000;603;Variation des stocks de marchandises;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1425;6040000;604;Achats d'études et prestations de services;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1429;6050000;605;Achats de matériel, équipements et travaux;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1430;6050000;605;Achats de matériel, équipements et travaux;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1431;6060000;606;Achats non stockés de matières et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1432;6061000;606;Fournitures non stockables (eau, énergues, etc...);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1437;6063000;606;Fournitures d'entretien et pétit équipement;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1438;6064000;606;Fournitures administratives;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1439;6068000;606;Autres matièeres et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1440;6070000;607;Achats de marchandises;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1441;6080000;608;(Compte réservé, le cas échéant, au regroupement des frais accessoires incorporés aux achats);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1442;6090000;609;Rabais, remises et ristournes obtenus sur achats (même ventilation que celle du compte 60);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1443;6098000;609;Rabais, remises et ristournes non affectés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1444;6110000;611;Sous-traitance générale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1445;6120000;612;Redevances de crédit-bail;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1446;6122000;612;Crédit-bail mobilier;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1447;6125000;612;Crédit-bail immobilier;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1448;6130000;613;Locations;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1449;6132000;613;Locations immobilières;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1450;6135000;613;Locations mobilières;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1458;6140000;614;Charges locatives;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1459;6150000;615;Entretien et réparations;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1461;6152000;615;Entretien et réparation sur biens immobiliers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1462;6155000;615;Entretien et réparation sur biens mobiliers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1462;6155000;615;Réparations;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1470;6160000;616;Primes d'assurances;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
-A1471;6161000;616;Multirisques;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1472;6162000;616;Assurance obligatoire dommage-construction;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1473;6163000;616;Assurance-transport;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1474;6164000;616;Risques d'exploitation;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1475;6165000;616;Insolvabilité clients;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1476;6170000;617;Etudes et recherches;AT013;;2;;;;true;;|D20|;1;;HONO;true;true;;;;;1;false
-A1477;6180000;618;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1478;6181000;618;Documentation générale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1479;6183000;618;Documentation technique;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1480;6185000;618;Frais de colloques, séminaires, conférences;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1481;6190000;619;Rabais, remises et ristournes obtenus sur services extérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1482;6210000;621;Personnel extérieur à l'entreprise;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1483;6211000;621;Personnel intérimaire;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1484;6214000;621;Personnel détaché ou prêté à l'entité;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1485;6220000;622;Rémunérations d'intermédiaires et honoraires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1486;6221000;622;Commissions et courtages sur achats;AT013;;2;;;;true;;|D20|;1;;COMM;true;true;;;;;1;false
-A1487;6222000;622;Commissions et courtages sur ventes;AT013;;2;;;;true;;|D20|;1;;COMM;true;true;;;;;1;false
-A1488;6224000;622;Rémunérations des transitaires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1489;6225000;622;Rémunérations d'affacturage;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1490;6226000;622;Honoraires;AT013;;2;;;;true;;|D20|;1;;HONO;true;true;;;;;1;false
-A1495;6227000;622;Frais d'actes et contentieux;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1496;6228000;622;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1497;6230000;623;Publicité, publications, relations publiques;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1498;6231000;623;Annonces et insertions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1503;6232000;623;Echantillons;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1504;6233000;623;Foires et expositions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1505;6234000;623;Cadeaux à la clientèle;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1506;6235000;623;Primes;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1507;6236000;623;Catalogues et imprimés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1508;6237000;623;Publications;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1509;6238000;623;Divers (pourboires, dons courants). ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1510;6240000;624;Transports de biens et transports collectifs du personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1511;6241000;624;Transports sur achats;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1512;6241000;624;Transports sur ventes;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1513;6243000;624;Transports entre établissements ou chantiers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1514;6244000;624;Transports administratifs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1515;6247000;624;Transports collectifs du personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1516;6248000;624;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1517;6250000;625;Déplacements, missions et réceptions;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
-A1518;6251000;625;Voyages et déplacements;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1519;6255000;625;Frais de déménagement;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1520;6256000;625;Missions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1521;6257000;625;Réceptions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1522;6260000;626;Frais postaux et télécommunications;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1526;6270000;627;Services bancaires et assimilés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1527;6271000;627;Frais sur titres ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1528;6272000;627;Commissions et frais sur émission d'emprunts;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1529;6275000;627;;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1530;6276000;627;Location de coffres;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1531;6278000;627;Autres frais et commissions sur prestations de services;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1532;6280000;628;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1533;6281000;628;Concours divers (cotisations);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1535;6281200;628;Cotisations chambres;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
-A1536;6281210;628;Cotisations chambre nationale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
-A1537;6281220;628;Cotisations chambre régionale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
-A1539;6282000;628;Contribution volontaire obligatoire - CVO;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
-A1540;6283000;628;Cotisations professionnelles volontaires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
-A1541;6284000;628;Frais de recrutement de personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1542;6290000;629;Rabais, remises et ristournes obtenus sur autres services extérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1543;6310000;631;Impôts, taxes et versements assimilés sur rémunérations (administrations des impôts);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1544;6311000;631;Taxe sur les salaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1545;6314000;631;Cotisation pour défaut d'investissement obligatoire pour la construction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1546;6318000;631;Autres;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1547;6330000;633;Impôts, taxes et versements assimilés sur rémunérations (autres organismes);AT013;;2;;;;;;;1;;;;;;;;;1;false
-A1548;6331000;633;Versement de transport;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1549;6332000;633;Allocations logement;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1550;6333000;633;Contribution unique des employeurs à la formation professionnelle;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1551;6334000;633;Participation des employeurs à l'effort de construction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1552;6335000;633;Versements libératoires ouvrant droit à l'exonération de la taxe d'apprentissage;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1553;6338000;633;Autres;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1554;6350000;633;Autres impôts, taxes et versements assimilés (administration des impôts);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1555;6351000;635;Impôts directs (sauf impôts sur les bénéfices);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1559;6352000;635;Taxes sur le chiffre d'affaires non récupérables;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1560;6353000;635;Impôts indirects;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1561;6354000;635;Droits d'enregistrement et de timbre;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1564;6358000;635;Autres droits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1567;6370000;635;Autres impôts, taxes et versements assimilés (autres organismes);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1568;6371000;637;Contribution sociale de solidarité à la charge des sociétés;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1569;6371000;637;Taxes perçues par les organismes publics internationaux;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1570;6374000;637;Impôts et taxes exigibles à l'étranger;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1571;6378000;637;Taxes diverses;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1572;6380000;638;Rappel d'impôts (autres qu'impôts sur les bénéfices);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1573;6410000;641;Rémunérations du personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1574;6411000;641;Salaires, appointements;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1578;6412000;641;Congés payés;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1579;6413000;641;Primes et gratifications;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1580;6414000;641;Indemnités et avantages divers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1581;6415000;641;Supplément familial;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1582;6440000;641;Rémunération des commissaires de justice associés;AT013;;2;;;;;;;1;;;true;true;;;;;1;true
-A1584;6450000;644;Cotisations de Sécurité sociale et de prévoyance;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1585;6451000;645;Cotisations URSSAF ;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1586;6452000;645;Cotisations aux mutuelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1587;6453000;645;Cotisations aux  caisses de retraite;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1591;6454000;645;Cotisations France Travail;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1592;6458000;645;Cotisations aux autres organismes sociaux;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1593;6460000;646;Cotisations sociales personnelles de l'exploitant;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1602;6462000;646;Cotisations de retraite - CAVOM;AT013;;2;;;;;;;1;;;true;true;;;;;1;true
-A1604;6470000;647;Autres cotisations sociales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1605;6471000;647;Prestations directes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1606;6472000;647;Versements au comité social et économique;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1607;6474000;647;Versements aux autres œuvres sociales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1608;6475000;647;Médecine du travail, pharmacie;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1609;6480000;648;Autres charges Personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1610;6490000;649;Remboursements de charges de personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1611;6510000;651;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1612;6511000;651;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1613;6516000;651;Droits d'auteur et de reproduction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1614;6518000;651;Autres droits et valeurs similaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1615;6530000;653;Rémunérations de l'activité des administrateurs et des gérants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1616;6540000;654;Pertes sur créances irrecouvrables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1617;6541000;654;Créances de l'exercice;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1618;6544000;654;Créances des exercices antérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1619;6550000;655;Quotes-parts de résultat sur opérations faites en commun;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1620;6551000;655;Quote-part de bénéfice transférée - comptabilité du gérant;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1621;6555000;655;Quote-part de perte supportée - comptabilité des associés non gérants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1622;6560000;656;Pertes de change sur créances et dettes commerciales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1623;6570000;657;Valeur comptable des immobilisations incorporelles et corporelles cédées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1624;6580000;658;Pénalités et autres charges;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1625;6581000;658;Pénalités sur marchés (et dédits payés sur achats et ventes);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1626;6582000;658;Pénalités, amendes fiscales et pénales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1627;6583000;658;Malis provenant de clauses d'indexation;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1628;6584000;658;Lots;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1629;6588000;658;Opération de constitution ou liquidation des fiducies;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1630;6610000;661;Charges d'intérêts;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
-A1631;6611000;661;Intérêts des emprunts et dettes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1632;6611600;661;Intérets des emprunts et dettes assimilées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1633;6612000;661;Charges de la fiducie, résultat de la période;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1634;6615000;661;intérêts des comptes courants et des dépôts créditeurs;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1635;6616000;661;Interêts bancaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1636;6617000;661;Intérêts des obligations cautionnées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1637;6618000;661;Intérêts des autres dettes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1638;6640000;664;Pertes sur créances liées à des participations;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1639;6650000;665;Escomptes accordés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1640;6660000;666;Pertes de change financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1641;6670000;667;Charges nettes sur cession d'éléments financiers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1642;6671000;667;Valeurs comptables des immobilisations financières cédées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1643;6672000;667;Charges nettes sur cessions de titres immobilisés de l'activité de portefeuille;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1644;6673000;667;Charges nettes sur cessions de valeurs mobilières de placement;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1645;6674000;667;Charges nettes sur cessions de jetons;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1646;6680000;668;Autres charges financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1648;6683000;668;Mali provenant du rachat par l'entité d'actions et obligations émises par elle-même;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1652;6720000;672;Charges exceptionnelles (compte à la disposition des entités pour enregistrer en cours d'exercice les charges sur exercices antérieurs);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1653;6750000;675;Valeurs comptable des éléments d'actifs cédé;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1654;6780000;678;Autres charges exceptionnelles;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
-A1655;6810000;681;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges d'exploitation);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1656;6811000;681;Dotations aux amortissements sur immobilisations incorporelles et coporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1657;6811200;681;Immobilisations corporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1658;6815000;681;Dotations aux provisions d'exploitation;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1659;6816000;681;Dotations aux dépréciations des immobilisations incorporelles et corporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1660;6817000;681;Dotations aux dépréciations des actifs circulants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1662;6860000;686;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges financières);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1663;6861000;686;Dotations aux amortissements des primes de remboursement par emprunts;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1664;6862000;686;Dotations aux amortissements de frais d'émission des emprunts;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1665;6865000;686;Dotations aux provisions financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1666;6866000;686;Dotations pour dépréciations des éléments financiers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1667;6870000;687;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges excepteionnelles);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1668;6871000;687;Dotations aux amortissements exceptionnels des immobilisations;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1669;6872000;687;Dotations aux provisions réglementées (immobilisations);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1670;6873000;687;Dotations aux provisions réglementées (stocks);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1671;6874000;687;Dotations aux autres provisions réglementées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1672;6875000;687;Dotations aux provisions exceptionnelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1673;6876000;687;Dotations pour dépréciations exceptionnelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1674;6910000;691;Participation des salariés aux résultats;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1675;6950000;695;Impôts sur le bénéfice;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1676;6951000;695;Impôts dus en France;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1677;6952000;695;Contribution additionnelle à l'impôt sur les bénéfices;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1678;6954000;695;Impôts dus à l'étranger;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1679;6960000;696;Suppléments d'impôts sur les sociétés liés aux distributions;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1680;6980000;698;Intégration fiscale;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1681;6981000;698;Intégration fiscale - Charges;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1682;6989000;698;Intégration fiscale - Produits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1683;6990000;699;Produits - Report en arrière des déficits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
-A1685;7010000;701;Ventes de produits finis;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1702;7020000;702;Ventes de produits intermédiaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1721;7030000;703;Ventes de produits résiduels;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1728;7040000;704;Travaux;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1730;7050000;705;Etudes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1731;7060000;706;Prestations de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1736;7061400;706;Ventes judiciaires - Actes, inventaires, prisées, ventes judiciaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1737;7061401;706;Ventes judiciaires - Honoraires acheteurs 5,5%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1738;7061402;706;Ventes judiciaires - Honoraires acheteurs 10%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1739;7061403;706;Ventes judiciaires - Honoraires acheteurs 20%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1740;7061404;706;Ventes judiciares - Honoraires vendeurs 5,5%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1741;7061405;706;Ventes judiciares - Honoraires vendeurs 10%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1742;7061406;706;Ventes judiciares - Honoraires vendeurs 20%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1743;7061407;706;Ventes judiciaires - Honoraires acheteurs Livraison CEE exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1744;7061408;706;Ventes judiciaires - Honoraires acheteurs Export exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1745;7061409;706;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1746;7061410;706;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1747;7061411;706;Ventes judiciaires - Honoraires vendeurs Export exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1748;7061500;706;Ventes judiciaires - Formalités;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1750;7062600;706;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1751;7068000;706;Autres produits HT;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1752;7070000;707;Ventes de marchandises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1776;7080000;708;Produits des activités annexes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1778;7081000;708;Produits des services exploités dans l'intérêt du personnel;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1779;7082000;708;Commissions et courtages;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1780;7082000;708;Locations diverses;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1781;7084000;708;Mise à disposition du personnel facturée;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1782;7085000;708;Ports et frais accessoires facturés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1787;7086000;708;Bonis sur reprises d'emballages consignés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1788;7088000;708;Débours récupérés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1790;7090000;709;Rabais, remises et ristournes accordés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1791;7091000;709;Rabais, remises et ristournes accordés sur ventes de produits finis;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1792;7092000;709;Rabais, remises et ristournes accordés sur ventes de produits intermédiaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1793;7094000;709;Débours payés irrécupérables;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1795;7095000;709;Rabais, remises et ristournes accordés sur études;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1797;7096000;709;Rabais, remises et ristournes accordés sur prestations de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1798;7097000;709;Rabais, remises et ristournes accordés sur ventes de marchandises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1799;7098000;709;Rabais, remises et ristournes accordés sur produits des activités annexes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1803;7100000;713;Production stockée;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1804;7130000;713;Variation des stocks des en-cours de production et de produits;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1805;7133000;713;Variation des en-cours de production et de biens;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1806;7134000;713;Variation des en-cours de production de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1807;7135000;713;Variation des stocks de produits;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1808;7210000;721;Immobilisations incorporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1809;7220000;722;Immobilisations corporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1810;7410000;741;Subventions d'exploitation;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1811;7420000;742;Subventions d'équilibre;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1812;7470000;747;Quote-part des subventions d'investissement virée au résultat de l'exercice;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1813;7510000;751;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1814;7511000;751;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1815;7516000;751;Droits d'auteur et de reproduction;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1816;7518000;751;Autres droits et valeurs similaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1817;7520000;752;Revenus des immeubles non affectés aux activités professionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1818;7530000;753;Rémunérations de l'activité des administrateurs et des gérants;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1819;7540000;754;Ristournes perçues des coopératives provenant des excédents;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1820;7550000;755;Quotes-parts de résultat sur opérations faites en commun;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1821;7551000;755;Quote-part de perte transférée - comptabilité du gérant;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1822;7555000;755;Quote-part de bénéfice attribuée - comptabilité des associés non gérants;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1823;7560000;756;Gains de change sur créances et dettes commerciales;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1824;7570000;757;Produits des cessions d'immobilisations incorporelles et corporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1825;7580000;758;Ecart de règlement - produits;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1827;7581000;758;Dédits et pénalités perçus sur achats et ventes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1828;7582000;758;Libéralités reçues;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1829;7583000;758;Versements de la CVO;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1830;7583000;758;Rentrées sur créances amorties;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
-A1831;7584000;758;Dégrèvement d'impôts autres qu'impôts sur les bénéfices;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1832;7585000;758;Bonis provenant de clauses d'indexation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1833;7586000;758;Lots;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1834;7587000;758;Indemnités d'assurance;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1835;7588000;758;Opérations de constitution ou liquidation des fiducies;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1836;7610000;761;Produits de participations;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1837;7611000;761;Revenus des titres de participation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1838;7612000;761;Produits de la fiducie, résultat de la période;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1839;7616000;761;Revenus sur autres formes de participation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1840;7617000;761;Revenus des créances rattachées à des participations;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1841;7620000;76;Produits des autres immobilisations financières;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1842;7621000;762;Revenus des titres immobilisés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1843;7626000;762;Revenus des prêts;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1844;7627000;762;Revenus des créances immobilisées;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1845;7630000;76;Revenus des autres créances;AT012;;1;;;;true;;|C20|;1;;;;;;;;;1;false
-A1846;7631000;763;Revenus des créances commerciales;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1847;7638000;763;Revenus des créances diverses;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1848;7640000;764;Revenus des valeurs mobilières de placement;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1849;7650000;765;Escomptes obtenus;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1850;7660000;765;Gains de change financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1851;7670000;765;Produits sur cession d'élements financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1852;7671000;767;Produits des cessions d'immobilisations financières;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1853;7672000;767;Produits nets sur cessions de titres immobilisés de l'activité de portefeuille;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1854;7673000;767;Produits nets sur cessions de valeurs mobilières de placement;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1855;7674000;767;Produits nets sur cessions de jetons;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
-A1856;7680000;768;Autres produits financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1857;7683000;768;Bonis provenant du rachat par l'entreprise d'actions et d'obligations émises par elle-même;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1860;7720000;772;Produits exceptionnels (compte à la disposition des entités pour enregistrer en cours d'exercice les produits des exercices antérieurs). ;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1861;7750000;775;Produits cessions d'actif;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1862;7751000;775;Immobilisations incorporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1863;7780000;778;Autres produits exceptionnels;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1864;7810000;781;Reprises sur amortissements, dépréciations et provisions (à inscrire dans les produits d'exploitation);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1865;7811000;781;Reprises sur amortissements des immobilisations incorporelles et coporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1866;7815000;781;Reprises sur provisions d'exploitation;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1867;7816000;781;Reprises sur dépréciations des immobilisations incoporelles et coporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1868;7817000;781;Reprises sur dépréciations des actifs circulants;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1870;7860000;786;Reprises sur dépréciations et provisions (à inscrire dans les produits financiers);AT012;;2;;;;;;;1;;;;;;;;;1;false
-A1871;7865000;786;Reprises sur provisions financières;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1872;7866000;786;Reprises sur dépréciations des éléments financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1873;7870000;787;Reprises sur dépréciations et provisions (à inscrire dans les produits exceptionnels);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1874;7872000;787;Reprises sur provisions réglementées (immobilisations);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1875;7873000;787;Reprises sur provisions réglementées (stocks);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1876;7874000;787;Reprises sur autres provisions réglementées;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1877;7875000;787;Reprises sur provisions exceptionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1878;7876000;787;Reprises sur dépréciations exceptionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
-A1881;8900000;890;Bilan d'ouverture;AT014;;0;;;;;;;;;;;;;;;;1;false
-A1882;8910000;891;Bilan de cloture;AT014;;0;;;;;;;;;;;;;;;;1;false
-A1883;CL1;CL1_5;Comptes de capitaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1884;CL1_5;0;Comptes de bilan;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1885;CL2;CL1_5;Comptes d'immobilisations;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1886;CL3;CL1_5;Comptes de stocks et d'en cours;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1887;CL4;CL1_5;Comptes de tiers;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1888;CL5;CL1_5;Comptes financiers;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1889;CL6;CL6_7;Comptes de charges;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1890;CL6_7;0;Comptes de gestion;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1891;CL7;CL6_7;Comptes de produits;AT001;true;0;;;;;;;;;;;;;;;;1;false
-A1892;CL8;CL6_7;Comptes spéciaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A879;1090000;109;Actionnaires : capital souscrit - non appelé;AT007;;1;;;;;;;;;;;;;;;;1;false
+A880;1100000;110;Report à nouveau - solde débiteur;AT007;;1;;;;;;;;;;;;;;;;1;false
+A881;1190000;119;Report à nouveau - solde créditeur;AT007;;1;;;;;;;;;;;;;;;;1;false
+A882;1200000;120;"Résultat de l""exercice - Bénéfice";AT007;;2;;;;;;;;;;;;;;;;1;false
+A883;1209000;120;Acomptes sur dividendes;AT007;;1;;;;;;;;;;;;;;;;1;false
+A884;1290000;129;Résultat de l'exercice - Perte;AT007;;1;;;;;;;;;;;;;;;;1;false
+A885;1310000;131;Subventions d'investissement octroyées;AT007;;1;;;;;;;;;;;;;;;;1;false
+A886;1390000;139;Subventions d'investissement inscrites au compte de résultat;AT007;;1;;;;;;;;;;;;;;;;1;false
+A887;1430000;143;Provisions réglementées pour hausse de prix;AT007;;1;;;;;;;;;;;;;;;;1;false
+A888;1450000;145;Amortissements dérogatoires;AT007;;1;;;;;;;;;;;;;;;;1;false
+A889;1480000;148;Autres provisions réglementées;AT007;;1;;;;;;;;;;;;;;;;1;false
+A890;1510000;151;Provisions pour risques;AT007;;1;;;;;;;;;;;;;;;;1;false
+A891;1511000;151;Provisions pour litiges;AT007;;1;;;;;;;;;;;;;;;;1;false
+A892;1512000;151;Provisions pour garanties données aux clients;AT007;;1;;;;;;;;;;;;;;;;1;false
+A893;1514000;151;Provisions pour amendes et pénalités;AT007;;1;;;;;;;;;;;;;;;;1;false
+A894;1515000;151;Provisions pour pertes de change;AT007;;1;;;;;;;;;;;;;;;;1;false
+A895;1516000;151;Provision pour pertes sur contrats;AT007;;1;;;;;;;;;;;;;;;;1;false
+A896;1518000;151;Autres provisions pour risques;AT007;;1;;;;;;;;;;;;;;;;1;false
+A897;1520000;152;Provisions pour charges;AT007;;1;;;;;;;;;;;;;;;;1;false
+A898;1521000;152;Provsions pour pensions et obligations similaires;AT007;;1;;;;;;;;;;;;;;;;1;false
+A899;1522000;152;Provisions pour restructuration;AT007;;1;;;;;;;;;;;;;;;;1;false
+A900;1523000;152;Provisions pour impôts;AT007;;1;;;;;;;;;;;;;;;;1;false
+A901;1524000;152;Provisions pour renouvellement des immobilisations - entreprises concessionnaires;AT007;;1;;;;;;;;;;;;;;;;1;false
+A902;1525000;152;Provisions pour gros entretien ou grandes révisions;AT007;;1;;;;;;;;;;;;;;;;1;false
+A903;1526000;152;Provisions pour remise en état;AT007;;1;;;;;;;;;;;;;;;;1;false
+A904;1527000;152;Autres provisions pour charges;AT007;;1;;;;;;;;;;;;;;;;1;false
+A905;1610000;161;Emprunts obligataires convertibles;AT007;;1;;;;;;;;;;;;;;;;1;false
+A906;1618000;161;Intérêts courus sur emprunts obligataires convertibles;AT007;;1;;;;;;;;;;;;;;;;1;false
+A907;1620000;162;Obligations réprésentatives de passifs nets remis en fiducie;AT007;;1;;;;;;;;;;;;;;;;1;false
+A908;1630000;163;Autres emprunts obligatires;AT007;;1;;;;;;;;;;;;;;;;1;false
+A909;1638000;163;Intérêts courus sur autres emprunts obligataires;AT007;;1;;;;;;;;;;;;;;;;1;false
+A910;1640000;164;Emprunts auprès des établissements de crédits;AT007;;1;;;;;;;;;;;;;;;;1;false
+A911;1648000;164;Intérêts courus sur emprunts auprès des établissements de crédit;AT007;;1;;;;;;;;;;;;;;;;1;false
+A912;1650000;165;Dépôts et cautionnements reçus;AT007;;1;;;;;;;;;;;;;;;;1;false
+A913;1651000;165;Dépôts;AT007;;1;;;;;;;;;;;;;;;;1;false
+A914;1655000;165;Cautionnements;AT007;;1;;;;;;;;;;;;;;;;1;false
+A915;1658000;165;Intérêts courus sur dépôts et cautionnements reçus;AT007;;1;;;;;;;;;;;;;;;;1;false
+A916;1660000;166;Participation des salariés aux résultats;AT007;;1;;;;;;;;;;;;;;;;1;false
+A917;1661000;166;Comptes bloqués;AT007;;1;;;;;;;;;;;;;;;;1;false
+A918;1662000;166;Fons de participation;AT007;;1;;;;;;;;;;;;;;;;1;false
+A919;1668000;166;Intérêts courus sur participation des salariés;AT007;;1;;;;;;;;;;;;;;;;1;false
+A920;1670000;167;Emprunts et dettes assorties de conditions particulières;AT007;;1;;;;;;;;;;;;;;;;1;false
+A921;1671000;167;Emissions de titres participatifs;AT007;;1;;;;;;;;;;;;;;;;1;false
+A922;1674000;167;Avances conditionnées de l'Etat;AT007;;1;;;;;;;;;;;;;;;;1;false
+A923;1675000;167;Emprunts participatifs;AT007;;1;;;;;;;;;;;;;;;;1;false
+A924;1680000;167;Autres emprunts et dettes assimilées;AT007;;1;;;;;;;;;;;;;;;;1;false
+A925;1681000;168;Autres emprunts;AT007;;1;;;;;;;;;;;;;;;;1;false
+A926;1685000;168;Rentes viagères capitalisées;AT007;;1;;;;;;;;;;;;;;;;1;false
+A927;1687000;168;Autres dettes;AT007;;1;;;;;;;;;;;;;;;;1;false
+A928;1688000;168;Intérêts courus sur autres emprunts et dettes assimilées;AT007;;1;;;;;;;;;;;;;;;;1;false
+A929;1690000;169;Prime de remboursement des emprunts;AT007;;1;;;;;;;;;;;;;;;;1;false
+A930;1710000;171;Dettes rattachées à des participations - groupe;AT007;;1;;;;;;;;;;;;;;;;1;false
+A931;1740000;174;Dettes rattachées à des participations - hors groupe;AT007;;1;;;;;;;;;;;;;;;;1;false
+A932;1780000;178;Dettes rattachées à des sociétés en participation;AT007;;1;;;;;;;;;;;;;;;;1;false
+A933;1810000;181;Comptes de liaison des établissement;AT007;;1;;;;;;;;;;;;;;;;1;false
+A934;1860000;186;Biens et prestations de services échangés entre établissements - charges;AT007;;1;;;;;;;;;;;;;;;;1;false
+A935;1870000;187;Biens et prestations de services échangés entre établissements - produits;AT007;;1;;;;;;;;;;;;;;;;1;false
+A936;1880000;188;Comptes de liaison des sociétés en participation;AT007;;1;;;;;;;;;;;;;;;;1;false
+A937;2010000;201;Frais d'établissement;AT002;;2;;;;;;;;;;;;;;;;1;false
+A938;2011000;201;Frais de constitution;AT002;;2;;;;;;;;;;;;;;;;1;false
+A939;2012000;201;Frais de premier établissement;AT002;;2;;;;;;;;;;;;;;;;1;false
+A940;2013000;201;Frais d'augmentation de capital et d'opérations diverses - fusions, scissions, transformations;AT002;;2;;;;;;;;;;;;;;;;1;false
+A941;2030000;203;Frais de développement;AT002;;2;;;;;;;;;;;;;;;;1;false
+A942;2050000;205;Concessions et droits similaires, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT002;;2;;;;;;;;;;;;;;;;1;false
+A943;2060000;206;Droit au bail;AT002;;2;;;;;;;;;;;;;;;;1;false
+A944;2070000;207;Fond commercial;AT002;;2;;;;;;;;;;;;;;;;1;false
+A945;2080000;208;Autres immobilisations incorporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
+A946;2081000;208;Mali de fusion sur actifs incorporels;AT002;;2;;;;;;;;;;;;;;;;1;false
+A947;2110000;211;Terrains;AT002;;2;;;;;;;;;;;;;;;;1;false
+A948;2111000;211;Terrains nus;AT002;;2;;;;;;;;;;;;;;;;1;false
+A949;2112000;211;Terrains aménagés;AT002;;2;;;;;;;;;;;;;;;;1;false
+A950;2113000;211;Sous-sols et sur-sols;AT002;;2;;;;;;;;;;;;;;;;1;false
+A951;2114000;211;Terrains de carrières (tréfonds);AT002;;2;;;;;;;;;;;;;;;;1;false
+A952;2115000;211;Terrains bâtis;AT002;;2;;;;;;;;;;;;;;;;1;false
+A953;2120000;212;Agencements et aménagements de terrains (même ventilation que le compte 211);AT002;;2;;;;;;;;;;;;;;;;1;false
+A954;2130000;213;Constructions;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A955;2131000;213;Bâtiments;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A956;2135000;213;installations générales - agencements - aménagements des constructions;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A957;2138000;213;Ouvrages d'infrastructure;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A958;2140000;214;Construction sur sol d'autrui (même ventilation que le compte 213);AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A959;2150000;215;Installations techniques, matériels et outillages industriels;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A960;2151000;215;Installations complexes spécialisées;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A961;2153000;215;Installations à caractère spécifique;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A962;2154000;215;Matériel industriel;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A963;2155000;215;Outillage industriel;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A964;2157000;215;Agencements et aménagements des matériels et outillages industriels;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A965;2180000;218;Autres immobilisations corporelles;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A966;2181000;218;Installations générales, agencements, aménagements divers;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A967;2182000;218;Matériel de transport;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A968;2183000;218;Matériel de bureau et informatique;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A969;2184000;218;Mobilier;AT002;;2;;;;true;;|I20|;1;;;;;;;;;1;false
+A970;2185000;218;Cheptel;AT002;;2;;;;;;;;;;;;;;;;1;false
+A971;2186000;218;Emballages récupérables;AT002;;2;;;;;;;;;;;;;;;;1;false
+A972;2187000;218;Mali de fusion sur actifs corporels;AT002;;2;;;;;;;;;;;;;;;;1;false
+A973;2290000;229;Droit au concédant;AT002;;2;;;;;;;;;;;;;;;;1;false
+A974;2310000;231;Immobilisations corporelles en cours;AT002;;2;;;;;;;;;;;;;;;;1;false
+A975;2320000;232;Immobilisations incorporelles en cours;AT002;;2;;;;;;;;;;;;;;;;1;false
+A976;2370000;237;Avances et acomptes versés sur commandes d'immobilisations incorporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
+A977;2380000;238;Avances et acomptes versés sur commandes d'immobilisations corporelles;AT002;;2;;;;;;;;;;;;;;;;1;false
+A978;2610000;261;Titres de participation;AT002;;2;;;;;;;;;;;;;;;;1;false
+A979;2611000;261;Actions;AT002;;2;;;;;;;;;;;;;;;;1;false
+A980;2618000;261;Autres titres;AT002;;2;;;;;;;;;;;;;;;;1;false
+A981;2620000;262;Titres évalués par équivalence;AT002;;2;;;;;;;;;;;;;;;;1;false
+A982;2660000;266;Autres formes de participation;AT002;;2;;;;;;;;;;;;;;;;1;false
+A983;2661000;266;Droits représentatifs d'actifs nets remis en fiducie;AT002;;2;;;;;;;;;;;;;;;;1;false
+A984;2670000;267;Créances rattachées à des participations;AT002;;2;;;;;;;;;;;;;;;;1;false
+A985;2671000;267;Créances rattachées à des participations - groupe;AT002;;2;;;;;;;;;;;;;;;;1;false
+A986;2674000;267;Créances rattachées à des participations - hors groupe;AT002;;2;;;;;;;;;;;;;;;;1;false
+A987;2675000;267;Versements représentatifs d'apports non capitalisés - appels de fonds;AT002;;2;;;;;;;;;;;;;;;;1;false
+A988;2676000;267;Avances consolidables;AT002;;2;;;;;;;;;;;;;;;;1;false
+A989;2677000;267;Autres créances rattachées à des participations;AT002;;2;;;;;;;;;;;;;;;;1;false
+A990;2678000;267;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
+A991;2680000;268;Créances rattachées à des sociétés en participation;AT002;;2;;;;;;;;;;;;;;;;1;false
+A992;2681000;268;Principal;AT002;;2;;;;;;;;;;;;;;;;1;false
+A993;2688000;268;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
+A994;2690000;269;Versements restants à effectuer sur titres de participation non libérés;AT002;;2;;;;;;;;;;;;;;;;1;false
+A995;2710000;271;Titres immobilisés autres que les titres immobilisés de l'activité de portefeuille (droit de propriété);AT002;;2;;;;;;;;;;;;;;;;1;false
+A996;2711000;271;Actions;AT002;;2;;;;;;;;;;;;;;;;1;false
+A997;2718000;271;Autres titres;AT002;;2;;;;;;;;;;;;;;;;1;false
+A998;2720000;272;Titres immobilisés (droit de créance);AT002;;2;;;;;;;;;;;;;;;;1;false
+A999;2721000;272;Obligations;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1000;2722000;272;Bons;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1001;2730000;273;Titres immobilisés de l'activité de portefeuille;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1002;2740000;274;Prêts;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1003;2741000;274;Prêts participatifs;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1004;2742000;274;Prêts aux associés;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1005;2743000;274;Prêts au personnel;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1006;2748000;274;Autres prêts;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1007;2750000;275;Dépots et cautionnements versés;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1008;2751000;275;Dépôts;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1009;2755000;275;Cautionnements;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1010;2760000;276;Autres créances immobilisées;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1011;2761000;276;Créances diverses;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1012;2768000;276;Intérêts courus;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1013;2770000;277;Actions propres ou parts propres;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1014;2771000;277;Actions propres ou parts propres;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1015;2772000;277;Actions propres ou parts propres en vois d'annulation;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1016;2780000;278;Mali de fusion sur actifs financiers;AT002;;2;;;;;;;;;;;;;;;;1;false
+A1017;2790000;279;Versements restants à effectuer sur titres immobilisés non libérés;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1018;2800000;280;Amortissements des immobilisations incoporelles et des frais d'établissement (même ventilation que celle du compte 20);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1019;2801000;280;Frais d'établissement (même ventilation que celle du compte 201);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1020;2803000;280;Frais de développement;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1021;2805000;280;Concessions et droits similaires, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1022;2806000;280;Droit au bail;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1023;2807000;280;Fonds commercial;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1024;2808000;280;Autres immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1025;2810000;281;Amortissements des immobilisations corporelles (même ventilation que celle du compte 21);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1026;2812000;281;Agencements, aménagements de terrains (même ventilation que celle du compte 212);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1027;2813000;281;Constructions (même ventilation que celle du compte 213);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1028;2814000;281;Constructions sur sol d'autrui (même ventilation que celle du compte 214);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1029;2815000;281;Installations techniques, matériels et outillages industriels (même ventilation que celle du compte 215);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1030;2818000;281;Autres immobilisations corporelles (même ventilation que celle du compte 218);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1031;2818100;281;Amortissement installations générales, agencements, aménagements divers;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1032;2818200;281;Amortissement du matériel de transport;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1033;2818300;281;Amortissement matériel de bureau;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1034;2818400;281;Amortissement mobilier;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1035;2820000;282;Amortissements des immobilisations mises en concession;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1036;2900000;290;Dépréciations des immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1037;2901000;290;Frais d'établissement;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1038;2903000;290;Frais de développement;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1039;2905000;290;Marques, procédés, droits et valeurs similaires;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1040;2906000;290;Droit au bail;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1041;2907000;290;Fonds commercial;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1042;2908000;290;Autres immobilisations incorporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1043;2910000;291;Dépréciations des immobilisations corporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1044;2911000;291;Terrains;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1045;2912000;291;Agencements et aménagements de terrains;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1046;2913000;291;Constructions;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1047;2914000;291;Constructions sur sol d'autrui;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1048;2915000;291;Installations techniques, matériels et outillages industriels;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1049;2918000;291;Autres immobilisations corporelles;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1050;2920000;292;Dépréciations des immobilisations mises en concessions;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1051;2930000;293;Dépréciations des immobilisations en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1052;2931000;293;Immobilisations coporelles en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1053;2932000;293;Immobilisations incorporelles en cours;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1054;2960000;296;Dépréciations des participations et créances rattachées à des participations;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1055;2961000;296;Titres de participation;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1056;2962000;296;Titres évalués par équivalence;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1057;2966000;296;Autres formes de participation;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1058;2967000;296;Créances rattachées à des participations (même ventilation que celle du compte 267);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1059;2968000;296;Créances rattachées à des sociétés en participation (même ventilation que celle du compte 268);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1060;2970000;297;Dépréciations des autres immobilisations financières;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1061;2971000;297;Titres immobilisés autres que les titres immobilisés de l'activité de portefeuille (droit de propriété);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1062;2972000;297;Titres immobilisés (droit de créance);AT002;;1;;;;;;;;;;;;;;;;1;false
+A1063;2973000;297;Titres immobilisés de l'activité de portefeuille;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1064;2974000;297;Prêts;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1065;2975000;297;Dépôts et cautionnements versés;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1066;2976000;297;Autres créances immobilisées;AT002;;1;;;;;;;;;;;;;;;;1;false
+A1067;3210000;321;Matières consommables;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1068;3220000;322;Fournitures consommables;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1069;3221000;322;Combustibles;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1070;3222000;322;Produits d'entretien;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1071;3223000;322;Fournitures d'atelier et d'usine;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1072;3224000;322;Fournitures de magasin;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1073;3225000;322;Fournitures de bureau;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1074;3260000;326;Emballages;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1075;3261000;326;Emballages perdus;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1076;3265000;326;Emballages récupérables non identifiables;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1077;3267000;326;Emballages à usage mixte;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1078;3310000;331;Produits en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1079;3350000;335;Travaux en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1080;3410000;341;Etudes en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1081;3450000;345;Prestations de services en cours;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1082;3510000;351;Produits intermédiaires;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1083;3550000;355;Produits finis;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1084;3580000;358;Produits résiduels ou matières de récupération;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1085;3581000;358;Déchets;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1086;3585000;358;Rebuts;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1087;3586000;358;Matières de récupération;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1088;3910000;391;Dépréciations des matières premières et fournitures;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1089;3920000;392;Dépréciations des autres approvisionnements;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1090;3930000;393;Dépréciations des en-cours de production de biens;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1091;3940000;394;Dépréciations des en-cours de production de services;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1092;3950000;395;Dépréciations des stocks de produits;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1093;3970000;397;Dépréciations des stocks de marchandises;AT003;;1;;;;;;;;;;;;;;;;1;false
+A1094;4010000;401;Fournisseurs;AT010;;1;;;;;;;;;;;;;;;;1;false
+A1095;4011000;401;Fournisseurs - Achats de biens et de prestations de services;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1096;4011100;401;Fournisseurs de l'office;AT010;;1;true;;true;;;;1;true;;;;;;;;1;true
+A1097;4011300;401;Fournisseurs liés aux comptes clients (activité de ventes judiciaires);AT010;;1;true;;true;;;;1;true;;;;;;;;1;true
+A1098;4017000;401;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1099;4030000;403;Fournisseurs - Effets à payer;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1100;4040000;404;Fournisseurs d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1101;4041000;404;Fournisseurs - Achats d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1102;4047000;404;Fournisseurs d'immobilisations - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1103;4050000;405;Fournisseurs d'immobilisations - Effets à payer;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1104;4080000;408;Fournisseurs - Factures non parvenues;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
+A1105;4084000;408;Fournisseurs d'immobilisations;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1106;4088000;408;Fournisseurs - Intérêts courus;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
+A1107;4090000;409;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
+A1108;4091000;409;Fournisseurs - Retenues de garanties;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1109;4096000;409;Fournisseurs - Créances pour emballages et matériels à rendre;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1110;4097000;409;Fournisseurs - Autres avoirs;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1111;4098000;409;Rabais, remises, ristournes à obtenir et autres avoirs non encore reçus;AT010;;1;true;;true;;;;1;;;;;;;;;1;false
+A1112;4110000;411;Clients;AT010;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1113;4111000;411;Clients - Ventes de biens ou de prestations de services;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
+A1114;4117000;411;Clients - Retenues de garanties;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
+A1115;4120000;411;Clients - Prestations de service facturées (activité de ventes judiciaires);AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
+A1116;4130000;413;Clients - Effets à recevoir;AT005;;2;true;;true;;;;1;true;;;;;;;;1;false
+A1117;4160000;416;Clients douteux ou litigieux;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
+A1118;4180000;418;Clients - Produits non encore facturés;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
+A1119;4181000;418;Clients - Factures à établir;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
+A1120;4188000;418;Clients - Intérêts courus;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
+A1121;4190000;419;Clients créditeurs;AT005;;2;true;;true;;;;1;;;;;;;;;1;false
+A1122;4191000;419;Clients - Avances et acomptes reçus;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1123;4196000;419;Clients - Dettes pour emballages et matériels consignés;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1124;4196300;419;Fonds détenus pour le compte des clients (activité de ventes judiciaires);AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
+A1125;4196990;419;Clients ouverture informatique;AT005;;2;true;;true;;;;1;true;;;;;;;;1;true
+A1126;4197000;419;Clients - Autres avoirs;AT005;;1;true;;true;;;;1;true;;;;;;;;1;false
+A1127;4198000;419;Clients en attente d'imputation;AT005;;2;true;;true;;;;1;;;;;;;;;1;true
+A1128;4198990;419;Clients virements inter dossiers;AT005;;2;true;;;;;;;;;;;;;;;1;true
+A1129;4210000;421;Rénumérations dues;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1130;4220000;422;Comité social et économique;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1131;4240000;424;Participation des salariés aux résultats;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1132;4246000;424;Réserve spéciale;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1133;4248000;424;Comptes courants;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1134;4250000;425;Personnel - Avances, acomptes et autres comptes débiteurs;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1135;4260000;426;Personnel - Dépôts;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1136;4270000;427;Personnel - Opposition;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1137;4280000;428;Personnel - Charges à payer;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1138;4282000;428;Dettes provisionnées pour congés péayés;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1139;4284000;428;Dettes provisionnées pour participation des salariés aux résultats;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1140;4286000;428;Autres charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1141;4310000;431;Sécurité sociale;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1142;4362000;438;Assurance maladie des professions libérales;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1143;4363000;438;Caisse de retraite des commissaires de justice - CAVOM;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1144;4368000;438;Autres organismes sociaux et de retraite des commissaires de justice;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1145;4370000;437;Autres organismes sociaux;AT010;;1;true;;;;;;;;;;;;;;;1;false
+A1146;4380000;438;Organismes sociaux - Charges à payer;AT010;;1;true;;;;;;;;;;;;;;;1;false
+A1147;4382000;438;Charges sociales sur congés payés;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1148;4386000;438;Autres charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1149;4390000;439;Organismes sociaux - Produits à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1150;4410000;441;Etat - Subventions et aides à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1151;4420000;442;Contributions, impôts et taxes recouvrés pour le compte de l'Etat;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1152;4421000;442;Prélèvements à la source (Impôt sur le revenu);AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1153;4422000;442;Prélèvements forfaitaires non libératoires;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1154;4423000;442;Retenues et prélèvements sur les distributions;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1155;4440000;444;Etat - Impôts sur les bénéfices;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1156;4450000;445;Etat - Taxes sur le chiffre d'affaires;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1157;4452000;445;TVA due intracommunautaire;AT011;;1;true;;;;;;;;;;;;;;;1;false
+A1158;4455000;445;Taxes sur le chiffre d'affaires à encaisser;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1159;4455100;4455;Tva à décaisser;AT010;;2;true;;;;;;;;;;;;;;;1;false
+A1160;4455800;4455;Taxes assimilés à la TVA;AT010;;2;true;;;;;;;;;;;;;;;1;false
+A1161;4456000;445;Taxes sur le chiffre d'affaires déductibles;AT011;;2;true;;;;;;1;;;;;;;;;1;false
+A1162;4456200;4456;TVA sur immobilisations;AT011;;2;true;;;;;;1;;;;;;;;;1;false
+A1163;4456300;4456;Tva transférée par d'autres entités;AT011;;2;true;;;;;;1;;;;;;;;;1;false
+A1164;4456600;4456;Tva sur autres biens et services;AT011;;2;true;;;;;;1;;;;;;;;;1;false
+A1165;4456660;4456;TVA déductible sur autres biens et services payés - encaissement;AT011;;2;true;;;;;;1;;;;;;;;;1;true
+A1166;4456620;4456;TVA déductible - Adjugé 5,5%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
+A1167;4456630;4456;TVA déductible - Adjugé 10%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
+A1168;4456640;4456;TVA déductible - Adjugé 20%;AT011;;2;true;;;;;;1;;;;;;;;;1;true
+A1169;4456662;4456;TVA Déductible Intracom;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1170;4456700;4456;Crédit de TVA;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1171;4456800;4456;Taxes assimilées à la TVA;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1172;4457000;445;Taxes sur le chiffre d'affaires collectées;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1173;4457100;4457;Tva Collectée;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1174;4457110;4457;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires);AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1175;4457111;4457;TVA collectée honoraires - ventes judiciaires 5,5%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1176;4457112;4457;TVA collectée honoraires - ventes judiciaires 10%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1177;4457113;4457;TVA collectée honoraires - ventes judiciaires 20%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1178;4457114;4457;TVA collectée - Adjugé ventes judiciaires 5,5%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1179;4457115;4457;TVA collectée - Adjugé ventes judiciaires 10%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1180;4457116;4457;TVA collectée - Adjugé ventes judiciaires 20%;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1181;4457180;4457;Tva Collectée facturée sur autres produits HT;AT011;;1;true;;;;;;1;;;;;;;;;1;true
+A1182;4458000;445;Taxes sur le chiffre d'affaires à régulariser ou en attente;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1183;4458100;445;Acomptes - Régimes simplifié d'imposition;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1184;4458300;445;Remboursement de taxes sur le chiffre d'affaires demandé;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1185;4458400;445;TVA récupérée d'avance;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1186;4458600;4458;Taxes sur le chiffre d'affaires sur factures non parvenues;AT011;;2;true;;;;;;1;;;;;;;;;1;false
+A1187;4458700;4458;Taxes sur le chiffre d'affaires sur factures à établir;AT011;;1;true;;;;;;1;;;;;;;;;1;false
+A1188;4460000;446;Obligations cautionnées;AT005;;1;true;;;;;;;;;;;;;;;1;false
+A1189;4470000;447;Autres impots, taxes et versements assimilés;AT005;;1;true;;;;;;;;;;;;;;;1;false
+A1190;4480000;448;Etat - Charges à payer et produits à recevoir;AT005;;1;true;;;;;;;;;;;;;;;1;false
+A1191;4481000;448;Etat - Charges à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1192;4482000;448;Etat - Produits à recevoir;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1193;4490000;449;Quotas d'émission à acquérir;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1194;4510000;451;Groupe;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1195;4550000;455;Associés - comptes courants;AT010;;2;true;;;;;;;;;;;;;;;1;true
+A1196;4551000;455;Principal;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1197;4552000;455;Charges sociales des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1198;4555000;455;CSG déductible des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1199;4556000;455;Frais divers des commissaires de justice associés;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1200;4558000;455;Intérets courus;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1201;4560000;456;Associés - Opérations sur le capital;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1202;4561000;456;Associés - Comptes d'apport en société;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1203;4562000;456;Apporteurs - Capital appelé, non versé;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1204;4563000;456;Associés - Versements reçus sur augmentation de capital;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1205;4564000;456;Associés - Versements anticipés;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1206;4566000;456;Actionnaires défaillants;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1207;4567000;456;Associés - Capital à rembourser;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1208;4570000;457;Associés - Dividences à payer;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1209;4580000;458;Associés - Opérations faites en commun et en GIE;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1210;4581000;458;Opérations courantes;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1211;4588000;458;intérêts courus;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1212;4620000;462;Créances sur cessions d'immobilisations;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1213;4640000;464;Dettes sur acquisitions de valeurs mobilières de placement;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1214;4650000;465;Créances sur cessions de valeurs mobilières de placement;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1215;4670000;467;Divers comptes débiteurs et produits à recevoir;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1216;4670300;467;Débours (activité de ventes judiciaires);AT016;;2;true;;;;;;;;;;;;;;;1;true
+A1217;4671000;467;Ventes judiciaires - Compte créditeur de regroupement des comptes auxiliaires;AT010;;1;true;;;;;;;;;;;;;;;1;true
+A1218;4672000;467;Ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires;AT005;;2;true;;;;;;;;;;;;;;;1;true
+A1219;4680000;468;Divers comptes créditeurs et charges à payer;AT016;;2;true;;;;;;1;;;;;;;;;1;false
+A1220;4681000;468;Commissaires de justice - Divers comptes créditeurs et charges à payer;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1221;4682000;468;Ventes judiciaires - Compte adjudication;AT016;;2;true;;;true;;|A55|;1;;;;;;;;;1;true
+A1222;4682010;468;Ventes judiciaires - Adjudications assujetties 5,5%;AT016;;2;true;;;true;;|A10|;1;;;;;;;;;1;true
+A1223;4682020;468;Ventes judiciaires - Adjudications assujetties 10%;AT016;;2;true;;;true;;|A20|;1;;;;;;;;;1;true
+A1224;4682030;468;Ventes judiciaires - Adjudications assujetties 20%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1225;4682040;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 5,5%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1226;4682050;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 10%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1227;4682060;468;Ventes judiciaires - Adjudications non assujetties TVA sur marge 20%;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1228;4682070;468;Ventes judiciaires - Adjudications non assujetties Livraison CEE exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1229;4682080;468;Ventes judiciaires - Adjudications non assujetties Export eco TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1230;4682090;468;Ventes judiciaires - Adjudications non assujetties Franchise exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1231;4682100;468;Ventes judiciaires - Adjudications assujetties Livraison CEE exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1232;4682110;468;Ventes judiciaires - Adjudications assujetties Export eco TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1233;4682120;468;Ventes judiciaires - Adjudications assujetties Franchise exo TVA;AT016;;2;true;;;;;;1;;;;;;;;;1;true
+A1234;4710000;471;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1235;4720000;472;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1236;4730000;473;Comptes d'attente;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1237;4740000;474;Différences d'évaluation - Actif;AT005;;2;true;;;;;;;;;;;;;;;1;false
+A1238;4741000;474;Différences d'évaluation sur les instruments financiers à terme - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1239;4742000;474;Différences d'évaluation sur jetons détenus - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1240;4746000;474;Différences d'évaluation de jetons sur des passifs - Actif;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1241;4750000;475;Différences d'évaluation - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1242;4751000;475;Différences d'évaluation sur instruments financiers à terme - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1243;4752000;475;Différences d'évaluation sur jetons détenus - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1244;4756000;475;Différences d'évaluation de jetons sur des passifs - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1245;4760000;476;Différences de conversion - Actif;AT005;;2;;;;;;;;;;;;;;;;1;false
+A1246;4761000;476;Diminution des créances;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1247;4762000;476;Augmentation des dettes;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1248;4768000;476;Différences compensées par couverture de change;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1249;4770000;477;Différences de conversion - Passif;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1250;4771000;477;Augmentation des créances;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1251;4772000;477;Diminution des dettes;AT005;;2;;;;;;;;;;;;;;;;1;false
+A1252;4778000;477;Différences compensées par couverture de change;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1253;4780000;478;Autres comptes transitoires;AT005;;1;;;;;;;;;;;;;;;;1;false
+A1254;4781000;478;Mali de fusion sur actif circulant;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1255;4810000;481;Frais d'émission des emprunts;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1256;4860000;486;Charges constatées d'avance;AT008;;2;true;;;;;;;;;;;;;;;1;false
+A1257;4870000;487;Produits constatés d'avance;AT005;;1;true;;;;;;;;;;;;;;;1;false
+A1258;4871000;487;Produits constatés d'avance sur jetons émis;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1259;4880000;488;Comptes de répartition périodique des charges et des produits;AT016;;1;;;;;;;;;;;;;;;;1;false
+A1260;4886000;488;Charges;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1261;4887000;488;Produits;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1262;4910000;491;Dépréciations des comptes clients;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1263;4950000;495;Dépréciations des comptes du groupe et des associés;AT009;;1;true;;;;;;;;;;;;;;;1;false
+A1264;4951000;495;Comptes du groupe;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1265;4955000;495;Comptes courants des associés;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1266;4958000;495;Opérations faites en commun et en GIE;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1267;4960000;496;Dépréciations des comptes de débiteurs divers;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1268;4962000;496;Créances sur cessions d'immobilisations;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1269;4965000;496;Créances sur cessions de valeurs mobilières de placement;AT009;;2;true;;;;;;;;;;;;;;;1;false
+A1270;4967000;496;Autres comptes débiteurs;AT009;;2;;;;;;;;;;;;;;;;1;false
+A1271;5020000;502;Actions propres;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1272;5021000;502;Actions destinées à être attribuées aux employés et affectées à des plans déterminés;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1273;5022000;502;Actions disponibles pour les attribuées aux employés ou par la régularisation des cours de Bourse;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1274;5030000;503;Actions;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1275;5031000;503;Titres cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1276;5035000;503;Titres non cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1277;5040000;504;Autres titres conférant un droit de propriété;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1278;5050000;505;Obligations et bons émis par la société et rachetés par elle;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1279;5060000;506;Obligations;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1280;5061000;506;Titres cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1281;5065000;506;Titres non cotés;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1282;5070000;507;Bon du Trésor et bons de caisse à court terme;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1283;5080000;508;Autres valeurs mobilières de placement et autres créances assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1284;5081000;508;Autres valeurs mobilières;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1285;5082000;508;Bons de souscription;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1286;5088000;508;intérêts courus sur obligations, bons et valeurs assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1287;5090000;509;Versement restant à effectuer sur valeurs mobilières de placement non libérées;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1288;5110000;511;Valeurs à l'encaissement;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1289;5111000;511;Coupons échus à l'encaissement;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1290;5112000;511;Chèques à encaisser;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1291;5113000;511;Effets à l'encaissement;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1292;5114000;511;Effets à l'escompte;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1293;5120000;512;Banques;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1294;5121000;512;Comptes en euros;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1295;5124000;512;Comptes en devises;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1296;5170000;517;Autres organismes financiers;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1297;5180000;518;Intérêts courus;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1298;5181000;518;Intérêts courus à payer;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1299;5188000;518;Intérêts courus à recevoir;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1300;5190000;519;Concours bancaires courants;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1301;5191000;519;Crédit de mobilisation de créances commerciales;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1302;5193000;519;Mobilisation de créances nées à l'étranger;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1303;5198000;519;Intérêts courus sur concours bancaires courants;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1304;5210000;521;Instruments financiers à terme;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1305;5220000;522;Jetons détenus;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1306;5230000;523;Jetons auto-détenus;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1307;5240000;524;Jetons empruntés;AT004;;1;;;;;;;;;;;;;;;;1;false
+A1308;5300000;53;Caisse;AT004;;2;;;;;;;;;;;;;;;;1;false
+A1309;5420000;512;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64;AT004;;2;;;;;;;;;;;;;;;;1;true
+A1310;5421000;512;Banques établissements dépositaires autorisés - compte de placement;AT004;;2;;;;;;;;;;;;;;;;1;true
+A1311;5800000;58;Virements internes;AT009;;2;;;;;;;;;;;;;;;;1;true
+A1312;5810000;58;Virements internes - Banues établissements dépositaires autorisés;AT009;;2;;;;;;;;;;;;;;;;1;true
+A1313;5900000;590;Dépréciations des valeurs mobilières de placement;AT009;;1;;;;;;;;;;;;;;;;1;false
+A1314;5903000;590;Actions;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1315;5904000;590;Autres titres conférant un droit de propriété;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1316;5906000;590;Obligations;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1317;5908000;590;Autres valeurs mobilières de placement et créances assimilées;AT003;;2;;;;;;;;;;;;;;;;1;false
+A1318;6010000;601;Achats stockés - Matières premières et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1319;6020000;602;Achats stockés - Autres approvisionnements;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1320;6021000;602;Matières consommables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1321;6022000;602;Fournitures consommables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1322;6022200;602;Produits d'entretien;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1323;6022300;602;Fournitures d'atelier et d'usine;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1324;6022400;602;Fournitures de magasin;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1325;6022500;602;Fournitures de bureau;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1326;6026000;602;Emballages;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1327;6026100;602;Emballages perdus;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1328;6026200;602;Malis sur emballages;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1329;6026500;602;Emballages récupérables non identifiables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1330;6026700;602;Emballages à usage mixte ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1331;6030000;603;Variation des stocks d'approvisionnements et de marchandises;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1332;6031000;603;Variation des stocks de matières premières et fournitures;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1333;6032000;603;Variation des stocks des autres approvisionnements;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1334;6037000;603;Variation des stocks de marchandises;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1335;6040000;604;Achats d'études et prestations de services;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1336;6050000;605;Achats de matériel, équipements et travaux;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1337;6060000;606;Achats non stockés de matières et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1338;6061000;606;Fournitures non stockables (eau, énergues, etc...);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1339;6063000;606;Fournitures d'entretien et pétit équipement;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1340;6064000;606;Fournitures administratives;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1341;6068000;606;Autres matièeres et fournitures;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1342;6070000;607;Achats de marchandises;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1343;6080000;608;(Compte réservé, le cas échéant, au regroupement des frais accessoires incorporés aux achats);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1344;6090000;609;Rabais, remises et ristournes obtenus sur achats (même ventilation que celle du compte 60);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1345;6098000;609;Rabais, remises et ristournes non affectés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1346;6110000;611;Sous-traitance générale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1347;6120000;612;Redevances de crédit-bail;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1348;6122000;612;Crédit-bail mobilier;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1349;6125000;612;Crédit-bail immobilier;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1350;6130000;613;Locations;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1351;6132000;613;Locations immobilières;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1352;6135000;613;Locations mobilières;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1353;6140000;614;Charges locatives;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1354;6150000;615;Entretien et réparations;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1355;6152000;615;Entretien et réparation sur biens immobiliers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1356;6155000;615;Entretien et réparation sur biens mobiliers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1357;6160000;616;Primes d'assurances;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
+A1358;6161000;616;Multirisques;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1359;6162000;616;Assurance obligatoire dommage-construction;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1360;6163000;616;Assurance-transport;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1361;6164000;616;Risques d'exploitation;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1362;6165000;616;Insolvabilité clients;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1363;6170000;617;Etudes et recherches;AT013;;2;;;;true;;|D20|;1;;HONO;true;true;;;;;1;false
+A1364;6180000;618;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1365;6181000;618;Documentation générale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1366;6183000;618;Documentation technique;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1367;6185000;618;Frais de colloques, séminaires, conférences;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1368;6190000;619;Rabais, remises et ristournes obtenus sur services extérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1369;6210000;621;Personnel extérieur à l'entreprise;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1370;6211000;621;Personnel intérimaire;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1371;6214000;621;Personnel détaché ou prêté à l'entité;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1372;6220000;622;Rémunérations d'intermédiaires et honoraires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1373;6221000;622;Commissions et courtages sur achats;AT013;;2;;;;true;;|D20|;1;;COMM;true;true;;;;;1;false
+A1374;6222000;622;Commissions et courtages sur ventes;AT013;;2;;;;true;;|D20|;1;;COMM;true;true;;;;;1;false
+A1375;6224000;622;Rémunérations des transitaires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1376;6225000;622;Rémunérations d'affacturage;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1377;6226000;622;Honoraires;AT013;;2;;;;true;;|D20|;1;;HONO;true;true;;;;;1;false
+A1378;6227000;622;Frais d'actes et contentieux;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1379;6228000;622;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1380;6230000;623;Publicité, publications, relations publiques;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1381;6231000;623;Annonces et insertions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1382;6232000;623;Echantillons;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1383;6233000;623;Foires et expositions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1384;6234000;623;Cadeaux à la clientèle;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1385;6235000;623;Primes;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1386;6236000;623;Catalogues et imprimés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1387;6237000;623;Publications;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1388;6238000;623;Divers (pourboires, dons courants). ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1389;6240000;624;Transports de biens et transports collectifs du personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1390;6241000;624;Transports sur achats;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1391;6242000;624;Transports sur ventes;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1392;6243000;624;Transports entre établissements ou chantiers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1393;6244000;624;Transports administratifs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1394;6247000;624;Transports collectifs du personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1395;6248000;624;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1396;6250000;625;Déplacements, missions et réceptions;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
+A1397;6251000;625;Voyages et déplacements;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1398;6255000;625;Frais de déménagement;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1399;6256000;625;Missions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1400;6257000;625;Réceptions;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1401;6260000;626;Frais postaux et télécommunications;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1402;6270000;627;Services bancaires et assimilés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1403;6271000;627;Frais sur titres ;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1404;6272000;627;Commissions et frais sur émission d'emprunts;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1405;6275000;627;Services bancaires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1406;6276000;627;Location de coffres;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1407;6278000;627;Autres frais et commissions sur prestations de services;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1408;6280000;628;Divers;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1409;6281000;628;Concours divers (cotisations);AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1410;6281200;628;Cotisations chambres;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+A1411;6281210;628;Cotisations chambre nationale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+A1412;6281220;628;Cotisations chambre régionale;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+A1413;6282000;628;Contribution volontaire obligatoire - CVO;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+A1414;6283000;628;Cotisations professionnelles volontaires;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+A1415;6284000;628;Frais de recrutement de personnel;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1416;6290000;629;Rabais, remises et ristournes obtenus sur autres services extérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1417;6310000;631;Impôts, taxes et versements assimilés sur rémunérations (administrations des impôts);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1418;6311000;631;Taxe sur les salaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1419;6314000;631;Cotisation pour défaut d'investissement obligatoire pour la construction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1420;6318000;631;Autres;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1421;6330000;633;Impôts, taxes et versements assimilés sur rémunérations (autres organismes);AT013;;2;;;;;;;1;;;;;;;;;1;false
+A1422;6331000;633;Versement de transport;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1423;6332000;633;Allocations logement;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1424;6333000;633;Contribution unique des employeurs à la formation professionnelle;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1425;6334000;633;Participation des employeurs à l'effort de construction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1426;6335000;633;Versements libératoires ouvrant droit à l'exonération de la taxe d'apprentissage;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1427;6338000;633;Autres;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1428;6350000;633;Autres impôts, taxes et versements assimilés (administration des impôts);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1429;6351000;635;Impôts directs (sauf impôts sur les bénéfices);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1430;6352000;635;Taxes sur le chiffre d'affaires non récupérables;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1431;6353000;635;Impôts indirects;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1432;6354000;635;Droits d'enregistrement et de timbre;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1433;6358000;635;Autres droits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1434;6370000;635;Autres impôts, taxes et versements assimilés (autres organismes);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1435;6371000;637;Contribution sociale de solidarité à la charge des sociétés;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1436;6374000;637;Impôts et taxes exigibles à l'étranger;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1437;6378000;637;Taxes diverses;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1438;6380000;638;Rappel d'impôts (autres qu'impôts sur les bénéfices);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1439;6410000;641;Rémunérations du personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1440;6411000;641;Salaires, appointements;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1441;6412000;641;Congés payés;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1442;6413000;641;Primes et gratifications;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1443;6414000;641;Indemnités et avantages divers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1444;6415000;641;Supplément familial;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1445;6440000;641;Rémunération des commissaires de justice associés;AT013;;2;;;;;;;1;;;true;true;;;;;1;true
+A1446;6450000;644;Cotisations de Sécurité sociale et de prévoyance;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1447;6451000;645;Cotisations URSSAF ;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1448;6452000;645;Cotisations aux mutuelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1449;6453000;645;Cotisations aux  caisses de retraite;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1450;6454000;645;Cotisations France Travail;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1451;6458000;645;Cotisations aux autres organismes sociaux;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1452;6460000;646;Cotisations sociales personnelles de l'exploitant;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1453;6462000;646;Cotisations de retraite - CAVOM;AT013;;2;;;;;;;1;;;true;true;;;;;1;true
+A1454;6470000;647;Autres cotisations sociales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1455;6471000;647;Prestations directes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1456;6472000;647;Versements au comité social et économique;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1457;6474000;647;Versements aux autres œuvres sociales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1458;6475000;647;Médecine du travail, pharmacie;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1459;6480000;648;Autres charges Personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1460;6490000;649;Remboursements de charges de personnel;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1461;6510000;651;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1462;6511000;651;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1463;6516000;651;Droits d'auteur et de reproduction;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1464;6518000;651;Autres droits et valeurs similaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1465;6530000;653;Rémunérations de l'activité des administrateurs et des gérants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1466;6540000;654;Pertes sur créances irrecouvrables;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1467;6541000;654;Créances de l'exercice;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1468;6544000;654;Créances des exercices antérieurs;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1469;6550000;655;Quotes-parts de résultat sur opérations faites en commun;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1470;6551000;655;Quote-part de bénéfice transférée - comptabilité du gérant;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1471;6555000;655;Quote-part de perte supportée - comptabilité des associés non gérants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1472;6560000;656;Pertes de change sur créances et dettes commerciales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1473;6570000;657;Valeur comptable des immobilisations incorporelles et corporelles cédées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1474;6580000;658;Pénalités et autres charges;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1475;6581000;658;Pénalités sur marchés (et dédits payés sur achats et ventes);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1476;6582000;658;Pénalités, amendes fiscales et pénales;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1477;6583000;658;Malis provenant de clauses d'indexation;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1478;6584000;658;Lots;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1479;6588000;658;Opération de constitution ou liquidation des fiducies;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1480;6610000;661;Charges d'intérêts;AT013;;2;;;;true;;|D20|;1;;;;;;;;;1;false
+A1481;6611000;661;Intérêts des emprunts et dettes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1482;6611600;661;Intérets des emprunts et dettes assimilées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1483;6612000;661;Charges de la fiducie, résultat de la période;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1484;6615000;661;intérêts des comptes courants et des dépôts créditeurs;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1485;6616000;661;Interêts bancaires;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1486;6617000;661;Intérêts des obligations cautionnées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1487;6618000;661;Intérêts des autres dettes;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1488;6640000;664;Pertes sur créances liées à des participations;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1489;6650000;665;Escomptes accordés;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1490;6660000;666;Pertes de change financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1491;6670000;667;Charges nettes sur cession d'éléments financiers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1492;6671000;667;Valeurs comptables des immobilisations financières cédées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1493;6672000;667;Charges nettes sur cessions de titres immobilisés de l'activité de portefeuille;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1494;6673000;667;Charges nettes sur cessions de valeurs mobilières de placement;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1495;6674000;667;Charges nettes sur cessions de jetons;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1496;6680000;668;Autres charges financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1497;6683000;668;Mali provenant du rachat par l'entité d'actions et obligations émises par elle-même;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1498;6720000;672;Charges exceptionnelles (compte à la disposition des entités pour enregistrer en cours d'exercice les charges sur exercices antérieurs);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1499;6750000;67;Valeurs comptable des éléments d'actifs cédé;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1500;6780000;678;Autres charges exceptionnelles;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+A1501;6810000;681;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges d'exploitation);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1502;6811000;681;Dotations aux amortissements sur immobilisations incorporelles et coporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1503;6811200;681;Immobilisations corporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1504;6815000;681;Dotations aux provisions d'exploitation;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1505;6816000;681;Dotations aux dépréciations des immobilisations incorporelles et corporelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1506;6817000;681;Dotations aux dépréciations des actifs circulants;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1507;6860000;686;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges financières);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1508;6861000;686;Dotations aux amortissements des primes de remboursement par emprunts;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1509;6862000;686;Dotations aux amortissements de frais d'émission des emprunts;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1510;6865000;686;Dotations aux provisions financières;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1511;6866000;686;Dotations pour dépréciations des éléments financiers;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1512;6870000;687;Dotations aux amortissements, aux dépréciations et aux provisions (à inscrire dans les charges excepteionnelles);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1513;6871000;687;Dotations aux amortissements exceptionnels des immobilisations;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1514;6872000;687;Dotations aux provisions réglementées (immobilisations);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1515;6873000;687;Dotations aux provisions réglementées (stocks);AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1516;6874000;687;Dotations aux autres provisions réglementées;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1517;6875000;687;Dotations aux provisions exceptionnelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1518;6876000;687;Dotations pour dépréciations exceptionnelles;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1519;6910000;691;Participation des salariés aux résultats;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1520;6950000;695;Impôts sur le bénéfice;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1521;6951000;695;Impôts dus en France;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1522;6952000;695;Contribution additionnelle à l'impôt sur les bénéfices;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1523;6954000;695;Impôts dus à l'étranger;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1524;6960000;696;Suppléments d'impôts sur les sociétés liés aux distributions;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1525;6980000;698;Intégration fiscale;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1526;6981000;698;Intégration fiscale - Charges;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1527;6989000;698;Intégration fiscale - Produits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1528;6990000;699;Produits - Report en arrière des déficits;AT013;;2;;;;;;;1;;;true;true;;;;;1;false
+A1529;7010000;701;Ventes de produits finis;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1530;7020000;702;Ventes de produits intermédiaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1531;7030000;703;Ventes de produits résiduels;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1532;7040000;704;Travaux;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1533;7050000;705;Etudes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1534;7060000;706;Prestations de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1535;7061400;706;Ventes judiciaires - Actes, inventaires, prisées, ventes judiciaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1536;7061401;706;Ventes judiciaires - Honoraires acheteurs 5,5%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1537;7061402;706;Ventes judiciaires - Honoraires acheteurs 10%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1538;7061403;706;Ventes judiciaires - Honoraires acheteurs 20%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1539;7061404;706;Ventes judiciares - Honoraires vendeurs 5,5%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1540;7061405;706;Ventes judiciares - Honoraires vendeurs 10%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1541;7061406;706;Ventes judiciares - Honoraires vendeurs 20%;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1542;7061407;706;Ventes judiciaires - Honoraires acheteurs Livraison CEE exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1543;7061408;706;Ventes judiciaires - Honoraires acheteurs Export exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1544;7061409;706;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1545;7061410;706;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1546;7061411;706;Ventes judiciaires - Honoraires vendeurs Export exo TVA;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1547;7061500;706;Ventes judiciaires - Formalités;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1548;7062600;706;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1549;7068000;706;Autres produits HT;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1550;7070000;707;Ventes de marchandises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1551;7080000;708;Produits des activités annexes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1552;7081000;708;Produits des services exploités dans l'intérêt du personnel;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1553;7082000;708;Commissions et courtages;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1554;7083000;708;Locations diverses;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1555;7084000;708;Mise à disposition du personnel facturée;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1556;7085000;708;Ports et frais accessoires facturés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1557;7086000;708;Bonis sur reprises d'emballages consignés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1558;7088000;708;Débours récupérés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1559;7090000;709;Rabais, remises et ristournes accordés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1560;7091000;709;Rabais, remises et ristournes accordés sur ventes de produits finis;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1561;7092000;709;Rabais, remises et ristournes accordés sur ventes de produits intermédiaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1562;7094000;709;Débours payés irrécupérables;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1563;7095000;709;Rabais, remises et ristournes accordés sur études;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1564;7096000;709;Rabais, remises et ristournes accordés sur prestations de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1565;7097000;709;Rabais, remises et ristournes accordés sur ventes de marchandises;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1566;7098000;709;Rabais, remises et ristournes accordés sur produits des activités annexes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1567;7100000;713;Production stockée;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1568;7130000;713;Variation des stocks des en-cours de production et de produits;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1569;7133000;713;Variation des en-cours de production et de biens;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1570;7134000;713;Variation des en-cours de production de services;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1571;7135000;713;Variation des stocks de produits;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1572;7210000;721;Immobilisations incorporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1573;7220000;722;Immobilisations corporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1574;7410000;741;Subventions d'exploitation;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1575;7420000;742;Subventions d'équilibre;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1576;7470000;747;Quote-part des subventions d'investissement virée au résultat de l'exercice;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1577;7510000;751;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques, droits et valeurs similaires;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1578;7511000;751;Redevances pour concessions, brevets, licences, marques, procédés, solutions informatiques;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1579;7516000;751;Droits d'auteur et de reproduction;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1580;7518000;751;Autres droits et valeurs similaires;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1581;7520000;752;Revenus des immeubles non affectés aux activités professionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1582;7530000;753;Rémunérations de l'activité des administrateurs et des gérants;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1583;7540000;754;Ristournes perçues des coopératives provenant des excédents;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1584;7550000;755;Quotes-parts de résultat sur opérations faites en commun;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1585;7551000;755;Quote-part de perte transférée - comptabilité du gérant;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1586;7555000;755;Quote-part de bénéfice attribuée - comptabilité des associés non gérants;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1587;7560000;756;Gains de change sur créances et dettes commerciales;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1588;7570000;757;Produits des cessions d'immobilisations incorporelles et corporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1589;7580000;758;Ecart de règlement - produits;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1590;7581000;758;Dédits et pénalités perçus sur achats et ventes;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1591;7582000;758;Libéralités reçues;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1592;7583000;758;Versements de la CVO;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;true
+A1593;7584000;758;Dégrèvement d'impôts autres qu'impôts sur les bénéfices;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1594;7585000;758;Bonis provenant de clauses d'indexation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1595;7586000;758;Lots;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1596;7587000;758;Indemnités d'assurance;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1597;7588000;758;Opérations de constitution ou liquidation des fiducies;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1598;7610000;761;Produits de participations;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1599;7611000;761;Revenus des titres de participation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1600;7612000;761;Produits de la fiducie, résultat de la période;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1601;7616000;761;Revenus sur autres formes de participation;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1602;7617000;761;Revenus des créances rattachées à des participations;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1603;7620000;76;Produits des autres immobilisations financières;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1604;7621000;762;Revenus des titres immobilisés;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1605;7626000;762;Revenus des prêts;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1606;7627000;762;Revenus des créances immobilisées;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1607;7630000;76;Revenus des autres créances;AT012;;1;;;;true;;|C20|;1;;;;;;;;;1;false
+A1608;7631000;763;Revenus des créances commerciales;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1609;7638000;763;Revenus des créances diverses;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1610;7640000;764;Revenus des valeurs mobilières de placement;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1611;7650000;765;Escomptes obtenus;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1612;7660000;765;Gains de change financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1613;7670000;765;Produits sur cession d'élements financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1614;7671000;767;Produits des cessions d'immobilisations financières;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1615;7672000;767;Produits nets sur cessions de titres immobilisés de l'activité de portefeuille;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1616;7673000;767;Produits nets sur cessions de valeurs mobilières de placement;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1617;7674000;767;Produits nets sur cessions de jetons;AT012;;1;;;;true;;|C20|;1;;;true;true;;;;;1;false
+A1618;7680000;768;Autres produits financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1619;7683000;768;Bonis provenant du rachat par l'entreprise d'actions et d'obligations émises par elle-même;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1620;7720000;772;Produits exceptionnels (compte à la disposition des entités pour enregistrer en cours d'exercice les produits des exercices antérieurs). ;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1621;7750000;77;Produits cessions d'actif;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1622;7751000;77;Immobilisations incorporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1623;7780000;778;Autres produits exceptionnels;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1624;7810000;781;Reprises sur amortissements, dépréciations et provisions (à inscrire dans les produits d'exploitation);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1625;7811000;781;Reprises sur amortissements des immobilisations incorporelles et coporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1626;7815000;781;Reprises sur provisions d'exploitation;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1627;7816000;781;Reprises sur dépréciations des immobilisations incoporelles et coporelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1628;7817000;781;Reprises sur dépréciations des actifs circulants;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1629;7860000;786;Reprises sur dépréciations et provisions (à inscrire dans les produits financiers);AT012;;2;;;;;;;1;;;;;;;;;1;false
+A1630;7865000;786;Reprises sur provisions financières;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1631;7866000;786;Reprises sur dépréciations des éléments financiers;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1632;7870000;787;Reprises sur dépréciations et provisions (à inscrire dans les produits exceptionnels);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1633;7872000;787;Reprises sur provisions réglementées (immobilisations);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1634;7873000;787;Reprises sur provisions réglementées (stocks);AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1635;7874000;787;Reprises sur autres provisions réglementées;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1636;7875000;787;Reprises sur provisions exceptionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1637;7876000;787;Reprises sur dépréciations exceptionnelles;AT012;;1;;;;;;;1;;;true;true;;;;;1;false
+A1638;8900000;890;Bilan d'ouverture;AT014;;0;;;;;;;;;;;;;;;;1;false
+A1639;8910000;891;Bilan de cloture;AT014;;0;;;;;;;;;;;;;;;;1;false
+A1640;CL1;CL1_5;Comptes de capitaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1641;CL1_5;0;Comptes de bilan;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1642;CL2;CL1_5;Comptes d'immobilisations;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1643;CL3;CL1_5;Comptes de stocks et d'en cours;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1644;CL4;CL1_5;Comptes de tiers;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1645;CL5;CL1_5;Comptes financiers;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1646;CL6;CL6_7;Comptes de charges;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1647;CL6_7;0;Comptes de gestion;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1648;CL7;CL6_7;Comptes de produits;AT001;true;0;;;;;;;;;;;;;;;;1;false
+A1649;CL8;CL6_7;Comptes spéciaux;AT001;true;0;;;;;;;;;;;;;;;;1;false
