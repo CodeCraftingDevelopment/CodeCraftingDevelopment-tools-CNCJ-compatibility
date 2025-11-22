@@ -6,7 +6,7 @@ export interface CSVRowData {
 }
 
 export const detectCSVFormat = (row: any, headers?: any): CSVFormat => {
-  // Détecter le format Axelor (Comptes_PCG_CNCJ.csv)
+  // Détecter le format Axelor (Comptes_PCG.csv)
   if (headers && typeof headers === 'object') {
     const headerKeys = Array.isArray(headers) ? headers : Object.values(headers);
     const hasAxelorHeaders = headerKeys.some((h: any) => 
