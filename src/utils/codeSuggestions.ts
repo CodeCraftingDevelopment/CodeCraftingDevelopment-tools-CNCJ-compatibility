@@ -59,6 +59,12 @@ export function calculateSuggestions(
     }
   });
 
+  // DEBUG: Logger les codes utilisés pour le débogage
+  const relevantCodes = Array.from(allUsedCodes).filter(c => c.startsWith('467001')).sort();
+  if (relevantCodes.length > 0) {
+    console.log('🔍 DEBUG - Codes utilisés commençant par 467001:', relevantCodes);
+  }
+
   // Grouper les doublons par code original
   const duplicatesByCode = new Map<string, Array<{ id: string; number: string }>>();
   duplicates.forEach(duplicate => {

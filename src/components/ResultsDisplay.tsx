@@ -50,6 +50,21 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       ...unmatchedClients.map(acc => acc.number)
     ]);
     
+    // DEBUG: Logger la source des codes 467001*
+    const filter467001 = (accounts: Account[]) => 
+      accounts.filter(a => a.number.startsWith('467001')).map(a => a.number);
+    
+    const unique467001 = filter467001(uniqueClients);
+    const matches467001 = filter467001(matches);
+    const unmatched467001 = filter467001(unmatchedClients);
+    
+    if (unique467001.length > 0 || matches467001.length > 0 || unmatched467001.length > 0) {
+      console.log('🔍 DEBUG - Source des codes 467001*:');
+      console.log('  uniqueClients:', unique467001.sort());
+      console.log('  matches:', matches467001.sort());
+      console.log('  unmatchedClients:', unmatched467001.sort());
+    }
+    
     return calculateSuggestions(duplicates, existingCodes, replacementCodes);
   }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType]);
   
