@@ -733,6 +733,9 @@ const App: React.FC = () => {
               generalAccounts={state.generalAccounts}
               replacementCodes={state.replacementCodes}
               cncjReplacementCodes={state.cncjReplacementCodes}
+              result={state.result}
+              cncjConflictResult={state.cncjConflictResult}
+              cncjConflictCorrections={state.cncjConflictCorrections}
               onMetadataChange={handleMetadataChange}
             />
             <StepNavigation
