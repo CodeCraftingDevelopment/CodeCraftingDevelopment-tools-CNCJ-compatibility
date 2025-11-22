@@ -27,6 +27,12 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
     return mapping;
   }, [originalClientAccounts]);
 
+  // Normaliser un code à 7 chiffres pour l'affichage
+  const normalizeForDisplay = (code: string): string => {
+    if (!code) return code;
+    return code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
+  };
+
   const getFilterCounts = () => {
     const totalCount = mergedClientAccounts.length;
     const correctedCount = mergedClientAccounts.filter(acc => {
@@ -132,7 +138,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
                         isDuplicateFromStep3 ? 'text-blue-700 font-bold bg-blue-100' : 
                         'text-gray-700 bg-gray-100'
                       } px-3 py-2 rounded flex-1`}>
-                        {replacementCode || getDisplayCode(account)}
+                        {normalizeForDisplay(replacementCode || account.number)}
                       </div>
                       {isCorrected && (
                         <div className="text-green-600">

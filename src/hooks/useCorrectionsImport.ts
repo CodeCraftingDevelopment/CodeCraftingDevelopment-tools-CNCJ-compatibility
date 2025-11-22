@@ -154,7 +154,9 @@ export const useCorrectionsImport = ({
         const conflictsWithOriginal = isDuplicateCode(replacementCode, existingCodes, allOriginalCodes);
         
         if (duplicateAccount) {
-          onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
+          // Normaliser le code de remplacement à 7 chiffres avant de l'appliquer
+          const normalizedCode = replacementCode.length > 7 ? replacementCode.slice(0, 7) : replacementCode.padEnd(7, '0');
+          onReplacementCodeChange?.(duplicateAccount.id, normalizedCode);
           processedCount++;
           
           if (conflictsWithOriginal) {

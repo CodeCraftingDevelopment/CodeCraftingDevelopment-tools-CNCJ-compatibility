@@ -62,15 +62,17 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     }
     
     const correctedCode = isStep4Duplicate 
-      ? (mergedAccount ? getDisplayCode(mergedAccount) : getDisplayCode(account))
-      : getDisplayCode(account);
+      ? (mergedAccount ? mergedAccount.number : account.number)
+      : account.number;
+    
+    const cncjCorrection = correctedByCncj === 'error' ? 'Erreur' : (correctedByCncj || '-');
     
     return {
       id: account.id,
       title: account.title || 'Sans titre',
       originalCode: getDisplayCode(account),
       correctedCode: correctedCode,
-      cncjCorrection: correctedByCncj === 'error' ? 'Erreur' : (correctedByCncj || '-'),
+      cncjCorrection: cncjCorrection,
       wasModified: replacementCodes[account.id] !== undefined,
       modificationSource,
       isStep4Duplicate,
@@ -102,6 +104,12 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       return row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
     }
     return row.correctedCode || row.originalCode;
+  };
+
+  // Normaliser un code à 7 chiffres pour l'affichage
+  const normalizeForDisplay = (code: string): string => {
+    if (!code || code === '-' || code === 'Erreur') return code;
+    return code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
   };
 
   const getFinalCodeClasses = (row: SummaryRow): string => {
@@ -172,7 +180,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     
     const csvRows = filteredData.map(row => {
       const finalCode = computeFinalCode(row);
-      return [row.title, row.originalCode, finalCode];
+      return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
     });
     
     const csvContent = [
@@ -310,7 +318,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                           Correction doublon
                         </span>
                         <span className="font-mono text-sm">
-                          {hasClientChange ? row.correctedCode : '—'}
+                          {hasClientChange ? normalizeForDisplay(row.correctedCode) : '—'}
                         </span>
                       </div>
 
@@ -324,7 +332,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                               ⚠️ Erreur
                             </span>
                           ) : (
-                            hasCncjCorrection ? row.cncjCorrection : '—'
+                            hasCncjCorrection ? normalizeForDisplay(row.cncjCorrection) : '—'
                           )}
                         </span>
                       </div>
@@ -334,7 +342,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
                           Code final
                         </span>
                         <span className={`font-mono text-sm ${finalCodeClasses.replace('bg-', 'bg-opacity-80 bg-').replace(' text-', ' text-')}`}>
-                          {finalCode}
+                          {normalizeForDisplay(finalCode)}
                         </span>
                       </div>
                     </div>

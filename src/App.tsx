@@ -329,7 +329,10 @@ const App: React.FC = () => {
 
   // Incrémenter un code client avec contrainte (ne jamais passer à la dizaine supérieure)
   const incrementCodeWithConstraint = useCallback((code: string): string | null => {
-    const codeNum = parseInt(code);
+    // S'assurer que le code d'entrée est normalisé à 7 chiffres
+    const normalizedCode = code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
+    
+    const codeNum = parseInt(normalizedCode);
     if (isNaN(codeNum)) return null;
     
     const incremented = codeNum + 1;
@@ -339,7 +342,7 @@ const App: React.FC = () => {
       return null; // Contrainte violée (ex: 10009 → 10010)
     }
     
-    return incremented.toString();
+    return incremented.toString().padStart(7, '0');
   }, []);
 
   // Auto-corriger les conflits CNCJ avec incrémentation contrainte et validation croisée
@@ -453,10 +456,12 @@ const App: React.FC = () => {
   }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult, handleNavigateNext]);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
+    // Stocker l'entrée utilisateur brute pour préserver l'UX de saisie
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
   const handleCncjReplacementCodeChange = useCallback((accountId: string, code: string) => {
+    // Stocker l'entrée utilisateur brute pour préserver l'UX de saisie
     dispatch({ type: 'SET_CNCJ_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
