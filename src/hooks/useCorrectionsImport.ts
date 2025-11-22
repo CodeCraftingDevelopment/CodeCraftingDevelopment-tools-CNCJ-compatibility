@@ -252,9 +252,8 @@ export const useCorrectionsImport = ({
         const conflictsWithOriginal = isDuplicateCode(replacementCode, existingCodes, allOriginalCodes);
         
         if (duplicateAccount) {
-          // Normaliser le code de remplacement à 7 chiffres avant de l'appliquer
-          const normalizedCode = replacementCode.length > 7 ? replacementCode.slice(0, 7) : replacementCode.padEnd(7, '0');
-          onReplacementCodeChange?.(duplicateAccount.id, normalizedCode);
+          // Utiliser directement le code de remplacement du CSV (colonne 4)
+          onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
           processedCount++;
           
           if (conflictsWithOriginal) {

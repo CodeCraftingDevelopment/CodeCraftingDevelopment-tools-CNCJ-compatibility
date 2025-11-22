@@ -23,6 +23,7 @@ interface StepFinalSummaryProps {
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
   replacementCodes: { [key: string]: string };
+  cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
   mergedClientAccounts: Account[];
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
@@ -34,6 +35,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   result,
   cncjConflictResult,
   replacementCodes,
+  cncjReplacementCodes,
   cncjConflictCorrections,
   mergedClientAccounts,
   finalFilter,
@@ -46,7 +48,8 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   
   const finalSummaryData: SummaryRow[] = clientAccounts.map((account): SummaryRow => {
     const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
-    const correctedByCncj = cncjConflictCorrections[account.id];
+    const correctedByCncj = cncjReplacementCodes[account.id]; // Utiliser les valeurs saisies à l'étape 6
+    const hasCncjError = cncjConflictCorrections[account.id] === 'error'; // Garder la validation des erreurs
     
     const isStep4Duplicate = step4Ids.has(account.id);
     const isStep6Conflict = step6Ids.has(account.id);
@@ -65,7 +68,10 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       ? (mergedAccount ? mergedAccount.number : account.number)
       : account.number;
     
-    const cncjCorrection = correctedByCncj === 'error' ? 'Erreur' : (correctedByCncj || '-');
+    // Priorité aux saisies manuelles : si l'utilisateur a saisi une valeur, l'utiliser même si validation auto dit 'error'
+    const cncjCorrection = correctedByCncj !== undefined && correctedByCncj !== '' 
+      ? correctedByCncj 
+      : (hasCncjError ? 'Erreur' : '-');
     
     return {
       id: account.id,
@@ -73,7 +79,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
       originalCode: getDisplayCode(account),
       correctedCode: correctedCode,
       cncjCorrection: cncjCorrection,
-      wasModified: replacementCodes[account.id] !== undefined,
+      wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined,
       modificationSource,
       isStep4Duplicate,
       isStep6Conflict,
