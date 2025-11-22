@@ -682,6 +682,7 @@ const App: React.FC = () => {
               cncjReplacementCodes={state.cncjReplacementCodes}
               cncjConflictCorrections={state.cncjConflictCorrections}
               mergedClientAccounts={mergedClientAccounts}
+              generalAccounts={state.generalAccounts}
               finalFilter={state.finalFilter}
               onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
             />

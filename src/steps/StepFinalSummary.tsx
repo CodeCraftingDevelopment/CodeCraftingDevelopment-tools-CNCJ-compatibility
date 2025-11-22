@@ -26,6 +26,7 @@ interface StepFinalSummaryProps {
   cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
   mergedClientAccounts: Account[];
+  generalAccounts: Account[];
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate') => void;
 }
@@ -38,6 +39,7 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
   cncjReplacementCodes,
   cncjConflictCorrections,
   mergedClientAccounts,
+  generalAccounts,
   finalFilter,
   onFilterChange
 }) => {
@@ -181,27 +183,180 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     return badges;
   };
 
-  const handleExport = () => {
-    const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
-    
-    const csvRows = filteredData.map(row => {
-      const finalCode = computeFinalCode(row);
-      return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
-    });
-    
-    const csvContent = [
-      csvHeaders.join(';'),
-      ...csvRows.map(row => row.map(cell => `"${cell}"`).join(';'))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'correspondances-comptes.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+  // Fonction partagée pour échapper correctement les guillemets et caractères spéciaux dans les cellules CSV
+  const escapeCsvCell = (cell: any): string => {
+    if (cell === undefined || cell === null) return '""';
+    // Convertir en string si nécessaire
+    const cellStr = String(cell);
+    // Remplacer les sauts de ligne par des espaces pour éviter de casser le CSV
+    const cleaned = cellStr.replace(/[\r\n]+/g, ' ');
+    // Échapper les guillemets en les doublant et entourer de guillemets
+    const escaped = cleaned.replace(/"/g, '""');
+    return `"${escaped}"`;
   };
+
+  const handleExport = () => {
+    try {
+      const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
+      
+      const csvRows = filteredData.map(row => {
+        const finalCode = computeFinalCode(row);
+        return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
+      });
+      
+      // Échapper aussi les en-têtes pour la cohérence
+      const escapedHeaders = csvHeaders.map(escapeCsvCell);
+      
+      const csvContent = [
+        escapedHeaders.join(';'),
+        ...csvRows.map(row => row.map(escapeCsvCell).join(';'))
+      ].join('\n');
+      
+      // Ajouter BOM pour la compatibilité Excel avec UTF-8
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'correspondances-comptes.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors de l\'export des correspondances:', error);
+      alert('Une erreur est survenue lors de l\'export. Veuillez réessayer.');
+    }
+  };
+
+  const handleExportPcgToCreate = () => {
+    try {
+      // Vérifier que les comptes PCG sont chargés
+      if (generalAccounts.length === 0) {
+        alert('Veuillez charger le fichier des comptes PCG avant d\'exporter.');
+        return;
+      }
+
+      // En-têtes CSV du format PCG
+      const csvHeaders = [
+        'importId', 'code', 'parent_code', 'name', 'accountType.importId', 
+        'isRegulatoryAccount', 'commonPosition', 'reconcileOk', 'compatibleAccounts',
+        'useForPartnerBalance', 'isTaxAuthorizedOnMoveLine', 'isTaxRequiredOnMoveLine',
+        'defaultTaxSet', 'vatSystemSelect', 'isRetrievedOnPaymentSession', 'serviceType.code',
+        'manageCutOffPeriod', 'hasAutomaticApplicationAccountingDate',
+        'analyticDistributionAuthorized', 'analyticDistributionRequiredOnInvoiceLines',
+        'analyticDistributionRequiredOnMoveLines', 'analyticDistributionTemplate.importId',
+        'statusSelect', 'isCNCJ'
+      ];
+
+      // Identifier les comptes clients qui ne sont PAS déjà dans PCG (utilisation du calcul partagé)
+      const clientCodesNotInPcg = finalSummaryData.filter(row => {
+        const finalCode = normalizeForDisplay(computeFinalCode(row));
+        return !pcgLookup.has(finalCode);
+      });
+
+      // Combiner : tous les comptes PCG existants + comptes clients non présents dans PCG
+      const csvRows: string[][] = [];
+
+      // 1. Ajouter tous les comptes PCG existants avec leurs données
+      generalAccounts.forEach((account, index) => {
+        const importId = `PCG${String(index + 1).padStart(4, '0')}`;
+        
+        csvRows.push([
+          importId,
+          account.number,
+          '', // parent_code
+          account.title || '',
+          'AT001', // accountType.importId - valeur par défaut car pas dans type Account
+          'false', // isRegulatoryAccount
+          '0', // commonPosition
+          '', // reconcileOk
+          '', // compatibleAccounts
+          '', // useForPartnerBalance
+          '', // isTaxAuthorizedOnMoveLine
+          '', // isTaxRequiredOnMoveLine
+          '', // defaultTaxSet
+          '', // vatSystemSelect
+          '', // isRetrievedOnPaymentSession
+          '', // serviceType.code
+          '', // manageCutOffPeriod
+          '', // hasAutomaticApplicationAccountingDate
+          '', // analyticDistributionAuthorized
+          '', // analyticDistributionRequiredOnInvoiceLines
+          '', // analyticDistributionRequiredOnMoveLines
+          '', // analyticDistributionTemplate.importId
+          '1', // statusSelect
+          'false' // isCNCJ
+        ]);
+      });
+
+      // 2. Ajouter les comptes clients qui ne sont pas dans PCG
+      clientCodesNotInPcg.forEach((row, index) => {
+        const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
+        const code = normalizeForDisplay(computeFinalCode(row));
+        const name = row.title;
+        
+        csvRows.push([
+          importId,
+          code,
+          '', // parent_code
+          name,
+          'AT001', // accountType.importId
+          'false', // isRegulatoryAccount
+          '0', // commonPosition
+          '', // reconcileOk
+          '', // compatibleAccounts
+          '', // useForPartnerBalance
+          '', // isTaxAuthorizedOnMoveLine
+          '', // isTaxRequiredOnMoveLine
+          '', // defaultTaxSet
+          '', // vatSystemSelect
+          '', // isRetrievedOnPaymentSession
+          '', // serviceType.code
+          '', // manageCutOffPeriod
+          '', // hasAutomaticApplicationAccountingDate
+          '', // analyticDistributionAuthorized
+          '', // analyticDistributionRequiredOnInvoiceLines
+          '', // analyticDistributionRequiredOnMoveLines
+          '', // analyticDistributionTemplate.importId
+          '1', // statusSelect
+          'false' // isCNCJ
+        ]);
+      });
+      
+      // Échapper aussi les en-têtes pour la cohérence
+      const escapedHeaders = csvHeaders.map(escapeCsvCell);
+      
+      const csvContent = [
+        escapedHeaders.join(';'),
+        ...csvRows.map(row => row.map(escapeCsvCell).join(';'))
+      ].join('\n');
+      
+      // Ajouter BOM pour la compatibilité Excel avec UTF-8
+      const bom = '\uFEFF';
+      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'comptes-pcg-complet.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors de l\'export PCG complet:', error);
+      alert('Une erreur est survenue lors de l\'export PCG. Veuillez réessayer.');
+    }
+  };
+
+  // Calcul partagé pour les comptes clients non présents dans PCG (optimisé)
+  const pcgLookup = new Map<string, Account>();
+  generalAccounts.forEach(account => {
+    pcgLookup.set(account.number, account);
+  });
+  
+  const clientCodesNotInPcg = finalSummaryData.filter(row => {
+    const finalCode = normalizeForDisplay(computeFinalCode(row));
+    return !pcgLookup.has(finalCode);
+  });
+
+  const totalPcgExportCount = generalAccounts.length + clientCodesNotInPcg.length;
 
   return (
     <div className="space-y-4">
@@ -372,14 +527,25 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
         </div>
       )}
 
-      {/* Bouton d'export */}
-      <div className="mt-6 text-center">
-        <button
-          onClick={handleExport}
-          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-        >
-          📥 Exporter les correspondances
-        </button>
+      {/* Boutons d'export */}
+      <div className="mt-6 text-center space-y-3">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={handleExport}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+          >
+            📥 Exporter les correspondances
+          </button>
+          <button
+            onClick={handleExportPcgToCreate}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          >
+            📄 Exporter PCG complet ({totalPcgExportCount})
+          </button>
+        </div>
+        <p className="text-sm text-gray-500">
+          Contient tous les comptes PCG existants + les comptes clients non présents dans PCG
+        </p>
       </div>
     </div>
   );
