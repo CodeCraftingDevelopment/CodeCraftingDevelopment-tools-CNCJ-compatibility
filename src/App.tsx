@@ -14,6 +14,7 @@ import { Step2MergeVisualization } from './steps/Step2MergeVisualization';
 import { Step4DuplicatesResolution } from './steps/Step4DuplicatesResolution';
 import { Step5ReviewCorrections } from './steps/Step5ReviewCorrections';
 import { Step6CNCJConflicts } from './steps/Step6CNCJConflicts';
+import { Step7MetadataCompletion } from './steps/Step7MetadataCompletion';
 import { StepFinalSummary } from './steps/StepFinalSummary';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
@@ -29,7 +30,7 @@ type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'stepFinal' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal' }
   | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_REPLACEMENT_CODES' }
   | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
@@ -39,7 +40,9 @@ type AppAction =
   | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
   | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: import('./types/accounts').NormalizationAccount[] }
-  | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean };
+  | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
+  | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: Record<string, any> } }
+  | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } };
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -59,7 +62,8 @@ const initialState: AppState = {
   cncjConflictCorrections: {},
   finalFilter: 'all',
   accountsNeedingNormalization: [],
-  isNormalizationApplied: false
+  isNormalizationApplied: false,
+  missingMetadata: {}
 };
 
 
@@ -86,7 +90,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'CLEAR_ERRORS':
       return { ...state, errors: [] };
     case 'SET_CURRENT_STEP': {
-      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'stepFinal'];
+      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'stepFinal'];
       const currentIndex = stepOrder.indexOf(state.currentStep);
       const targetIndex = stepOrder.indexOf(action.payload);
       
@@ -130,6 +134,19 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, accountsNeedingNormalization: action.payload };
     case 'SET_NORMALIZATION_APPLIED':
       return { ...state, isNormalizationApplied: action.payload };
+    case 'SET_MISSING_METADATA':
+      return { ...state, missingMetadata: action.payload };
+    case 'SET_MISSING_METADATA_FIELD':
+      return { 
+        ...state, 
+        missingMetadata: { 
+          ...state.missingMetadata, 
+          [action.payload.accountId]: { 
+            ...(state.missingMetadata[action.payload.accountId] || {}), 
+            [action.payload.field]: action.payload.value 
+          } 
+        } 
+      };
     default:
       return state;
   }
@@ -475,6 +492,11 @@ const App: React.FC = () => {
     handleNavigateNext();
   }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult, handleNavigateNext]);
 
+  const handleCncjNext = useCallback(() => {
+    console.log('Conflits CNCJ résolus - passage aux correspondances manquantes');
+    handleNavigateNext();
+  }, [handleNavigateNext]);
+
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     // Stocker l'entrée utilisateur brute pour préserver l'UX de saisie
     dispatch({ type: 'SET_REPLACEMENT_CODE', payload: { accountId, code } });
@@ -485,6 +507,11 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
+  const handleMetadataChange = useCallback((accountId: string, metadata: Record<string, any>) => {
+    dispatch({ type: 'SET_MISSING_METADATA', payload: { [accountId]: metadata } });
+  }, []);
+
+  
   // Utiliser le hook personnalisé pour la validation des étapes
   const { allDuplicatesResolved, allCncjConflictsResolved } = useStepValidation({
     result: state.result,
@@ -665,6 +692,30 @@ const App: React.FC = () => {
               previousStep={previousStepConfig}
               nextStep={nextStepConfig}
               canProceed={allCncjConflictsResolved}
+              onNext={handleCncjNext}
+              onPrevious={handleNavigatePrevious}
+            />
+          </StepRenderer>
+        )}
+
+        {/* Step 7: Metadata Completion */}
+        {currentStepConfig && currentStepConfig.id === 'step7' && (
+          <StepRenderer step={currentStepConfig} isActive={true}>
+            <Step7MetadataCompletion
+              clientAccounts={state.clientAccounts}
+              mergedClientAccounts={mergedClientAccounts}
+              generalAccounts={state.generalAccounts}
+              replacementCodes={state.replacementCodes}
+              cncjReplacementCodes={state.cncjReplacementCodes}
+              onMetadataChange={handleMetadataChange}
+              onNext={handleNavigateNext}
+              onPrevious={handleNavigatePrevious}
+            />
+            <StepNavigation
+              currentStep={currentStepConfig}
+              previousStep={previousStepConfig}
+              nextStep={nextStepConfig}
+              canProceed={true}
               onNext={handleNavigateNext}
               onPrevious={handleNavigatePrevious}
             />

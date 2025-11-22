@@ -61,7 +61,7 @@ export interface AppState {
   result: ProcessingResult | null;
   loading: boolean;
   errors: string[];
-  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'stepFinal';
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   mergeInfo: MergeInfo[];
@@ -70,4 +70,5 @@ export interface AppState {
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
+  missingMetadata: { [accountId: string]: Record<string, any> };
 }

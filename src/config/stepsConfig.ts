@@ -1,6 +1,6 @@
 import { AppState } from '../types/accounts';
 
-export type StepId = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'stepFinal';
+export type StepId = 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
 
 export interface StepConfig {
   id: StepId;
@@ -91,8 +91,18 @@ export const STEPS_CONFIG: StepConfig[] = [
     canProceed: () => true // Validation gérée par useStepValidation hook (voir App.tsx ligne 640)
   },
   {
-    id: 'stepFinal',
+    id: 'step7',
     order: 7,
+    title: 'Correspondances manquantes',
+    icon: '🔧',
+    description: 'Traitement des lignes sans correspondances PCG pour remplir les colonnes',
+    badge: 'Step 7',
+    badgeColor: 'orange',
+    canProceed: () => true // Toujours autorisé - pas de validation requise pour cette étape
+  },
+  {
+    id: 'stepFinal',
+    order: 8,
     title: 'Résumé des corrections appliquées',
     icon: '📊',
     description: 'Récapitulatif final de toutes les modifications',
