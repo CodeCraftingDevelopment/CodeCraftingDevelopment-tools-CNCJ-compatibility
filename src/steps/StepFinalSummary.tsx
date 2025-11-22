@@ -253,6 +253,19 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
         return !pcgLookup.has(finalCode);
       });
 
+      // Optimisation : pré-grouper les comptes PCG par préfixe de 4 chiffres
+      const pcgAccountsByPrefix = new Map<string, typeof generalAccounts>();
+      generalAccounts.forEach(account => {
+        const codeNum = parseInt(account.number);
+        if (!isNaN(codeNum) && account.number.length >= 4) {
+          const prefix = account.number.substring(0, 4);
+          if (!pcgAccountsByPrefix.has(prefix)) {
+            pcgAccountsByPrefix.set(prefix, []);
+          }
+          pcgAccountsByPrefix.get(prefix)?.push(account);
+        }
+      });
+
       // Combiner : tous les comptes PCG existants + comptes clients non présents dans PCG
       const csvRows: string[][] = [];
 
@@ -292,39 +305,69 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
         };
       });
 
-      // 2. Préparer les comptes clients qui ne sont pas dans PCG
+      // 2. Préparer les comptes clients qui ne sont pas dans PCG avec héritage intelligent
       const clientAccountRows = clientCodesNotInPcg.map((row, index) => {
         const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
         const code = normalizeForDisplay(computeFinalCode(row));
         const name = row.title;
+        
+        // Logique d'héritage intelligent
+        let inheritedData: Record<string, any> = {};
+        
+        // Extraire les 4 premiers chiffres du code client (garder les zéros non significatifs)
+        if (code.length >= 4) {
+          const prefix = code.substring(0, 4);
+          const codeNum = parseInt(code);
+          
+          if (!isNaN(codeNum)) {
+            // Utiliser le pré-groupement pour la performance
+            const matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
+            
+            if (matchingPcgAccounts.length > 0) {
+              // Trouver le compte PCG le plus proche numériquement
+              const closestPcgAccount = matchingPcgAccounts.reduce((closest, current) => {
+                const currentDiff = Math.abs(codeNum - parseInt(current.number));
+                const closestDiff = Math.abs(codeNum - parseInt(closest.number));
+                return currentDiff < closestDiff ? current : closest;
+              });
+              
+              // Hériter des données du compte PCG le plus proche (créer une copie pour éviter la mutation)
+              inheritedData = {...(closestPcgAccount.rawData || {})};
+              // Supprimer les champs qu'on ne veut pas hériter (sur la copie)
+              delete inheritedData.importId;
+              delete inheritedData.code;
+              delete inheritedData.name;
+            }
+          }
+        }
         
         return {
           code: parseInt(code) || 0,
           row: [
             importId,
             code,
-            '', // parent_code
-            name,
-            'AT001', // accountType.importId
-            'false', // isRegulatoryAccount
-            '0', // commonPosition
-            '', // reconcileOk
-            '', // compatibleAccounts
-            '', // useForPartnerBalance
-            '', // isTaxAuthorizedOnMoveLine
-            '', // isTaxRequiredOnMoveLine
-            '', // defaultTaxSet
-            '', // vatSystemSelect
-            '', // isRetrievedOnPaymentSession
-            '', // serviceType.code
-            '', // manageCutOffPeriod
-            '', // hasAutomaticApplicationAccountingDate
-            '', // analyticDistributionAuthorized
-            '', // analyticDistributionRequiredOnInvoiceLines
-            '', // analyticDistributionRequiredOnMoveLines
-            '', // analyticDistributionTemplate.importId
-            '1', // statusSelect
-            'false' // isCNCJ
+            inheritedData.parent_code || '', // Hérité ou défaut
+            name, // Toujours le nom du client
+            inheritedData['accountType.importId'] || 'AT001', // Hérité ou défaut
+            inheritedData.isRegulatoryAccount || 'false', // Hérité ou défaut
+            inheritedData.commonPosition || '0', // Hérité ou défaut
+            inheritedData.reconcileOk || '', // Hérité ou défaut
+            inheritedData.compatibleAccounts || '', // Hérité ou défaut
+            inheritedData.useForPartnerBalance || '', // Hérité ou défaut
+            inheritedData.isTaxAuthorizedOnMoveLine || '', // Hérité ou défaut
+            inheritedData.isTaxRequiredOnMoveLine || '', // Hérité ou défaut
+            inheritedData.defaultTaxSet || '', // Hérité ou défaut
+            inheritedData.vatSystemSelect || '', // Hérité ou défaut
+            inheritedData.isRetrievedOnPaymentSession || '', // Hérité ou défaut
+            inheritedData['serviceType.code'] || '', // Hérité ou défaut
+            inheritedData.manageCutOffPeriod || '', // Hérité ou défaut
+            inheritedData.hasAutomaticApplicationAccountingDate || '', // Hérité ou défaut
+            inheritedData.analyticDistributionAuthorized || '', // Hérité ou défaut
+            inheritedData.analyticDistributionRequiredOnInvoiceLines || '', // Hérité ou défaut
+            inheritedData.analyticDistributionRequiredOnMoveLines || '', // Hérité ou défaut
+            inheritedData['analyticDistributionTemplate.importId'] || '', // Hérité ou défaut
+            inheritedData.statusSelect || '1', // Hérité ou défaut
+            inheritedData.isCNCJ || 'false' // Hérité ou défaut
           ]
         };
       });
