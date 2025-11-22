@@ -3,6 +3,17 @@ import { Account, FileMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
 import { normalizeAccountCode } from '../utils/accountUtils';
 
+// Flag debug pour éviter le spam de logs en production
+const DEBUG = process.env.NODE_ENV === 'development';
+
+/**
+ * Bug fix for Step 6 CSV import:
+ * 1. Case-insensitive title matching via normalizeTitle()
+ * 2. Windows line-ending support (removed $ anchor from regex)
+ * 3. 4-column CSV format support (code client, code 7 chiffres, titre, code remplacement)
+ * 4. Preserves originalNumber matching for 8-digit account codes
+ */
+
 interface UseCorrectionsImportProps {
   duplicates: Account[];
   uniqueClients: Account[];
@@ -31,14 +42,27 @@ export const useCorrectionsImport = ({
   };
 
   const parseCSVLine = (line: string): [string, string, string] | null => {
-    // Gérer les 5 colonnes du nouveau format : code client, code 7 chiffres, titre, code remplacement, suggestion
-    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;(?:\s*"?([^"]*)"?;?)?/);
+    // Gérer les 4 colonnes du format étape 6 ou 5 colonnes du format étape 4
+    // Format : code client, code 7 chiffres, titre, code remplacement [, suggestion]
+    // Regex corrigé pour ne pas exiger de point-virgule final et gérer les fins de ligne Windows
+    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"(?:;\s*"?([^"]*)")?/);
     if (!match) return null;
     
     const accountNumber = match[1].trim(); // code client (8 chiffres)
     const title = match[3].trim(); // titre (colonne 3)
     let replacementCode = match[4].trim(); // code remplacement (colonne 4)
     const suggestion = match[5] ? match[5].trim() : '';
+    
+    if (DEBUG) {
+      console.log('🔍 DEBUG - Parsing CSV line:', {
+        originalLine: line,
+        accountNumber,
+        title,
+        replacementCode,
+        suggestion,
+        regexMatch: match
+      });
+    }
     
     // Utiliser la suggestion si le code de remplacement est vide
     if (!replacementCode && suggestion) {
@@ -48,22 +72,68 @@ export const useCorrectionsImport = ({
     return [accountNumber, title, replacementCode];
   };
 
+  // Fonction utilitaire pour normaliser les titres de manière plus flexible
+  const normalizeTitle = (title: string): string => {
+    return title.toLowerCase()
+      .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
+      .trim();
+  };
+
   const findDuplicateAccount = (accountNumber: string, title: string): Account | undefined => {
     // Normaliser le numéro de compte pour la comparaison
     const normalizedAccountNumber = normalizeAccountCode(accountNumber);
+    const normalizedTitle = normalizeTitle(title);
     
-    // Essayer d'abord le matching direct par code original 8 chiffres + titre
+    if (DEBUG) {
+      console.log('🔍 DEBUG - Recherche du compte:', {
+        csvAccountNumber: accountNumber,
+        csvTitle: title,
+        normalizedAccountNumber,
+        normalizedTitle
+      });
+    }
+    
+    // Essayer d'abord le matching direct par code original 8 chiffres + titre normalisé
     let account = duplicates.find(d => 
       d.originalNumber === accountNumber && 
-      d.title && d.title.trim() === title.trim()
+      d.title && normalizeTitle(d.title) === normalizedTitle
     );
     
-    // Si pas trouvé, essayer le matching par numéro normalisé + titre
+    if (DEBUG) {
+      console.log('🔍 DEBUG - Résultat matching originalNumber:', {
+        found: !!account,
+        accountFound: account ? {
+          id: account.id,
+          originalNumber: account.originalNumber,
+          number: account.number,
+          title: account.title,
+          normalizedTitle: account.title ? normalizeTitle(account.title) : null
+        } : null
+      });
+    }
+    
+    // Si pas trouvé, essayer le matching par numéro normalisé + titre normalisé
     if (!account) {
+      if (DEBUG) {
+        console.log('🔍 DEBUG - Tentative matching par numéro normalisé...');
+      }
       account = duplicates.find(d => 
         d.number === normalizedAccountNumber && 
-        d.title && d.title.trim() === title.trim()
+        d.title && normalizeTitle(d.title) === normalizedTitle
       );
+      
+      if (DEBUG) {
+        console.log('🔍 DEBUG - Résultat matching normalisé:', {
+          found: !!account,
+          accountFound: account ? {
+            id: account.id,
+            originalNumber: account.originalNumber,
+            number: account.number,
+            title: account.title,
+            normalizedTitle: account.title ? normalizeTitle(account.title) : null
+          } : null
+        });
+      }
     }
     
     return account;
@@ -136,6 +206,22 @@ export const useCorrectionsImport = ({
       let duplicateCodeCount = 0;
       const allOriginalCodes = getAllOriginalCodes();
       
+      // Log des duplicates disponibles une seule fois avant la boucle (optimisation performance)
+      if (DEBUG) {
+        const accountsWithoutOriginalNumber = duplicates.filter(d => !d.originalNumber);
+        console.log('🔍 DEBUG - Tous les duplicates disponibles:', {
+          total: duplicates.length,
+          withoutOriginalNumber: accountsWithoutOriginalNumber.length,
+          accounts: duplicates.map(d => ({
+            id: d.id,
+            originalNumber: d.originalNumber,
+            number: d.number,
+            title: d.title,
+            normalizedTitle: d.title ? normalizeTitle(d.title) : null
+          }))
+        });
+      }
+      
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -145,9 +231,21 @@ export const useCorrectionsImport = ({
         
         const [accountNumber, title, replacementCode] = parsedLine;
         
-        if (!accountNumber || !title || !replacementCode) {
-          continue;
+        if (DEBUG) {
+        console.log('🔍 DEBUG - Ligne CSV parsée:', {
+          lineNumber: i,
+          accountNumber,
+          title,
+          replacementCode
+        });
+      }
+      
+      if (!accountNumber || !title || !replacementCode) {
+        if (DEBUG) {
+          console.log('⚠️ DEBUG - Données manquantes, ligne ignorée');
         }
+        continue;
+      }
         
         const duplicateAccount = findDuplicateAccount(accountNumber, title);
         const existingCodes = Object.values(replacementCodes);
@@ -163,6 +261,17 @@ export const useCorrectionsImport = ({
             duplicateCodeCount++;
           }
         }
+      }
+      
+      // Log de résumé après l'import (feedback rapide)
+      const totalLines = lines.length - 1; // Exclure l'en-tête
+      if (DEBUG) {
+        console.log('📊 Import summary:', {
+          total: totalLines,
+          matched: processedCount,
+          unmatched: totalLines - processedCount,
+          duplicateCodeCount
+        });
       }
       
       setCorrectionsFileInfo({

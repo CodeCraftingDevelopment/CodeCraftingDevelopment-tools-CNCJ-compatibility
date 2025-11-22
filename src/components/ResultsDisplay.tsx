@@ -158,8 +158,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="flex justify-center mb-6 gap-4">
           <button
             onClick={() => {
-              // Export CSV pour les doublons (step 4)
-              const csvHeaders = ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion'];
+              // Export CSV pour les doublons (step 4) ou conflits CNCJ (step 6)
+              const csvHeaders = conflictType === 'cncj-conflicts' 
+                ? ['code client', 'code 7 chiffres', 'titre', 'code remplacement']
+                : ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion'];
               const csvRows = duplicates.map(d => {
                 const codeClient = getDisplayCode(d); // Code 8 chiffres original ou fallback
                 const code7Chiffres = d.number.padStart(7, '0');
@@ -167,7 +169,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 const codeRemplacement = replacementCodes[d.id] || '';
                 const suggestion = suggestions.get(d.id) || '';
                 
-                return [codeClient, code7Chiffres, titre, codeRemplacement, suggestion];
+                const rowData = [codeClient, code7Chiffres, titre, codeRemplacement];
+                if (conflictType !== 'cncj-conflicts') {
+                  rowData.push(suggestion);
+                }
+                
+                return rowData;
               });
               
               const csvContent = [
