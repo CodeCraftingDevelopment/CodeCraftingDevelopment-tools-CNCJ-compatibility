@@ -1,10 +1,14 @@
 N° de compte;Intitulé du compte;Catégorie
 1080000;Compte du commissaire de justice;CNCJ
+1081000;Commissaire de justice - compte prélèvemets;CNCJ
+1082000;Commissaire de justice - apports (compte permanant);CNCJ
 4011100;Fournisseurs de l'office;CNCJ
 4011300;Fournisseurs liés aux comptes clients (activité de ventes judiciaires);CNCJ
 4120000;Clients - Prestations de service facturées (activité de ventes judiciaires);CNCJ
 4196300;Fonds détenus pour le compte des clients (activité de ventes judiciaires);CNCJ
 4196990;Clients ouverture informatique;CNCJ
+4198000;Clients en attente d'imputation;CNCJ
+4198990;Clients virements inter dossiers;CNCJ
 4362000;Assurance maladie des professions libérales;CNCJ
 4363000;Caisse de retraite des commissaires de justice - CAVOM;CNCJ
 4368000;Autres organismes sociaux et de retraite des commissaires de justice;CNCJ
@@ -12,7 +16,6 @@ N° de compte;Intitulé du compte;Catégorie
 4456620;TVA déductible - Adjugé 5,5%;CNCJ
 4456630;TVA déductible - Adjugé 10%;CNCJ
 4456640;TVA déductible - Adjugé 20%;CNCJ
-4457100;Tva Collectée;CNCJ
 4457110;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires);CNCJ
 4457111;TVA collectée honoraires - ventes judiciaires 5,5%;CNCJ
 4457112;TVA collectée honoraires - ventes judiciaires 10%;CNCJ
@@ -21,6 +24,7 @@ N° de compte;Intitulé du compte;Catégorie
 4457115;TVA collectée - Adjugé ventes judiciaires 10%;CNCJ
 4457116;TVA collectée - Adjugé ventes judiciaires 20%;CNCJ
 4457180;Tva Collectée facturée sur autres produits HT;CNCJ
+4550000;Prélèvement des commissaires de justice associés;CNCJ
 4552000;Charges sociales des commissaires de justice associés;CNCJ
 4555000;CSG déductible des commissaires de justice associés;CNCJ
 4556000;Frais divers des commissaires de justice associés;CNCJ
@@ -44,7 +48,7 @@ N° de compte;Intitulé du compte;Catégorie
 5420000;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64;CNCJ
 5421000;Banques établissements dépositaires autorisés - compte de placement;CNCJ
 5800000;Virements internes;CNCJ
-5810000;Virements internes - Banues établissements dépositaires autorisés;CNCJ
+5810000;Virements internes - Banques établissements dépositaires autorisés;CNCJ
 6281200;Cotisations chambres;CNCJ
 6281210;Cotisations chambre nationale;CNCJ
 6281220;Cotisations chambre régionale;CNCJ
@@ -64,11 +68,9 @@ N° de compte;Intitulé du compte;Catégorie
 7061409;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA;CNCJ
 7061410;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA;CNCJ
 7061411;Ventes judiciaires - Honoraires vendeurs Export exo TVA;CNCJ
-7061412;Ventes judiciaires - Honoraires vendeurs Franchise exo TVA;CNCJ
 7061500;Ventes judiciaires - Formalités;CNCJ
 7062600;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises;CNCJ
 7068000;Autres produits HT;CNCJ
-7068100;Autres produits exo TVA;CNCJ
 7088000;Débours récupérés;CNCJ
 7094000;Débours payés irrécupérables;CNCJ
 7583000;Versements de la CVO;CNCJ
