@@ -87,7 +87,7 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
               }
               
               headers.forEach((header: any, index: number) => {
-                if (typeof header === 'string' && index < alignedCells.length) {
+                if (typeof header === 'string' && index < alignedCells.length && rawData) {
                   rawData[header.trim()] = alignedCells[index] || '';
                 }
               });
