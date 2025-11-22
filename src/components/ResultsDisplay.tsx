@@ -6,7 +6,7 @@ import { DropZone } from './DropZone';
 import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
 import { calculateSuggestions } from '../utils/codeSuggestions';
-import { getDisplayCode } from '../utils/accountUtils';
+import { getDisplayCode, normalizeAccountCode } from '../utils/accountUtils';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -251,10 +251,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 Object.entries(replacementCodes).forEach(([accountId, code]) => {
                   const trimmedCode = code?.trim();
                   if (trimmedCode) {
-                    if (!codeOccurrences[trimmedCode]) {
-                      codeOccurrences[trimmedCode] = [];
+                    const normalizedCode = normalizeAccountCode(trimmedCode);
+                    if (!codeOccurrences[normalizedCode]) {
+                      codeOccurrences[normalizedCode] = [];
                     }
-                    codeOccurrences[trimmedCode].push(accountId);
+                    codeOccurrences[normalizedCode].push(accountId);
                   }
                 });
                 
@@ -267,12 +268,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 
                 return duplicates.map((account) => {
                   const currentCode = replacementCodes[account.id]?.trim();
-                  const isDuplicateWithOriginal = !!currentCode && allOriginalCodes.has(currentCode);
-                  const isDuplicateWithReplacement = !!currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+                  const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
+                  const isDuplicateWithOriginal = !!currentCode && allOriginalCodes.has(normalizedCurrentCode);
+                  const isDuplicateWithReplacement = !!currentCode && (codeOccurrences[normalizedCurrentCode]?.length || 0) > 1;
                   const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
                   
-                  // Validation CNCJ : vérifier si le code existe dans les codes CNCJ
-                  const isCncjCode = !!(conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(currentCode));
+                  // Validation CNCJ : vérifier si le code existe dans les codes CNCJ (normaliser à 7 chiffres)
+                  const isCncjCode = !!(conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(normalizedCurrentCode));
                   
                   return (
                     <DuplicateRow

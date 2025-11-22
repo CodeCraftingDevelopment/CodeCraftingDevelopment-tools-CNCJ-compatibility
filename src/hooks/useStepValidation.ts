@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Account, ProcessingResult } from '../types/accounts';
+import { normalizeAccountCode } from '../utils/accountUtils';
 
 interface UseStepValidationProps {
   result: ProcessingResult | null;
@@ -30,10 +31,11 @@ export const useStepValidation = ({
       if (!duplicateIds.has(accountId)) return;
       const trimmedCode = code?.trim();
       if (trimmedCode) {
-        if (!codeOccurrences[trimmedCode]) {
-          codeOccurrences[trimmedCode] = [];
+        const normalizedCode = normalizeAccountCode(trimmedCode);
+        if (!codeOccurrences[normalizedCode]) {
+          codeOccurrences[normalizedCode] = [];
         }
-        codeOccurrences[trimmedCode].push(accountId);
+        codeOccurrences[normalizedCode].push(accountId);
       }
     });
     
@@ -48,8 +50,9 @@ export const useStepValidation = ({
     return result.duplicates.every((account) => {
       const currentCode = replacementCodes[account.id]?.trim();
       const isEmpty = !currentCode;
-      const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
-      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+      const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
+      const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(normalizedCurrentCode);
+      const isDuplicateWithReplacement = currentCode && (codeOccurrences[normalizedCurrentCode]?.length || 0) > 1;
       const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
       
       return !isEmpty && !isDuplicateCode;
@@ -68,10 +71,11 @@ export const useStepValidation = ({
       if (!conflictIds.has(accountId)) return;
       const trimmedCode = code?.trim();
       if (trimmedCode) {
-        if (!codeOccurrences[trimmedCode]) {
-          codeOccurrences[trimmedCode] = [];
+        const normalizedCode = normalizeAccountCode(trimmedCode);
+        if (!codeOccurrences[normalizedCode]) {
+          codeOccurrences[normalizedCode] = [];
         }
-        codeOccurrences[trimmedCode].push(accountId);
+        codeOccurrences[normalizedCode].push(accountId);
       }
     });
     
@@ -92,8 +96,9 @@ export const useStepValidation = ({
     return cncjConflictResult.duplicates.every((account) => {
       const currentCode = cncjReplacementCodes[account.id]?.trim();
       const isEmpty = !currentCode;
-      const isDuplicateWithOthers = currentCode && allOtherCodes.has(currentCode);
-      const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
+      const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
+      const isDuplicateWithOthers = currentCode && allOtherCodes.has(normalizedCurrentCode);
+      const isDuplicateWithReplacement = currentCode && (codeOccurrences[normalizedCurrentCode]?.length || 0) > 1;
       const isDuplicateCode = isDuplicateWithOthers || isDuplicateWithReplacement;
       
       return !isEmpty && !isDuplicateCode;
