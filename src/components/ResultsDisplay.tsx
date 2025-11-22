@@ -179,7 +179,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'correction_doublons.csv';
+              a.download = conflictType === 'cncj-conflicts' ? 'correction_conflits.csv' : 'correction_doublons.csv';
               a.click();
               URL.revokeObjectURL(url);
             }}
