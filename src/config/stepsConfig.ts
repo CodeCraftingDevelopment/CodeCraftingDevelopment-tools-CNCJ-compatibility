@@ -17,6 +17,11 @@ export interface StepConfig {
 }
 
 // Configuration centralisée de toutes les étapes
+// NOTE : Les fonctions canProceed suivent ce pattern :
+// - step1 : Utilise canProceed depuis stepsConfig (via canProceedToNext dans App.tsx)
+// - step2, step3, step5 : Toujours autorisées (pas de validation requise)
+// - step4, step6 : Validation gérée par useStepValidation hook (ignore stepsConfig)
+// - stepFinal : Désactivée explicitement (canProceed={false} dans App.tsx)
 export const STEPS_CONFIG: StepConfig[] = [
   {
     id: 'step1',
@@ -43,7 +48,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     description: 'Comptes ayant le même numéro ET le même titre fusionnés automatiquement',
     badge: 'Step 2',
     badgeColor: 'green',
-    canProceed: () => true // Toujours possible de continuer
+    canProceed: () => true // Toujours autorisé - pas de validation requise pour cette étape
   },
   {
     id: 'step3',
@@ -52,8 +57,8 @@ export const STEPS_CONFIG: StepConfig[] = [
     icon: '📏',
     description: 'Normalisation des numéros de compte (7 chiffres maximum)',
     badge: 'Step 3',
-    badgeColor: 'green', // Simplifié pour TypeScript, la logique conditionnelle peut être gérée dans le composant
-    canProceed: () => true // Toujours possible de continuer
+    badgeColor: 'green',
+    canProceed: () => true // Toujours autorisé - pas de validation requise pour cette étape
   },
   {
     id: 'step4',
@@ -63,39 +68,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     description: 'Résolution des doublons dans les comptes clients',
     badge: 'Step 4',
     badgeColor: 'green',
-    canProceed: (state) => {
-      if (!state.result || state.result.duplicates.length === 0) return true;
-      
-      const duplicateIds = new Set(state.result.duplicates.map(d => d.id));
-      const codeOccurrences: { [key: string]: string[] } = {};
-      
-      Object.entries(state.replacementCodes).forEach(([accountId, code]) => {
-        if (!duplicateIds.has(accountId)) return;
-        const trimmedCode = code?.trim();
-        if (trimmedCode) {
-          if (!codeOccurrences[trimmedCode]) {
-            codeOccurrences[trimmedCode] = [];
-          }
-          codeOccurrences[trimmedCode].push(accountId);
-        }
-      });
-      
-      const allOriginalCodes = new Set([
-        ...state.result.uniqueClients.map(acc => acc.number),
-        ...state.result.matches.map(acc => acc.number), 
-        ...state.result.unmatchedClients.map(acc => acc.number)
-      ]);
-      
-      return state.result.duplicates.every((account) => {
-        const currentCode = state.replacementCodes[account.id]?.trim();
-        const isEmpty = !currentCode;
-        const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(currentCode);
-        const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
-        const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
-        
-        return !isEmpty && !isDuplicateCode;
-      });
-    }
+    canProceed: () => true // Validation gérée par useStepValidation hook (voir App.tsx ligne 595)
   },
   {
     id: 'step5',
@@ -105,7 +78,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     description: 'Vérification des corrections de doublons appliquées',
     badge: 'Step 5',
     badgeColor: 'green',
-    canProceed: () => true // Toujours possible de continuer
+    canProceed: () => true // Toujours autorisé - pas de validation requise pour cette étape
   },
   {
     id: 'step6',
@@ -115,46 +88,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     description: 'Résolution des conflits avec les codes CNCJ',
     badge: 'Step 6',
     badgeColor: 'green',
-    canProceed: (state) => {
-      if (!state.cncjConflictResult || state.cncjConflictResult.duplicates.length === 0) return true;
-      
-      const conflictIds = new Set(state.cncjConflictResult.duplicates.map(d => d.id));
-      const codeOccurrences: { [key: string]: string[] } = {};
-      
-      Object.entries(state.cncjReplacementCodes).forEach(([accountId, code]) => {
-        if (!conflictIds.has(accountId)) return;
-        const trimmedCode = code?.trim();
-        if (trimmedCode) {
-          if (!codeOccurrences[trimmedCode]) {
-            codeOccurrences[trimmedCode] = [];
-          }
-          codeOccurrences[trimmedCode].push(accountId);
-        }
-      });
-      
-      const cncjConflictCodes = new Set(state.cncjConflictResult.duplicates.map(d => d.number));
-      const otherCncjCodes = state.cncjAccounts
-        .filter(acc => !cncjConflictCodes.has(acc.number))
-        .map(acc => acc.number);
-      
-      // Récupérer les comptes clients fusionnés depuis le state
-      const mergedClientAccounts = state.clientAccounts; // À ajuster selon votre logique
-      const otherClientCodes = mergedClientAccounts
-        .filter(acc => !conflictIds.has(acc.id))
-        .map(acc => acc.number);
-      
-      const allOtherCodes = new Set([...otherCncjCodes, ...otherClientCodes]);
-      
-      return state.cncjConflictResult.duplicates.every((account) => {
-        const currentCode = state.cncjReplacementCodes[account.id]?.trim();
-        const isEmpty = !currentCode;
-        const isDuplicateWithOthers = currentCode && allOtherCodes.has(currentCode);
-        const isDuplicateWithReplacement = currentCode && (codeOccurrences[currentCode]?.length || 0) > 1;
-        const isDuplicateCode = isDuplicateWithOthers || isDuplicateWithReplacement;
-        
-        return !isEmpty && !isDuplicateCode;
-      });
-    }
+    canProceed: () => true // Validation gérée par useStepValidation hook (voir App.tsx ligne 640)
   },
   {
     id: 'stepFinal',
@@ -164,7 +98,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     description: 'Récapitulatif final de toutes les modifications',
     badge: 'Récapitulatif Final',
     badgeColor: 'green',
-    canProceed: () => true
+    canProceed: () => true // Désactivée explicitement dans App.tsx (canProceed={false} ligne 664)
   }
 ];
 
