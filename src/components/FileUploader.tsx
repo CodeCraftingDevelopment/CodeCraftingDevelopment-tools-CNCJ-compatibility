@@ -165,7 +165,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   }, []);
 
   return (
-    <div className="mb-4 w-full">
+    <div className="mb-4 w-full" data-testid={`file-uploader-${source}`}>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
         <label className="block text-sm font-medium text-gray-700">
           {label}
@@ -184,6 +184,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         onClick={!fileInfo ? handlers.handleButtonClick : undefined}
         onKeyDown={(e) => handlers.handleKeyDown(e, !fileInfo ? handlers.handleButtonClick : undefined)}
         ariaLabel={!fileInfo ? `Zone de dépôt pour ${label}. Cliquez ou glissez-déposez un fichier CSV` : `Fichier sélectionné: ${fileInfo?.name}`}
+        dataTestId={`dropzone-${source}`}
+        uploadState={fileInfo?.loadStatus || 'idle'}
       >
         {/* Hidden file input */}
         <input
@@ -192,7 +194,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           accept=".csv"
           onChange={handlers.handleFileChange}
           disabled={disabled || fileInfo?.loadStatus === 'loading'}
-          className="hidden"
+          className="sr-only"
+          data-testid={`file-input-${source}`}
         />
         
         {/* Content based on state */}
@@ -211,6 +214,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               type="button"
               onClick={downloadTemplate}
               className="mt-2 px-3 py-1 text-xs bg-gray-50 text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+              data-testid={`download-template-${source}`}
             >
               Télécharger le modèle
             </button>
@@ -268,6 +272,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 type="button"
                 onClick={handleClearFile}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                data-testid={`clear-file-${source}`}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -298,6 +303,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                   type="button"
                   onClick={() => setIsModalOpen(true)}
                   className="mt-2 px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-colors flex items-center gap-2"
+                  data-testid={`view-errors-${source}`}
                 >
                   <span aria-hidden="true">⚠️</span>
                   <span>Détails des lignes ignorées</span>
@@ -311,6 +317,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 type="button"
                 onClick={() => setIsPreviewModalOpen(true)}
                 className="px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full hover:bg-green-100 transition-colors flex items-center gap-1"
+                data-testid={`preview-data-${source}`}
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -322,6 +329,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 type="button"
                 onClick={handlers.handleButtonClick}
                 className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+                data-testid={`change-file-${source}`}
               >
                 Changer le fichier
               </button>

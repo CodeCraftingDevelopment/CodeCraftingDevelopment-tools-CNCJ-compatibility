@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useMemo, useState } from 'react';
+import React, { useReducer, useCallback, useMemo, useState, useEffect } from 'react';
 
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
@@ -16,6 +16,7 @@ import { Step5ReviewCorrections } from './steps/Step5ReviewCorrections';
 import { Step6CNCJConflicts } from './steps/Step6CNCJConflicts';
 import { StepFinalSummary } from './steps/StepFinalSummary';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
+import { setupTestHelpers } from './utils/testHelpers';
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -699,4 +700,25 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+// Ajout des helpers de test pour le développement
+const AppWithTestHelpers: React.FC = () => {
+  const app = <App />;
+  
+  useEffect(() => {
+    // Initialiser les helpers de test uniquement en mode développement
+    if (import.meta.env.DEV) {
+      setupTestHelpers({
+        onFileLoaded: (accounts, source, _fileInfo) => {
+          console.log(`Test helper - File loaded for ${source}:`, accounts.length, accounts);
+        },
+        onFileCleared: (source) => {
+          console.log(`Test helper - File cleared for ${source}`);
+        }
+      });
+    }
+  }, []);
+
+  return app;
+};
+
+export default AppWithTestHelpers;

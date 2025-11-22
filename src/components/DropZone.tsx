@@ -15,6 +15,8 @@ export interface DropZoneProps {
   onKeyDown?: (event: React.KeyboardEvent) => void;
   ariaLabel?: string;
   tabIndex?: number;
+  dataTestId?: string;
+  uploadState?: string;
 }
 
 export const DropZone: React.FC<DropZoneProps> = ({
@@ -29,7 +31,9 @@ export const DropZone: React.FC<DropZoneProps> = ({
   onClick,
   onKeyDown,
   ariaLabel,
-  tabIndex = 0
+  tabIndex = 0,
+  dataTestId,
+  uploadState = 'idle'
 }) => {
   return (
     <div
@@ -37,6 +41,8 @@ export const DropZone: React.FC<DropZoneProps> = ({
       aria-label={ariaLabel}
       tabIndex={disabled || loading || fileInfo ? -1 : tabIndex}
       onKeyDown={onKeyDown}
+      data-testid={dataTestId}
+      data-upload-state={uploadState}
       className={`
         relative border-2 border-dashed rounded-lg px-3 py-4 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
         ${dragState === 'drag-over' 
