@@ -18,7 +18,7 @@ interface SummaryRow {
   isToCreate: boolean;
 }
 
-interface StepFinalSummaryProps {
+interface Step7FinalSummaryProps {
   clientAccounts: Account[];
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
@@ -33,7 +33,7 @@ interface StepFinalSummaryProps {
   onPcgManualOverrideChange?: (accountCode: string, overrides: Partial<Record<string, any>>) => void;
 }
 
-export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
+export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   clientAccounts,
   result,
   cncjConflictResult,

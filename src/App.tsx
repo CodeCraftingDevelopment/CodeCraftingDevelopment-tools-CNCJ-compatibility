@@ -14,8 +14,8 @@ import { Step2MergeVisualization } from './steps/Step2MergeVisualization';
 import { Step4DuplicatesResolution } from './steps/Step4DuplicatesResolution';
 import { Step5ReviewCorrections } from './steps/Step5ReviewCorrections';
 import { Step6CNCJConflicts } from './steps/Step6CNCJConflicts';
-import { Step7MetadataCompletion } from './steps/Step7MetadataCompletion';
-import { StepFinalSummary } from './steps/StepFinalSummary';
+import { Step7FinalSummary } from './steps/Step7FinalSummary';
+import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
 
@@ -698,18 +698,20 @@ const App: React.FC = () => {
           </StepRenderer>
         )}
 
-        {/* Step 7: Metadata Completion */}
+        {/* Step 7: Final Summary */}
         {currentStepConfig && currentStepConfig.id === 'step7' && (
           <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step7MetadataCompletion
+            <Step7FinalSummary
               clientAccounts={state.clientAccounts}
-              mergedClientAccounts={mergedClientAccounts}
-              generalAccounts={state.generalAccounts}
+              result={state.result}
+              cncjConflictResult={state.cncjConflictResult}
               replacementCodes={state.replacementCodes}
               cncjReplacementCodes={state.cncjReplacementCodes}
-              onMetadataChange={handleMetadataChange}
-              onNext={handleNavigateNext}
-              onPrevious={handleNavigatePrevious}
+              cncjConflictCorrections={state.cncjConflictCorrections}
+              mergedClientAccounts={mergedClientAccounts}
+              generalAccounts={state.generalAccounts}
+              finalFilter={state.finalFilter}
+              onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
             />
             <StepNavigation
               currentStep={currentStepConfig}
@@ -722,20 +724,16 @@ const App: React.FC = () => {
           </StepRenderer>
         )}
 
-        {/* Step Final: Summary */}
+        {/* Step Final: Metadata Completion */}
         {currentStepConfig && currentStepConfig.id === 'stepFinal' && (
           <StepRenderer step={currentStepConfig} isActive={true}>
-            <StepFinalSummary
+            <Step8MetadataCompletion
               clientAccounts={state.clientAccounts}
-              result={state.result}
-              cncjConflictResult={state.cncjConflictResult}
-              replacementCodes={state.replacementCodes}
-              cncjReplacementCodes={state.cncjReplacementCodes}
-              cncjConflictCorrections={state.cncjConflictCorrections}
               mergedClientAccounts={mergedClientAccounts}
               generalAccounts={state.generalAccounts}
-              finalFilter={state.finalFilter}
-              onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
+              replacementCodes={state.replacementCodes}
+              cncjReplacementCodes={state.cncjReplacementCodes}
+              onMetadataChange={handleMetadataChange}
             />
             <StepNavigation
               currentStep={currentStepConfig}

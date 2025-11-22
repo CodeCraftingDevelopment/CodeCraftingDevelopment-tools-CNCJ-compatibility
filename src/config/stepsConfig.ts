@@ -93,21 +93,21 @@ export const STEPS_CONFIG: StepConfig[] = [
   {
     id: 'step7',
     order: 7,
-    title: 'Correspondances manquantes',
-    icon: '🔧',
-    description: 'Traitement des lignes sans correspondances PCG pour remplir les colonnes',
+    title: 'Résumé des corrections appliquées',
+    icon: '📊',
+    description: 'Récapitulatif final de toutes les modifications',
     badge: 'Step 7',
-    badgeColor: 'orange',
+    badgeColor: 'green',
     canProceed: () => true // Toujours autorisé - pas de validation requise pour cette étape
   },
   {
     id: 'stepFinal',
     order: 8,
-    title: 'Résumé des corrections appliquées',
-    icon: '📊',
-    description: 'Récapitulatif final de toutes les modifications',
-    badge: 'Récapitulatif Final',
-    badgeColor: 'green',
+    title: 'Correspondances manquantes',
+    icon: '🔧',
+    description: 'Traitement des lignes sans correspondances PCG pour remplir les colonnes',
+    badge: 'Étape Finale',
+    badgeColor: 'orange',
     canProceed: () => true // Désactivée explicitement dans App.tsx (canProceed={false} ligne 664)
   }
 ];

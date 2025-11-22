@@ -12,25 +12,21 @@ interface MetadataRow {
   isInPcg: boolean; // pour le filtrage correct
 }
 
-interface Step7MetadataCompletionProps {
+interface Step8MetadataCompletionProps {
   clientAccounts: Account[];
   mergedClientAccounts: Account[];
   generalAccounts: Account[];
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   onMetadataChange: (accountId: string, metadata: Record<string, any>) => void;
-  onNext: () => void;
-  onPrevious: () => void;
 }
 
-export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = ({
+export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = ({
   clientAccounts,
   generalAccounts,
   replacementCodes,
   cncjReplacementCodes,
-  onMetadataChange,
-  onNext,
-  onPrevious
+  onMetadataChange
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('all');
@@ -331,22 +327,6 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
           </div>
         </div>
       )}
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <button
-          onClick={onPrevious}
-          className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-        >
-          ← Précédent
-        </button>
-        <button
-          onClick={onNext}
-          className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-        >
-          Suivant →
-        </button>
-      </div>
     </div>
   );
 };
