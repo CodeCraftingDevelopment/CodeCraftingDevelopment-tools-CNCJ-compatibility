@@ -19,6 +19,7 @@ N° de compte;Intitulé du compte;Catégorie
 1064000;Réserves réglementées;PCG
 1068000;Autres réserves;PCG
 1070000;Ecart d'équivalence;PCG
+1080000;Compte du commissaire de justice;CNCJ
 1090000;Actionnaires : capital souscrit - non appelé;PCG
 1100000;Report à nouveau - solde débiteur;PCG
 1190000;Report à nouveau - solde créditeur;PCG
@@ -236,6 +237,8 @@ N° de compte;Intitulé du compte;Catégorie
 3970000;Dépréciations des stocks de marchandises;PCG
 4010000;Fournisseurs;PCG
 4011000;Fournisseurs - Achats de biens et de prestations de services;PCG
+4011100;Fournisseurs de l'office;CNCJ
+4011300;Fournisseurs liés aux comptes clients (activité de ventes judiciaires);CNCJ
 4017000;Fournisseurs - Retenues de garanties;PCG
 4030000;Fournisseurs - Effets à payer;PCG
 4040000;Fournisseurs d'immobilisations;PCG
@@ -253,6 +256,7 @@ N° de compte;Intitulé du compte;Catégorie
 4110000;Clients;PCG
 4111000;Clients - Ventes de biens ou de prestations de services;PCG
 4117000;Clients - Retenues de garanties;PCG
+4120000;Clients - Prestations de service facturées (activité de ventes judiciaires);CNCJ
 4130000;Clients - Effets à recevoir;PCG
 4160000;Clients douteux ou litigieux;PCG
 4180000;Clients - Produits non encore facturés;PCG
@@ -261,6 +265,8 @@ N° de compte;Intitulé du compte;Catégorie
 4190000;Clients créditeurs;PCG
 4191000;Clients - Avances et acomptes reçus;PCG
 4196000;Clients - Dettes pour emballages et matériels consignés;PCG
+4196300;Fonds détenus pour le compte des clients (activité de ventes judiciaires);CNCJ
+4196990;Clients ouverture informatique;CNCJ
 4197000;Clients - Autres avoirs;PCG
 4198000;Clients en attente d'imputation;PCG
 4198990;Clients virements inter dossiers;PCG
@@ -277,6 +283,9 @@ N° de compte;Intitulé du compte;Catégorie
 4284000;Dettes provisionnées pour participation des salariés aux résultats;PCG
 4286000;Autres charges à payer;PCG
 4310000;Sécurité sociale;PCG
+4362000;Assurance maladie des professions libérales;CNCJ
+4363000;Caisse de retraite des commissaires de justice - CAVOM;CNCJ
+4368000;Autres organismes sociaux et de retraite des commissaires de justice;CNCJ
 4370000;Autres organismes sociaux;PCG
 4380000;Organismes sociaux - Charges à payer;PCG
 4382000;Charges sociales sur congés payés;PCG
@@ -297,10 +306,23 @@ N° de compte;Intitulé du compte;Catégorie
 4456200;TVA sur immobilisations;PCG
 4456300;Tva transférée par d'autres entités;PCG
 4456600;Tva sur autres biens et services;PCG
+4456660;TVA déductible sur autres biens et services payés - encaissement;CNCJ
+4456620;TVA déductible - Adjugé 5,5%;CNCJ
+4456630;TVA déductible - Adjugé 10%;CNCJ
+4456640;TVA déductible - Adjugé 20%;CNCJ
 4456662;TVA Déductible Intracom;PCG
 4456700;Crédit de TVA;PCG
 4456800;Taxes assimilées à la TVA;PCG
 4457000;Taxes sur le chiffre d'affaires collectées;PCG
+4457100;Tva Collectée;CNCJ
+4457110;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires);CNCJ
+4457111;TVA collectée honoraires - ventes judiciaires 5,5%;CNCJ
+4457112;TVA collectée honoraires - ventes judiciaires 10%;CNCJ
+4457113;TVA collectée honoraires - ventes judiciaires 20%;CNCJ
+4457114;TVA collectée - Adjugé ventes judiciaires 5,5%;CNCJ
+4457115;TVA collectée - Adjugé ventes judiciaires 10%;CNCJ
+4457116;TVA collectée - Adjugé ventes judiciaires 20%;CNCJ
+4457180;Tva Collectée facturée sur autres produits HT;CNCJ
 4458000;Taxes sur le chiffre d'affaires à régulariser ou en attente;PCG
 4458100;Acomptes - Régimes simplifié d'imposition;PCG
 4458300;Remboursement de taxes sur le chiffre d'affaires demandé;PCG
@@ -316,6 +338,9 @@ N° de compte;Intitulé du compte;Catégorie
 4510000;Groupe;PCG
 4550000;Associés - comptes courants;PCG
 4551000;Principal;PCG
+4552000;Charges sociales des commissaires de justice associés;CNCJ
+4555000;CSG déductible des commissaires de justice associés;CNCJ
+4556000;Frais divers des commissaires de justice associés;CNCJ
 4558000;Intérets courus;PCG
 4560000;Associés - Opérations sur le capital;PCG
 4561000;Associés - Comptes d'apport en société;PCG
@@ -332,7 +357,24 @@ N° de compte;Intitulé du compte;Catégorie
 4640000;Dettes sur acquisitions de valeurs mobilières de placement;PCG
 4650000;Créances sur cessions de valeurs mobilières de placement;PCG
 4670000;Divers comptes débiteurs et produits à recevoir;PCG
+4670300;Débours (activité de ventes judiciaires);CNCJ
+4671000;Ventes judiciaires - Compte créditeur de regroupement des comptes auxiliaires;CNCJ
+4672000;Ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires;CNCJ
 4680000;Divers comptes créditeurs et charges à payer;PCG
+4681000;Commissaires de justice - Divers comptes créditeurs et charges à payer;CNCJ
+4682000;Ventes judiciaires - Compte adjudication;CNCJ
+4682010;Ventes judiciaires - Adjudications assujetties 5,5%;CNCJ
+4682020;Ventes judiciaires - Adjudications assujetties 10%;CNCJ
+4682030;Ventes judiciaires - Adjudications assujetties 20%;CNCJ
+4682040;Ventes judiciaires - Adjudications non assujetties TVA sur marge 5,5%;CNCJ
+4682050;Ventes judiciaires - Adjudications non assujetties TVA sur marge 10%;CNCJ
+4682060;Ventes judiciaires - Adjudications non assujetties TVA sur marge 20%;CNCJ
+4682070;Ventes judiciaires - Adjudications non assujetties Livraison CEE exo TVA;CNCJ
+4682080;Ventes judiciaires - Adjudications non assujetties Export eco TVA;CNCJ
+4682090;Ventes judiciaires - Adjudications non assujetties Franchise exo TVA;CNCJ
+4682100;Ventes judiciaires - Adjudications assujetties Livraison CEE exo TVA;CNCJ
+4682110;Ventes judiciaires - Adjudications assujetties Export eco TVA;CNCJ
+4682120;Ventes judiciaires - Adjudications assujetties Franchise exo TVA;CNCJ
 4710000;Comptes d'attente;PCG
 4720000;Comptes d'attente;PCG
 4730000;Comptes d'attente;PCG
@@ -408,6 +450,10 @@ N° de compte;Intitulé du compte;Catégorie
 5230000;Jetons auto-détenus;PCG
 5240000;Jetons empruntés;PCG
 5300000;Caisse;PCG
+5420000;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64;CNCJ
+5421000;Banques établissements dépositaires autorisés - compte de placement;CNCJ
+5800000;Virements internes;CNCJ
+5810000;Virements internes - Banues établissements dépositaires autorisés;CNCJ
 5900000;Dépréciations des valeurs mobilières de placement;PCG
 5903000;Actions;PCG
 5904000;Autres titres conférant un droit de propriété;PCG
@@ -505,6 +551,11 @@ N° de compte;Intitulé du compte;Catégorie
 6278000;Autres frais et commissions sur prestations de services;PCG
 6280000;Divers;PCG
 6281000;Concours divers (cotisations);PCG
+6281200;Cotisations chambres;CNCJ
+6281210;Cotisations chambre nationale;CNCJ
+6281220;Cotisations chambre régionale;CNCJ
+6282000;Contribution volontaire obligatoire - CVO;CNCJ
+6283000;Cotisations professionnelles volontaires;CNCJ
 6284000;Frais de recrutement de personnel;PCG
 6290000;Rabais, remises et ristournes obtenus sur autres services extérieurs;PCG
 6310000;Impôts, taxes et versements assimilés sur rémunérations (administrations des impôts);PCG
@@ -535,6 +586,7 @@ N° de compte;Intitulé du compte;Catégorie
 6413000;Primes et gratifications;PCG
 6414000;Indemnités et avantages divers;PCG
 6415000;Supplément familial;PCG
+6440000;Rémunération des commissaires de justice associés;CNCJ
 6450000;Cotisations de Sécurité sociale et de prévoyance;PCG
 6451000;Cotisations URSSAF ;PCG
 6452000;Cotisations aux mutuelles;PCG
@@ -542,6 +594,7 @@ N° de compte;Intitulé du compte;Catégorie
 6454000;Cotisations France Travail;PCG
 6458000;Cotisations aux autres organismes sociaux;PCG
 6460000;Cotisations sociales personnelles de l'exploitant;PCG
+6462000;Cotisations de retraite - CAVOM;CNCJ
 6470000;Autres cotisations sociales;PCG
 6471000;Prestations directes;PCG
 6472000;Versements au comité social et économique;PCG
@@ -623,6 +676,23 @@ N° de compte;Intitulé du compte;Catégorie
 7040000;Travaux;PCG
 7050000;Etudes;PCG
 7060000;Prestations de services;PCG
+7061400;Ventes judiciaires - Actes, inventaires, prisées, ventes judiciaires;CNCJ
+7061401;Ventes judiciaires - Honoraires acheteurs 5,5%;CNCJ
+7061402;Ventes judiciaires - Honoraires acheteurs 10%;CNCJ
+7061403;Ventes judiciaires - Honoraires acheteurs 20%;CNCJ
+7061404;Ventes judiciares - Honoraires vendeurs 5,5%;CNCJ
+7061405;Ventes judiciares - Honoraires vendeurs 10%;CNCJ
+7061406;Ventes judiciares - Honoraires vendeurs 20%;CNCJ
+7061407;Ventes judiciaires - Honoraires acheteurs Livraison CEE exo TVA;CNCJ
+7061408;Ventes judiciaires - Honoraires acheteurs Export exo TVA;CNCJ
+7061409;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA;CNCJ
+7061410;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA;CNCJ
+7061411;Ventes judiciaires - Honoraires vendeurs Export exo TVA;CNCJ
+7061412;Ventes judiciaires - Honoraires vendeurs Franchise exo TVA;
+7061500;Ventes judiciaires - Formalités;CNCJ
+7062600;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises;CNCJ
+7068000;Autres produits HT;CNCJ
+7068100;Autres produits exo TVA;CNCJ
 7070000;Ventes de marchandises;PCG
 7080000;Produits des activités annexes;PCG
 7081000;Produits des services exploités dans l'intérêt du personnel;PCG
@@ -631,9 +701,11 @@ N° de compte;Intitulé du compte;Catégorie
 7084000;Mise à disposition du personnel facturée;PCG
 7085000;Ports et frais accessoires facturés;PCG
 7086000;Bonis sur reprises d'emballages consignés;PCG
+7088000;Débours récupérés;CNCJ
 7090000;Rabais, remises et ristournes accordés;PCG
 7091000;Rabais, remises et ristournes accordés sur ventes de produits finis;PCG
 7092000;Rabais, remises et ristournes accordés sur ventes de produits intermédiaires;PCG
+7094000;Débours payés irrécupérables;CNCJ
 7095000;Rabais, remises et ristournes accordés sur études;PCG
 7096000;Rabais, remises et ristournes accordés sur prestations de services;PCG
 7097000;Rabais, remises et ristournes accordés sur ventes de marchandises;PCG
@@ -663,6 +735,7 @@ N° de compte;Intitulé du compte;Catégorie
 7580000;Ecart de règlement - produits;PCG
 7581000;Dédits et pénalités perçus sur achats et ventes;PCG
 7582000;Libéralités reçues;PCG
+7583000;Versements de la CVO;CNCJ
 7584000;Dégrèvement d'impôts autres qu'impôts sur les bénéfices;PCG
 7585000;Bonis provenant de clauses d'indexation;PCG
 7586000;Lots;PCG
