@@ -15,7 +15,6 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
         const invalidRows: InvalidRow[] = [];
         let headers: any = null;
         let detectedFormat: any = null;
-        let isCncjFile = false; // Détecter si c'est un fichier avec colonne isCNCJ
         
         result.data.forEach((row: any, index: number) => {
           const cells = Array.isArray(row) ? row : Object.values(row ?? {});
@@ -28,10 +27,6 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
           const isHeaderRow = index === 0 && typeof firstCell === 'string' && firstCell.length > 0 && isNaN(Number(firstCell));
           if (isHeaderRow) {
             headers = cells;
-            // Détecter si c'est un fichier PCG_CNCJ avec colonne isCNCJ
-            isCncjFile = headers.some((header: string) => 
-              header.toLowerCase().includes('iscncj') || header.toLowerCase().includes('is_cncj')
-            );
             return;
           }
 
@@ -49,45 +44,7 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
 
           totalRows += 1;
 
-          // Pour les fichiers PCG_CNCJ, utiliser un parsing spécifique
-          if (isCncjFile) {
-            // Format attendu: importId;code;parent_code;name;...;isCNCJ
-            // La colonne code est à l'index 1, name à l'index 3, isCNCJ à la dernière position
-            const accountNumber = cells[1]?.toString().trim();
-            const accountTitle = cells[3]?.toString().trim();
-            const isCncj = cells[cells.length - 1]?.toString().toLowerCase() === 'true';
-
-            const recordInvalid = (reason: string) => {
-              skippedRows += 1;
-              const values = cells.map((cell) => (cell ?? '').toString().trim());
-              invalidRows.push({
-                lineNumber: index + 1,
-                values,
-                reason
-              });
-              errors.push(`Ligne ${index + 1}: ${reason}`);
-            };
-
-            if (!accountNumber) {
-              recordInvalid(`aucun numéro de compte détecté dans la colonne 'code'`);
-              return;
-            }
-
-            if (isValidAccountNumber(accountNumber, true)) { // Autoriser alphanumérique pour PCG_CNCJ
-              accounts.push({
-                id: `${accountNumber}-${index}`,
-                number: accountNumber,
-                title: accountTitle || undefined,
-                source: isCncj ? 'cncj' : 'general', // Attribuer la source selon isCNCJ
-                originalNumber: accountNumber // Stocker le code original pour cohérence
-              });
-            } else {
-              recordInvalid(`"${accountNumber}" n'est pas un numéro de compte valide`);
-            }
-            return;
-          }
-
-          // Logique existante pour les fichiers standards
+          // Logique pour les fichiers standards
           // Détecter le format une seule fois avec les headers
           if (!detectedFormat) {
             detectedFormat = detectCSVFormat(cells, headers);

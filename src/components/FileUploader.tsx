@@ -8,11 +8,11 @@ import { ImportErrorsModal } from './ImportErrorsModal';
 import { DataPreviewModal } from './DataPreviewModal';
 
 interface FileUploaderProps {
-  onFileLoaded: (accounts: Account[], source: 'client' | 'pcg_cncj', fileInfo: FileMetadata) => void;
-  onFileCleared: (source: 'client' | 'pcg_cncj') => void;
+  onFileLoaded: (accounts: Account[], source: 'client' | 'general' | 'cncj', fileInfo: FileMetadata) => void;
+  onFileCleared: (source: 'client' | 'general' | 'cncj') => void;
   onError: (errors: string[]) => void;
   label: string;
-  source: 'client' | 'pcg_cncj';
+  source: 'client' | 'general' | 'cncj';
   disabled?: boolean;
   fileInfo: FileMetadata | null;
   loadedAccounts?: Account[];
@@ -56,8 +56,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     onFileLoaded([], source, loadingFileInfo);
 
     try {
-      // Autoriser les codes alphanumériques pour les comptes PCG_CNCJ (format Axelor + CNCJ)
-      const allowAlphanumeric = source === 'pcg_cncj';
+      // Autoriser les codes alphanumériques pour les comptes généraux (format Axelor)
+      const allowAlphanumeric = source === 'general';
       const result: FileUploadResult = await parseCSVFile(file, allowAlphanumeric);
       setInvalidRows(result.invalidRows);
       const importedCount = result.accounts.length;
@@ -91,7 +91,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       
       const accountsWithSource = result.accounts.map(acc => ({
         ...acc,
-        source: source === 'pcg_cncj' ? acc.source : source // Conserver la source depuis le parsing pour pcg_cncj
+        source: source // Conserver la source pour les fichiers séparés
       }));
       
       const finalFileInfo: FileMetadata = {
@@ -331,8 +331,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       </DropZone>
       
       <p className="mt-2 text-xs text-gray-500 text-center">
-        {source === 'pcg_cncj' 
-          ? "Format CSV attendu: fichier Comptes_PCG_CNCJ avec colonnes (code, name, isCNCJ)"
+        {source === 'general' 
+          ? "Format CSV attendu: fichier Comptes_PCG avec colonnes (code, name) sans isCNCJ"
+          : source === 'cncj'
+          ? "Format CSV attendu: fichier Comptes_CNCJ avec colonnes (code, name)"
           : "Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)"
         }
       </p>

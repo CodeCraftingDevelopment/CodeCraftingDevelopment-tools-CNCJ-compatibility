@@ -28,7 +28,7 @@ export const STEPS_CONFIG: StepConfig[] = [
     order: 1,
     title: 'Chargement des fichiers',
     icon: '📁',
-    description: 'Importer les fichiers CSV des comptes clients et CNCJ',
+    description: 'Importer les fichiers CSV des comptes clients, du plan comptable général et des comptes CNCJ',
     badge: 'Step 1',
     badgeColor: 'green',
     canProceed: (state) => {

@@ -22,7 +22,8 @@ type AppAction =
   | { type: 'SET_CNCJ_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_GENERAL_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CLIENT_FILE_INFO'; payload: FileMetadata | null }
-  | { type: 'SET_PCG_CNCJ_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_CNCJ_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_GENERAL_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
@@ -71,8 +72,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, generalAccounts: action.payload };
     case 'SET_CLIENT_FILE_INFO':
       return { ...state, clientFileInfo: action.payload };
-    case 'SET_PCG_CNCJ_FILE_INFO':
-      return { ...state, cncjFileInfo: action.payload, generalFileInfo: action.payload };
+    case 'SET_CNCJ_FILE_INFO':
+      return { ...state, cncjFileInfo: action.payload };
+    case 'SET_GENERAL_FILE_INFO':
+      return { ...state, generalFileInfo: action.payload };
     case 'SET_RESULT':
       return { ...state, result: action.payload, loading: false };
     case 'SET_LOADING':
@@ -145,7 +148,7 @@ const App: React.FC = () => {
     }, 500);
   }, []);
 
-  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'pcg_cncj', fileInfo: FileMetadata) => {
+  const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'general' | 'cncj', fileInfo: FileMetadata) => {
     dispatch({ type: 'CLEAR_ERRORS' });
     
     // Réinitialiser toutes les étapes et données de traitement quand de nouveaux fichiers sont chargés
@@ -172,45 +175,60 @@ const App: React.FC = () => {
         dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: mergedAccounts });
         dispatch({ type: 'SET_MERGE_INFO', payload: mergeInfo });
         
-        // Process if we have both files and both are fully loaded (not loading)
-        if (state.cncjAccounts.length > 0 && state.cncjFileInfo?.loadStatus !== 'loading') {
+        // Process if we have all three files and they are fully loaded (not loading)
+        if (state.cncjFileInfo && state.cncjFileInfo.loadStatus !== 'loading' &&
+            state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
+            state.cncjAccounts.length > 0 && state.generalAccounts.length > 0) {
           processClientAccounts(mergedAccounts, state.cncjAccounts, state.generalAccounts);
         }
       }
-    } else if (source === 'pcg_cncj') {
-      // Séparer les comptes selon leur source (déterminée lors du parsing)
-      const cncjAccounts = accounts.filter(acc => acc.source === 'cncj');
-      const generalAccounts = accounts.filter(acc => acc.source === 'general');
+    } else if (source === 'general') {
+      console.log(`Chargement des comptes généraux: ${accounts.length} comptes`);
       
-      console.log(`Séparation des comptes PCG_CNCJ: ${cncjAccounts.length} comptes CNCJ et ${generalAccounts.length} comptes généraux`);
-      
-      dispatch({ type: 'SET_PCG_CNCJ_FILE_INFO', payload: fileInfo });
+      dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
-        dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: cncjAccounts });
-        dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: generalAccounts });
+        dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: accounts });
         
-        // Process if we have client file and it's fully loaded (not loading)
-        if (state.clientAccounts.length > 0 && state.clientFileInfo?.loadStatus !== 'loading') {
-          processClientAccounts(state.clientAccounts, cncjAccounts, generalAccounts);
+        // Process if we have client and CNCJ files and they are fully loaded (not loading)
+        if (state.clientFileInfo && state.clientFileInfo.loadStatus !== 'loading' &&
+            state.cncjFileInfo && state.cncjFileInfo.loadStatus !== 'loading' &&
+            state.clientAccounts.length > 0 && state.cncjAccounts.length > 0) {
+          processClientAccounts(state.clientAccounts, state.cncjAccounts, accounts);
+        }
+      }
+    } else if (source === 'cncj') {
+      console.log(`Chargement des comptes CNCJ: ${accounts.length} comptes`);
+      
+      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
+      // Only update accounts if not in loading state
+      if (fileInfo.loadStatus !== 'loading') {
+        dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: accounts });
+        
+        // Process if we have client and general files and they are fully loaded (not loading)
+        if (state.clientFileInfo && state.clientFileInfo.loadStatus !== 'loading' &&
+            state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
+            state.clientAccounts.length > 0 && state.generalAccounts.length > 0) {
+          processClientAccounts(state.clientAccounts, accounts, state.generalAccounts);
         }
       }
     }
-  }, [state.cncjAccounts, state.clientAccounts, state.generalAccounts, state.cncjFileInfo, state.clientFileInfo, processClientAccounts]);
+  }, [state.cncjAccounts, state.clientAccounts, state.generalAccounts, state.cncjFileInfo, state.generalFileInfo, state.clientFileInfo, processClientAccounts]);
 
   const handleError = useCallback((errors: string[]) => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
   }, []);
 
-  const handleFileCleared = useCallback((source: 'client' | 'pcg_cncj') => {
+  const handleFileCleared = useCallback((source: 'client' | 'general' | 'cncj') => {
     if (source === 'client') {
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
-    } else {
-      // Pour pcg_cncj, vider à la fois les comptes CNCJ et généraux
-      dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+    } else if (source === 'general') {
       dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
-      dispatch({ type: 'SET_PCG_CNCJ_FILE_INFO', payload: null });
+      dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
+    } else if (source === 'cncj') {
+      dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
+      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
     }
     // Réinitialiser le résultat et les étapes suivantes
     dispatch({ type: 'SET_RESULT', payload: null });
@@ -226,7 +244,8 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
-    dispatch({ type: 'SET_PCG_CNCJ_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
@@ -533,13 +552,15 @@ const App: React.FC = () => {
           <StepRenderer step={currentStepConfig} isActive={true}>
             <Step1FileUpload
               clientFileInfo={state.clientFileInfo}
-              pcgCncjFileInfo={state.cncjFileInfo}
+              generalFileInfo={state.generalFileInfo}
+              cncjFileInfo={state.cncjFileInfo}
               loading={state.loading}
               onFileLoaded={handleFileLoaded}
               onFileCleared={handleFileCleared}
               onError={handleError}
               clientAccounts={state.clientAccounts}
-              pcgCncjAccounts={[...state.cncjAccounts, ...state.generalAccounts]}
+              generalAccounts={state.generalAccounts}
+              cncjAccounts={state.cncjAccounts}
             />
             <StepNavigation
               currentStep={currentStepConfig}
