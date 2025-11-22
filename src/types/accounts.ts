@@ -3,6 +3,7 @@ export interface Account {
   number: string;
   title?: string;
   source: 'client' | 'cncj' | 'general';
+  originalNumber?: string; // Code original 8 chiffres du fichier d'import
 }
 
 export interface NormalizationAccount {

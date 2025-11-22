@@ -121,7 +121,8 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
               id: `${trimmedAccountNumber}-${index}`,
               number: trimmedAccountNumber,
               title: accountTitle || undefined,
-              source: 'client' // Will be updated by caller
+              source: 'client', // Will be updated by caller
+              originalNumber: trimmedAccountNumber // Stocker le code original 8 chiffres
             });
           } else {
             recordInvalid(`"${trimmedAccountNumber}" n'est pas un numéro de compte valide`);

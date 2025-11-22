@@ -26,21 +26,39 @@ export const useCorrectionsImport = ({
   };
 
   const parseCSVLine = (line: string): [string, string, string] | null => {
-    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;?/);
+    // Gérer les 3 ou 4 colonnes (avec ou sans suggestion)
+    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;(?:\s*"?([^"]*)"?;?)?/);
     if (!match) return null;
     
-    return [
-      match[1].trim(), // accountNumber
-      match[2].trim(), // title
-      match[3].trim()  // replacementCode
-    ];
+    const accountNumber = match[1].trim();
+    const title = match[2].trim();
+    let replacementCode = match[3].trim();
+    const suggestion = match[4] ? match[4].trim() : '';
+    
+    // Utiliser la suggestion si le code de remplacement est vide
+    if (!replacementCode && suggestion) {
+      replacementCode = suggestion;
+    }
+    
+    return [accountNumber, title, replacementCode];
   };
 
   const findDuplicateAccount = (accountNumber: string, title: string): Account | undefined => {
-    return duplicates.find(d => 
-      d.number === accountNumber && 
-      d.title && d.title.toLowerCase().trim() === title.toLowerCase()
+    // Essayer d'abord le matching direct par code original 8 chiffres + titre
+    let account = duplicates.find(d => 
+      d.originalNumber === accountNumber && 
+      d.title && d.title.trim() === title.trim()
     );
+    
+    // Si pas trouvé, essayer le matching par numéro normalisé + titre (fallback)
+    if (!account) {
+      account = duplicates.find(d => 
+        d.number === accountNumber && 
+        d.title && d.title.trim() === title.trim()
+      );
+    }
+    
+    return account;
   };
 
   const isDuplicateCode = (

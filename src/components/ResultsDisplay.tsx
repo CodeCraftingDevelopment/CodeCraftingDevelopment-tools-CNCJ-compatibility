@@ -157,13 +157,17 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="flex justify-center mb-6 gap-4">
           <button
             onClick={() => {
-              // Export CSV pour les doublons (step 2)
-              const csvHeaders = ['Numéro compte', 'Titre', 'Code remplacement'];
-              const csvRows = duplicates.map(d => [
-                d.number,
-                d.title || '',
-                replacementCodes[d.id] || ''
-              ]);
+              // Export CSV pour les doublons (step 4)
+              const csvHeaders = ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion'];
+              const csvRows = duplicates.map(d => {
+                const codeClient = d.originalNumber || d.number; // Code 8 chiffres original ou fallback
+                const code7Chiffres = d.number.padStart(7, '0');
+                const titre = d.title || '';
+                const codeRemplacement = replacementCodes[d.id] || '';
+                const suggestion = suggestions.get(d.id) || '';
+                
+                return [codeClient, code7Chiffres, titre, codeRemplacement, suggestion];
+              });
               
               const csvContent = [
                 csvHeaders.join(';'),
@@ -174,7 +178,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'conflits-cncj.csv';
+              a.download = 'correction_doublons.csv';
               a.click();
               URL.revokeObjectURL(url);
             }}
