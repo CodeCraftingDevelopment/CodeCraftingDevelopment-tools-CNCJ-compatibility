@@ -22,18 +22,22 @@ export const useCorrectionsImport = ({
   const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
 
   const validateHeaders = (headers: string[]): boolean => {
-    return headers.includes('Code remplacement');
+    // Vérifier les en-têtes du nouveau format (insensible à la casse)
+    const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
+    return normalizedHeaders.includes('code client') && 
+           normalizedHeaders.includes('titre') && 
+           normalizedHeaders.includes('code remplacement');
   };
 
   const parseCSVLine = (line: string): [string, string, string] | null => {
-    // Gérer les 3 ou 4 colonnes (avec ou sans suggestion)
-    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;(?:\s*"?([^"]*)"?;?)?/);
+    // Gérer les 5 colonnes du nouveau format : code client, code 7 chiffres, titre, code remplacement, suggestion
+    const match = line.match(/^"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;\s*"?([^"]*)"?;(?:\s*"?([^"]*)"?;?)?/);
     if (!match) return null;
     
-    const accountNumber = match[1].trim();
-    const title = match[2].trim();
-    let replacementCode = match[3].trim();
-    const suggestion = match[4] ? match[4].trim() : '';
+    const accountNumber = match[1].trim(); // code client (8 chiffres)
+    const title = match[3].trim(); // titre (colonne 3)
+    let replacementCode = match[4].trim(); // code remplacement (colonne 4)
+    const suggestion = match[5] ? match[5].trim() : '';
     
     // Utiliser la suggestion si le code de remplacement est vide
     if (!replacementCode && suggestion) {
