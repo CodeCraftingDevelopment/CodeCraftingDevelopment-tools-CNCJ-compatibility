@@ -78,7 +78,8 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
                 id: `${accountNumber}-${index}`,
                 number: accountNumber,
                 title: accountTitle || undefined,
-                source: isCncj ? 'cncj' : 'general' // Attribuer la source selon isCNCJ
+                source: isCncj ? 'cncj' : 'general', // Attribuer la source selon isCNCJ
+                originalNumber: accountNumber // Stocker le code original pour cohérence
               });
             } else {
               recordInvalid(`"${accountNumber}" n'est pas un numéro de compte valide`);
@@ -197,6 +198,22 @@ export const findDuplicates = (accounts: Account[]): Account[] => {
   return accounts.filter(account => numberCounts.get(account.number)! > 1);
 };
 
+export const normalizeAccountCode = (accountNumber: string): string => {
+  if (accountNumber.length > 7) {
+    // Tronquer si trop long (10810000 -> 1081000)
+    return accountNumber.slice(0, 7);
+  } else if (accountNumber.length < 7) {
+    // Ajouter des zéros en fin si trop court
+    return accountNumber.padEnd(7, '0');
+  }
+  return accountNumber;
+};
+
+export const getDisplayCode = (account?: Account): string => {
+  // Afficher le code original (8 chiffres) s'il existe, sinon le code normalisé
+  return account?.originalNumber || account?.number || '';
+};
+
 export const compareAccounts = (
   clientAccounts: Account[], 
   cncjAccounts: Account[]
@@ -204,12 +221,14 @@ export const compareAccounts = (
   matches: Account[];
   unmatchedClients: Account[];
 } => {
-  const cncjNumbers = new Set(cncjAccounts.map(acc => acc.number));
+  // Normaliser les codes CNCJ pour la comparaison
+  const normalizedCncjNumbers = new Set(cncjAccounts.map(acc => normalizeAccountCode(acc.number)));
   const matches: Account[] = [];
   const unmatchedClients: Account[] = [];
   
   clientAccounts.forEach(clientAccount => {
-    if (cncjNumbers.has(clientAccount.number)) {
+    const normalizedClientNumber = normalizeAccountCode(clientAccount.number);
+    if (normalizedCncjNumbers.has(normalizedClientNumber)) {
       matches.push(clientAccount);
     } else {
       unmatchedClients.push(clientAccount);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Account } from '../types/accounts';
+import { getDisplayCode } from '../utils/accountUtils';
 
 interface DataPreviewModalProps {
   accounts: Account[];
@@ -63,7 +64,7 @@ export const DataPreviewModal: React.FC<DataPreviewModalProps> = ({
                       {index + 1}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-900">
-                      {account.number}
+                      {getDisplayCode(account)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700">
                       {account.title || <span className="text-gray-400 italic">Sans titre</span>}

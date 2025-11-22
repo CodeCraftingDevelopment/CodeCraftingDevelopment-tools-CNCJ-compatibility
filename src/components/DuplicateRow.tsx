@@ -1,5 +1,6 @@
 import React from 'react';
 import { Account } from '../types/accounts';
+import { getDisplayCode } from '../utils/accountUtils';
 
 interface DuplicateRowProps {
   account: Account;
@@ -72,7 +73,18 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
     <div className={`border ${rowColorClass} rounded-lg p-3`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
         <div className={`font-mono ${numberColorClass} px-2 py-1 rounded`}>
-          {account.number}
+          {conflictType === 'cncj-conflicts' ? (
+            <div className="space-y-1">
+              <div className="text-xs">
+                <span className="text-gray-500">Original (8):</span> {getDisplayCode(account)}
+              </div>
+              <div className="text-xs">
+                <span className="text-gray-500">Normalisé (7):</span> {account.number}
+              </div>
+            </div>
+          ) : (
+            getDisplayCode(account)
+          )}
         </div>
         <div className={`${titleColorClass} px-2 py-1 rounded`}>
           {account.title || 'Sans titre'}
@@ -116,7 +128,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               >
                 💡 {suggestedCode}
               </button>
-            ) : account.number.endsWith('9') ? (
+            ) : getDisplayCode(account).endsWith('9') ? (
               <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title="Aucune suggestion disponible (code finit par 9)">
                 ⚠️ Erreur
               </span>

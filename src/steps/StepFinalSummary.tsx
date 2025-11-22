@@ -1,6 +1,7 @@
 import React from 'react';
 import { Account, ProcessingResult } from '../types/accounts';
 import { StepStatsGrid, StepStat, StepLegend, StepEmptyState } from './components/StepContent';
+import { getDisplayCode } from '../utils/accountUtils';
 
 type ModificationSource = 'step4' | 'step6' | 'step4+step6' | null;
 
@@ -61,13 +62,13 @@ export const StepFinalSummary: React.FC<StepFinalSummaryProps> = ({
     }
     
     const correctedCode = isStep4Duplicate 
-      ? (mergedAccount?.number || account.number)
-      : account.number;
+      ? (mergedAccount ? getDisplayCode(mergedAccount) : getDisplayCode(account))
+      : getDisplayCode(account);
     
     return {
       id: account.id,
       title: account.title || 'Sans titre',
-      originalCode: account.number,
+      originalCode: getDisplayCode(account),
       correctedCode: correctedCode,
       cncjCorrection: correctedByCncj === 'error' ? 'Erreur' : (correctedByCncj || '-'),
       wasModified: replacementCodes[account.id] !== undefined,

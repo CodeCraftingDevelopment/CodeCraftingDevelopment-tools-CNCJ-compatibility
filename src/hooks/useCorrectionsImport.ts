@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Account, FileMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
+import { normalizeAccountCode } from '../utils/accountUtils';
 
 interface UseCorrectionsImportProps {
   duplicates: Account[];
@@ -48,16 +49,19 @@ export const useCorrectionsImport = ({
   };
 
   const findDuplicateAccount = (accountNumber: string, title: string): Account | undefined => {
+    // Normaliser le numéro de compte pour la comparaison
+    const normalizedAccountNumber = normalizeAccountCode(accountNumber);
+    
     // Essayer d'abord le matching direct par code original 8 chiffres + titre
     let account = duplicates.find(d => 
       d.originalNumber === accountNumber && 
       d.title && d.title.trim() === title.trim()
     );
     
-    // Si pas trouvé, essayer le matching par numéro normalisé + titre (fallback)
+    // Si pas trouvé, essayer le matching par numéro normalisé + titre
     if (!account) {
       account = duplicates.find(d => 
-        d.number === accountNumber && 
+        d.number === normalizedAccountNumber && 
         d.title && d.title.trim() === title.trim()
       );
     }
@@ -70,7 +74,16 @@ export const useCorrectionsImport = ({
     existingCodes: string[], 
     allOriginalCodes: Set<string>
   ): boolean => {
-    return existingCodes.includes(replacementCode) || allOriginalCodes.has(replacementCode);
+    // Normaliser le code de remplacement pour la comparaison
+    const normalizedReplacementCode = normalizeAccountCode(replacementCode);
+    
+    // Normaliser les codes existants pour la comparaison
+    const normalizedExistingCodes = existingCodes.map(code => normalizeAccountCode(code));
+    
+    // Normaliser les codes originaux pour la comparaison
+    const normalizedOriginalCodes = new Set(Array.from(allOriginalCodes).map(code => normalizeAccountCode(code)));
+    
+    return normalizedExistingCodes.includes(normalizedReplacementCode) || normalizedOriginalCodes.has(normalizedReplacementCode);
   };
 
   const getAllOriginalCodes = (): Set<string> => {

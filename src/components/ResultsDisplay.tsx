@@ -6,6 +6,7 @@ import { DropZone } from './DropZone';
 import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
 import { calculateSuggestions } from '../utils/codeSuggestions';
+import { getDisplayCode } from '../utils/accountUtils';
 
 interface ResultsDisplayProps {
   result: ProcessingResult | null;
@@ -160,7 +161,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               // Export CSV pour les doublons (step 4)
               const csvHeaders = ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion'];
               const csvRows = duplicates.map(d => {
-                const codeClient = d.originalNumber || d.number; // Code 8 chiffres original ou fallback
+                const codeClient = getDisplayCode(d); // Code 8 chiffres original ou fallback
                 const code7Chiffres = d.number.padStart(7, '0');
                 const titre = d.title || '';
                 const codeRemplacement = replacementCodes[d.id] || '';
@@ -313,7 +314,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {matches.map((account) => (
                 <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
                   <div className="font-mono bg-green-100 px-2 py-1 rounded">
-                    {account.number}
+                    {getDisplayCode(account)}
                   </div>
                   <div className="bg-green-50 px-2 py-1 rounded">
                     {account.title || 'Sans titre'}
@@ -336,7 +337,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {unmatchedClients.map((account) => (
                 <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
                   <div className="font-mono bg-orange-100 px-2 py-1 rounded">
-                    {account.number}
+                    {getDisplayCode(account)}
                   </div>
                   <div className="bg-orange-50 px-2 py-1 rounded">
                     {account.title || 'Sans titre'}
@@ -359,7 +360,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {toCreate.map((account) => (
                 <div key={account.id} className="grid grid-cols-2 gap-2 text-sm">
                   <div className="font-mono bg-purple-100 px-2 py-1 rounded">
-                    {account.number}
+                    {getDisplayCode(account)}
                   </div>
                   <div className="bg-purple-50 px-2 py-1 rounded">
                     {account.title || 'Sans titre'}

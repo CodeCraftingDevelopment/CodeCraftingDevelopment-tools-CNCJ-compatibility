@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Account } from '../types/accounts';
+import { getDisplayCode } from '../utils/accountUtils';
 
 interface ReviewViewProps {
   mergedClientAccounts: Account[];
@@ -117,7 +118,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
                   <td className="px-4 py-3">
                     <div className="space-y-1">
                       <div className="font-mono text-gray-900">
-                        {originalAccount?.number || account.number}
+                        {originalAccount ? getDisplayCode(originalAccount) : getDisplayCode(account)}
                       </div>
                       <div className="text-gray-600 text-xs">
                         {originalAccount?.title || account.title || 'Sans titre'}
@@ -131,7 +132,7 @@ export const ReviewView: React.FC<ReviewViewProps> = ({
                         isDuplicateFromStep3 ? 'text-blue-700 font-bold bg-blue-100' : 
                         'text-gray-700 bg-gray-100'
                       } px-3 py-2 rounded flex-1`}>
-                        {replacementCode || account.number}
+                        {replacementCode || getDisplayCode(account)}
                       </div>
                       {isCorrected && (
                         <div className="text-green-600">
