@@ -127,6 +127,7 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
   const accountsNeedingMetadata = metadataData.filter(row => !row.isInPcg);
   const accountsWithClosestMatch = accountsNeedingMetadata.filter(row => row.hasClosestMatch);
   const accountsWithoutClosestMatch = accountsNeedingMetadata.filter(row => !row.hasClosestMatch);
+  const accountsInPcg = metadataData.filter(row => row.isInPcg);
   const totalCount = metadataData.length;
   const needingMetadataCount = accountsNeedingMetadata.length;
 
@@ -184,7 +185,7 @@ export const Step7MetadataCompletion: React.FC<Step7MetadataCompletionProps> = (
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={accountsWithClosestMatch.length} label="Avec correspondance proche" color="green" />
         <StepStat value={accountsWithoutClosestMatch.length} label="Sans correspondance" color="red" />
-        <StepStat value={needingMetadataCount > 0 ? Math.round((needingMetadataCount / totalCount) * 100) : 0} label="% avec métadonnées manquantes" color="purple" />
+        <StepStat value={accountsInPcg.length} label="Comptes dans PCG" color="purple" />
       </StepStatsGrid>
 
       {/* Instructions */}
