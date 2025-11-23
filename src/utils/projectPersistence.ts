@@ -274,8 +274,8 @@ export const validateProjectFile = (projectFile: unknown): projectFile is Projec
       return false;
     }
 
-    // Vérifier l'étape actuelle
-    if (typeof data.currentStep !== 'string' || !['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'stepFinal'].includes(data.currentStep)) {
+    // Vérifier l'étape actuelle (permettre step8 pour compatibilité avec d'anciens fichiers)
+    if (typeof data.currentStep !== 'string' || !['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'step8', 'stepFinal'].includes(data.currentStep as string)) {
       return false;
     }
 
@@ -323,6 +323,12 @@ export const loadProject = (file: File): Promise<ProjectFile> => {
           console.warn(`⚠️ Le projet a été créé avec une version antérieure (${projectFile.version})`);
         } else if (isNewerVersion(projectFile.version, APP_VERSION)) {
           console.warn(`⚠️ Le projet a été créé avec une version plus récente (${projectFile.version})`);
+        }
+        
+        // Migration des anciennes valeurs d'étape
+        if ((projectFile.data.currentStep as string) === 'step8') {
+          console.log('🔄 Migration: step8 → stepFinal');
+          projectFile.data.currentStep = 'stepFinal';
         }
         
         resolve(projectFile);
