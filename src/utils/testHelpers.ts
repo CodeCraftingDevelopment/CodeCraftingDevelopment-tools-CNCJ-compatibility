@@ -153,7 +153,7 @@ export const setupTestHelpers = (callbacks: {
   (window as any).__TEST_HELPERS__ = helpers;
 
   // Logger pour le debugging
-  console.log('🧪 Test helpers initialized:', Object.keys(helpers));
+  // Test helpers initialized:
 };
 
 /**

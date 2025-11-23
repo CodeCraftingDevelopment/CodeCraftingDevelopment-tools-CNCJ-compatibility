@@ -61,10 +61,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const unmatched467001 = filter467001(unmatchedClients);
     
     if (unique467001.length > 0 || matches467001.length > 0 || unmatched467001.length > 0) {
-      console.log('🔍 DEBUG - Source des codes 467001*:');
-      console.log('  uniqueClients:', unique467001.sort());
-      console.log('  matches:', matches467001.sort());
-      console.log('  unmatchedClients:', unmatched467001.sort());
+      // Source des codes 467001*:
+      // uniqueClients:
+      // matches:
+      // unmatchedClients:
     }
     
     return calculateSuggestions(duplicates, existingCodes, replacementCodes);

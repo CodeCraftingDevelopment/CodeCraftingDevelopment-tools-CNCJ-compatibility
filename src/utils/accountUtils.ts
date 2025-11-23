@@ -125,9 +125,6 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
 };
 
 export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[], mergeInfo: MergeInfo[] } => {
-  console.log('🔍 DEBUG: mergeIdenticalAccounts appelé avec', accounts.length, 'comptes');
-  console.log('🔍 DEBUG: Comptes d\'origine:', accounts.map(a => ({ number: a.number, title: a.title })));
-  
   const seen = new Map<string, Account>();
   const merged: Account[] = [];
   const mergeInfo: MergeInfo[] = [];
@@ -139,7 +136,7 @@ export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[]
     countMap.set(key, (countMap.get(key) || 0) + 1);
   });
   
-  console.log('🔍 DEBUG: countMap généré:', Object.fromEntries(countMap));
+  // countMap généré:
   
   accounts.forEach(account => {
     // Créer une clé unique basée sur le numéro ET le titre
@@ -163,8 +160,8 @@ export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[]
     // Si la clé existe déjà, on ignore ce compte (fusionné dans le premier)
   });
   
-  console.log('🔍 DEBUG: mergeInfo final:', mergeInfo);
-  console.log('🔍 DEBUG: Fusion terminée -', mergeInfo.length, 'groupes fusionnés');
+  // mergeInfo final:
+  // Fusion terminée -
   
   return { merged, mergeInfo };
 };

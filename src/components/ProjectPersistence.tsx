@@ -124,7 +124,7 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
         onProjectLoaded(newAppState);
       }
 
-      console.log('🎉 Projet chargé et appliqué avec succès');
+      // Projet chargé et appliqué avec succès
     } catch (error) {
       console.error('Erreur de chargement:', error);
       alert('Erreur lors du chargement du projet : ' + (error instanceof Error ? error.message : 'Erreur inconnue'));

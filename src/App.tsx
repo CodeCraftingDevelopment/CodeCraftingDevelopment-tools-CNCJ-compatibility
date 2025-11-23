@@ -3,9 +3,10 @@ import React, { useReducer, useCallback, useMemo, useState, useEffect } from 're
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, FileMetadata, AppState } from './types/accounts';
-import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization } from './utils/accountUtils';
+import { processAccounts, mergeIdenticalAccounts } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
+import { useAppNavigation } from './hooks/useAppNavigation';
 import { getStepConfig, getNextStep, getPreviousStep } from './config/stepsConfig';
 import { StepRenderer } from './steps/components/StepRenderer';
 import { StepNavigation } from './steps/components/StepNavigation';
@@ -102,7 +103,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'CLEAR_CNCJ_REPLACEMENT_CODES':
       return { ...state, cncjReplacementCodes: {} };
     case 'SET_MERGE_INFO':
-      console.log('🔍 REDUCER: SET_MERGE_INFO appelé avec payload:', action.payload);
       return { ...state, mergeInfo: action.payload };
     case 'SET_CNCJ_CONFLICT_RESULT':
       return { ...state, cncjConflictResult: action.payload };
@@ -170,8 +170,6 @@ const App: React.FC = () => {
       
       // Fusionner les comptes identiques (même numéro ET titre) avant de les stocker
       const { merged: mergedAccounts, mergeInfo } = mergeIdenticalAccounts(accounts);
-      console.log(`Fusion de ${accounts.length} comptes clients en ${mergedAccounts.length} comptes uniques`);
-      console.log(`${mergeInfo.length} groupes de comptes ont été fusionnés`);
       
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
@@ -187,7 +185,6 @@ const App: React.FC = () => {
         }
       }
     } else if (source === 'general') {
-      console.log(`Chargement des comptes généraux: ${accounts.length} comptes`);
       
       dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
@@ -202,7 +199,6 @@ const App: React.FC = () => {
         }
       }
     } else if (source === 'cncj') {
-      console.log(`Chargement des comptes CNCJ: ${accounts.length} comptes`);
       
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
@@ -243,7 +239,6 @@ const App: React.FC = () => {
   }, []);
 
   const resetData = useCallback(() => {
-    console.log('resetData called');
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
@@ -256,65 +251,12 @@ const App: React.FC = () => {
     dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
   }, []);
 
-  // Navigation générique vers l'étape suivante
-  const handleNavigateNext = useCallback(() => {
-    const nextStep = getNextStep(state.currentStep);
-    if (nextStep) {
-      dispatch({ type: 'SET_CURRENT_STEP', payload: nextStep.id });
-    }
-  }, [state.currentStep]);
+  // Navigation handlers are now extracted to useAppNavigation hook
 
-  // Navigation générique vers l'étape précédente
-  const handleNavigatePrevious = useCallback(() => {
-    const previousStep = getPreviousStep(state.currentStep);
-    if (previousStep) {
-      dispatch({ type: 'SET_CURRENT_STEP', payload: previousStep.id });
-    }
-  }, [state.currentStep]);
-
-  const handleNext = useCallback(() => {
-    console.log('Navigation vers l\'étape suivante');
-    if (!state.result) {
-      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
-      return;
-    }
-    handleNavigateNext();
-  }, [state.result, handleNavigateNext]);
-
-  const handleMergeNext = useCallback(() => {
-    console.log('Visualisation des fusions terminée - passage à la normalisation');
-    
-    // Détecter les comptes nécessitant une normalisation
-    const accountsNeedingNormalization = findAccountsNeedingNormalization(state.clientAccounts);
-    dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: accountsNeedingNormalization });
-    
-    // Naviguer vers l'étape de normalisation
-    handleNavigateNext();
-  }, [state.clientAccounts, handleNavigateNext]);
-
-  const handleNormalizationNext = useCallback(() => {
-    console.log('Normalisation terminée - passage aux doublons');
-    
-    if (state.accountsNeedingNormalization.length > 0 && !state.isNormalizationApplied) {
-      // Appliquer la normalisation
-      const normalizedClientAccounts = applyNormalization(state.clientAccounts, state.accountsNeedingNormalization);
-      dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: normalizedClientAccounts });
-      dispatch({ type: 'SET_NORMALIZATION_APPLIED', payload: true });
-      
-      // Reprocesser les comptes avec les données normalisées
-      processClientAccounts(normalizedClientAccounts, state.cncjAccounts);
-    }
-
-    handleNavigateNext();
-  }, [
-    state.clientAccounts,
-    state.cncjAccounts,
-    state.accountsNeedingNormalization,
-    state.isNormalizationApplied,
-    processClientAccounts,
-    handleNavigateNext
-  ]);
-
+  
+  
+  
+  
   // Générer la liste fusionnée de clients (originaux + corrections surchargées)
   const generateMergedClientAccounts = useCallback((clientAccounts: Account[], replacementCodes: { [key: string]: string }): Account[] => {
     // Partir de la liste originale complète et appliquer les corrections
@@ -359,47 +301,20 @@ const App: React.FC = () => {
   // Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ) (utilitaire importé)
   // Utilise processCncjConflicts de cncjConflictUtils
 
-  const handleDuplicatesNext = useCallback(() => {
-    console.log('Doublons résolus - passage à la révision des corrections');
-    if (!state.result) {
-      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
-      return;
-    }
-
-    // Naviguer vers l'étape de révision des corrections
-    handleNavigateNext();
-  }, [state.result, handleNavigateNext]);
-
-  const handleReviewNext = useCallback(() => {
-    console.log('Révision terminée - passage aux conflits CNCJ');
-    if (!state.result) {
-      dispatch({ type: 'SET_ERRORS', payload: ['Veuillez attendre que les données soient traitées avant de continuer'] });
-      return;
-    }
-
-    // Ne recalculer les conflits CNCJ que si ce n'a pas déjà été fait
-    // Cela préserve les modifications manuelles de l'utilisateur lors de la navigation retour-avant
-    if (!state.cncjConflictResult) {
-      console.log('Premier passage à step5 - calcul des conflits CNCJ');
-      // Étape 1 : Traiter les conflits CNCJ avec les comptes fusionnés
-      const cncjConflicts = processCncjConflicts(mergedClientAccounts, state.cncjAccounts);
-      dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
-
-      // Étape 2 : Générer les corrections automatiques
-      const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts);
-      dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
-    } else {
-      console.log('Retour à step5 - conservation des conflits CNCJ existants et des modifications manuelles');
-    }
-
-    // Naviguer vers step 6
-    handleNavigateNext();
-  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult, handleNavigateNext]);
-
-  const handleCncjNext = useCallback(() => {
-    console.log('Conflits CNCJ résolus - passage aux correspondances manquantes');
-    handleNavigateNext();
-  }, [handleNavigateNext]);
+  
+  
+  
+  // Utiliser le hook de navigation pour extraire la logique de navigation
+  const {
+    handleNavigateNext,
+    handleNavigatePrevious,
+    handleNext,
+    handleMergeNext,
+    handleNormalizationNext,
+    handleDuplicatesNext,
+    handleReviewNext,
+    handleCncjNext
+  } = useAppNavigation(state, dispatch, processClientAccounts, mergedClientAccounts);
 
   const handleReplacementCodeChange = useCallback((accountId: string, code: string) => {
     // Stocker l'entrée utilisateur brute pour préserver l'UX de saisie
@@ -717,11 +632,9 @@ const AppWithTestHelpers: React.FC = () => {
     // Initialiser les helpers de test uniquement en mode développement
     if (import.meta.env.DEV) {
       setupTestHelpers({
-        onFileLoaded: (accounts, source, _fileInfo) => {
-          console.log(`Test helper - File loaded for ${source}:`, accounts.length, accounts);
+        onFileLoaded: (_accounts, _source, _fileInfo) => {
         },
-        onFileCleared: (source) => {
-          console.log(`Test helper - File cleared for ${source}`);
+        onFileCleared: (_source) => {
         }
       });
     }

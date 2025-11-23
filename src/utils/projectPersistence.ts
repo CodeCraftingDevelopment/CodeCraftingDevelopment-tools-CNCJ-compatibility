@@ -116,7 +116,7 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       await saveWithDownload(jsonString, filename);
     }
     
-    console.log('✅ Projet sauvegardé avec succès');
+    // Projet sauvegardé avec succès
   } catch (error) {
     // Laisser l'erreur d'annulation se propager sans la modifier
     if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
@@ -153,11 +153,11 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     await writable.write(jsonString);
     await writable.close();
     
-    console.log('✅ Projet sauvegardé avec File System Access API');
+    // Projet sauvegardé avec File System Access API
   } catch (error: any) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       // L'utilisateur a annulé la boîte de dialogue
-      console.log('📝 Sauvegarde annulée par l\'utilisateur');
+      // Sauvegarde annulée par l'utilisateur
       throw new Error(CANCELLED_ERROR_MESSAGE);
     } else {
       // Autre erreur (permissions, etc.) - fallback avec message informatif
@@ -186,7 +186,7 @@ const saveWithDownload = async (jsonString: string, filename?: string): Promise<
   
   URL.revokeObjectURL(url);
   
-  console.log('✅ Projet sauvegardé avec download classique');
+  // Projet sauvegardé avec download classique
 };
 
 /**
@@ -308,11 +308,11 @@ export const loadProject = (file: File): Promise<ProjectFile> => {
           return;
         }
         
-        console.log('✅ Projet chargé avec succès');
-        console.log(`📊 Comptes: ${projectFile.metadata.accountCounts.client} clients, ${projectFile.metadata.accountCounts.cncj} CNCJ, ${projectFile.metadata.accountCounts.general} généraux`);
-        console.log(`📅 Créé le: ${new Date(projectFile.metadata.createdAt).toLocaleString()}`);
-        console.log(`🔐 Checksum vérifié: ${projectFile.metadata.checksum.substring(0, 16)}...`);
-        console.log(`📦 Version du projet: ${projectFile.version}`);
+        // Projet chargé avec succès
+        // Comptes: ${projectFile.metadata.accountCounts.client} clients, ${projectFile.metadata.accountCounts.cncj} CNCJ, ${projectFile.metadata.accountCounts.general} généraux
+        // Créé le: ${new Date(projectFile.metadata.createdAt).toLocaleString()}
+        // Checksum vérifié: ${projectFile.metadata.checksum.substring(0, 16)}...
+        // Version du projet: ${projectFile.version}
         
         // Vérifier la compatibilité de version
         if (isNewerVersion(APP_VERSION, projectFile.version)) {
