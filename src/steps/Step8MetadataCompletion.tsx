@@ -719,7 +719,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                               {row.codeHistory.step4Code && (
                                 <>
                                   <span className="text-gray-400">→</span>
-                                  <span className="text-gray-500">Step4:</span>
+                                  <span className="text-gray-500">Doublon corrigé:</span>
                                   <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
                                 </>
                               )}
