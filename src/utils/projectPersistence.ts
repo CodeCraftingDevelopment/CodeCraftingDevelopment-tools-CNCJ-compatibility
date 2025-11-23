@@ -63,7 +63,7 @@ const deterministicStringify = (obj: any): string => {
 /**
  * Sauvegarde l'état complet du projet dans un fichier JSON
  */
-export const saveProject = async (state: AppState, description?: string): Promise<void> => {
+export const saveProject = async (state: AppState, filename?: string, description?: string): Promise<void> => {
   try {
     // Ne sauvegarder que les données brutes, pas les données dérivées
     const dataSection = {
@@ -107,25 +107,118 @@ export const saveProject = async (state: AppState, description?: string): Promis
     // Sérialiser en JSON
     const jsonString = JSON.stringify(projectFile, null, 2);
     
-    // Créer un blob et télécharger
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `compte-processor-${new Date().toISOString().split('T')[0]}.ccp`;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    URL.revokeObjectURL(url);
+    // Utiliser File System Access API si disponible, sinon fallback classique
+    if ('showSaveFilePicker' in window) {
+      await saveWithFileSystemAccess(jsonString, filename);
+    } else {
+      await saveWithDownload(jsonString, filename);
+    }
     
     console.log('✅ Projet sauvegardé avec succès');
   } catch (error) {
     console.error('❌ Erreur lors de la sauvegarde du projet:', error);
     throw new Error('Échec de la sauvegarde du projet');
   }
+};
+
+/**
+ * Sauvegarde avec File System Access API (explorateur natif)
+ */
+const saveWithFileSystemAccess = async (jsonString: string, filename?: string): Promise<void> => {
+  try {
+    const defaultFilename = filename || generateDefaultFilename();
+    
+    // Options pour la boîte de dialogue de sauvegarde
+    const options: any = {
+      suggestedName: defaultFilename,
+      types: [{
+        description: 'Fichiers de projet Compte Processor',
+        accept: {
+          'application/json': ['.ccp', '.json'],
+        },
+      }],
+    };
+
+    // Ouvrir la boîte de dialogue native (cast vers any pour TypeScript)
+    const fileHandle = await (window as any).showSaveFilePicker(options);
+    
+    // Écrire le contenu dans le fichier choisi
+    const writable = await fileHandle.createWritable();
+    await writable.write(jsonString);
+    await writable.close();
+    
+    console.log('✅ Projet sauvegardé avec File System Access API');
+  } catch (error: any) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      // L'utilisateur a annulé la boîte de dialogue
+      console.log('📝 Sauvegarde annulée par l\'utilisateur');
+      throw new Error('Sauvegarde annulée');
+    } else {
+      // Autre erreur (permissions, etc.) - fallback avec message informatif
+      console.warn('⚠️ File System Access API échoué, fallback vers download classique:', error.message);
+      // Attendre un peu pour que l'utilisateur voie le message avant de continuer
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await saveWithDownload(jsonString, filename);
+    }
+  }
+};
+
+/**
+ * Sauvegarde classique avec download (fallback)
+ */
+const saveWithDownload = async (jsonString: string, filename?: string): Promise<void> => {
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename || generateDefaultFilename();
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  URL.revokeObjectURL(url);
+  
+  console.log('✅ Projet sauvegardé avec download classique');
+};
+
+/**
+ * Valide et nettoie un nom de fichier
+ */
+export const sanitizeFilename = (filename: string): string => {
+  // Supprimer les espaces au début et à la fin
+  const trimmed = filename.trim();
+  
+  // Si le nom est vide après trimming, retourner une chaîne vide
+  if (!trimmed) {
+    return '';
+  }
+  
+  // Supprimer les caractères invalides pour les noms de fichiers
+  const cleaned = trimmed.replace(/[<>:"/\\|?*]/g, '');
+  
+  // S'assurer que l'extension .ccp est présente (vérifier après nettoyage)
+  if (!cleaned.endsWith('.ccp')) {
+    return cleaned + '.ccp';
+  }
+  
+  return cleaned;
+};
+
+/**
+ * Valide si un nom de fichier est acceptable
+ */
+export const isValidFilename = (filename: string): boolean => {
+  const trimmed = filename.trim();
+  return trimmed.length >= 3 && trimmed.length <= 200; // Entre 3 et 200 caractères
+};
+
+/**
+ * Génère un nom de fichier par défaut
+ */
+export const generateDefaultFilename = (): string => {
+  return `compte-processor-${new Date().toISOString().split('T')[0]}.ccp`;
 };
 
 /**

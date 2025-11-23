@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { saveProject, loadProject, projectFileToAppState, isProjectFile } from '../utils/projectPersistence';
+import React, { useRef, useState, useEffect } from 'react';
+import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename } from '../utils/projectPersistence';
 import { AppState, AppDispatch } from '../types/accounts';
 
 interface ProjectPersistenceProps {
@@ -14,14 +14,41 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
   onProjectLoaded
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [filename, setFilename] = useState<string>('');
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [hasFileSystemAccess, setHasFileSystemAccess] = useState<boolean>(false);
+
+  // Détecter le support du File System Access API et générer le nom par défaut
+  useEffect(() => {
+    setHasFileSystemAccess('showSaveFilePicker' in window);
+    setFilename(generateDefaultFilename());
+  }, []);
 
   const handleSaveProject = async () => {
     try {
+      // Avec File System Access API, le nom est suggéré dans la boîte de dialogue
+      // mais on valide quand même pour le fallback
+      const sanitizedFilename = sanitizeFilename(filename);
+      if (!hasFileSystemAccess && !sanitizedFilename) {
+        alert('Veuillez entrer un nom de fichier valide (minimum 3 caractères)');
+        return;
+      }
+      
+      setIsSaving(true);
       const description = `Projet avec ${state.clientAccounts.length} comptes clients, ${state.cncjAccounts.length} comptes CNCJ, ${state.generalAccounts.length} comptes généraux`;
-      await saveProject(state, description);
+      await saveProject(state, sanitizedFilename, description);
+      
+      // Réinitialiser le nom de fichier avec une nouvelle date après sauvegarde réussie
+      setFilename(generateDefaultFilename());
     } catch (error) {
       console.error('Erreur de sauvegarde:', error);
+      if (error instanceof Error && error.message === 'Sauvegarde annulée') {
+        // Ne rien afficher si l'utilisateur a annulé
+        return;
+      }
       alert('Erreur lors de la sauvegarde du projet. Veuillez réessayer.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -93,41 +120,70 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
                        state.cncjAccounts.length > 0 || 
                        state.generalAccounts.length > 0;
 
+  const canSave = hasDataToSave && (hasFileSystemAccess || isValidFilename(filename)) && !isSaving;
+
   return (
-    <div className="flex gap-2 mb-4">
-      <button
-        onClick={handleSaveProject}
-        disabled={!hasDataToSave}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        title={hasDataToSave ? 'Sauvegarder le projet complet' : 'Aucune donnée à sauvegarder'}
-      >
-        <span>💾</span>
-        <span>Sauvegarder le projet</span>
-      </button>
+    <div className="flex flex-col gap-4 mb-4">
+      <div className="flex gap-2">
+        <button
+          onClick={handleSaveProject}
+          disabled={!canSave}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          title={canSave ? (hasFileSystemAccess ? 'Choisir l\'emplacement et le nom du fichier' : 'Sauvegarder le projet complet') : isSaving ? 'Sauvegarde en cours...' : hasDataToSave ? (hasFileSystemAccess ? 'Sélectionnez un emplacement pour sauvegarder' : 'Nom de fichier invalide (minimum 3 caractères, maximum 200)') : 'Aucune donnée à sauvegarder'}
+        >
+          <span>{isSaving ? '⏳' : '💾'}</span>
+          <span>{isSaving ? 'Sauvegarde...' : (hasFileSystemAccess ? 'Sauvegarder le projet...' : 'Sauvegarder le projet')}</span>
+        </button>
 
-      <button
-        onClick={handleLoadProject}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-        title="Charger un projet précédemment sauvegardé"
-      >
-        <span>📁</span>
-        <span>Charger un projet</span>
-      </button>
+        <button
+          onClick={handleLoadProject}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+          title="Charger un projet précédemment sauvegardé"
+        >
+          <span>📁</span>
+          <span>Charger un projet</span>
+        </button>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".ccp,.json"
-        onChange={handleFileSelected}
-        className="hidden"
-      />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".ccp,.json"
+          onChange={handleFileSelected}
+          className="hidden"
+        />
+      </div>
 
+      {/* Champ de saisie pour le nom de fichier - seulement si File System Access API n'est pas disponible */}
+      {!hasFileSystemAccess && (
+        <div className="flex items-center gap-2">
+          <label htmlFor="filename" className="text-sm font-medium text-gray-700">
+            Nom du fichier :
+          </label>
+          <input
+            id="filename"
+            type="text"
+            value={filename}
+            onChange={(e) => setFilename(e.target.value)}
+            placeholder="Entrez le nom du fichier..."
+            maxLength={200}
+            className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+          <span className="text-xs text-gray-500">(.ccp sera ajouté automatiquement)</span>
+        </div>
+      )}
+
+      {/* Information sur le mode de sauvegarde */}
       {hasDataToSave && (
-        <div className="flex items-center text-sm text-gray-600 ml-4">
+        <div className="flex items-center text-sm text-gray-600">
           <span className="mr-2">📊</span>
           <span>
             {state.clientAccounts.length} clients • {state.cncjAccounts.length} CNCJ • {state.generalAccounts.length} généraux
           </span>
+          {hasFileSystemAccess && (
+            <span className="ml-2 text-xs text-blue-600">
+              • Explorateur de fichiers disponible
+            </span>
+          )}
         </div>
       )}
     </div>
