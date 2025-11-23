@@ -3,9 +3,6 @@ import { Account, ProcessingResult } from '../types/accounts';
 import { StepStatsGrid, StepStat, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
 import { sanitizeCsvValue } from '../utils/fileUtils';
-import { useMetadataImport } from '../hooks/useMetadataImport';
-import { useDragAndDrop } from '../hooks/useDragAndDrop';
-import { DropZone } from '../components/DropZone';
 
 type ModificationSource = 'step4' | 'step6' | 'step4+step6' | null;
 
@@ -473,20 +470,6 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
   const totalPcgExportCount = generalAccounts.length + accountsNeedingMetadata.length;
 
-  // Utiliser le hook personnalisé pour l'import des métadonnées
-  const { metadataFileInfo, processMetadataFile, handleClearMetadataFile } = useMetadataImport({
-    accountsNeedingMetadata,
-    metadataFields,
-    onMetadataChange
-  });
-
-  // Utiliser le hook de drag & drop pour l'import des métadonnées
-  const { dragState, fileInputRef, handlers } = useDragAndDrop({
-    disabled: false,
-    onDrop: processMetadataFile,
-    acceptedTypes: ['.csv']
-  });
-
   // Export des comptes à créer avec métadonnées pour réimport
   const handleExportAccountsToCreate = () => {
     try {
@@ -527,6 +510,77 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       console.error('Erreur lors de l\'export des comptes à créer:', error);
       alert('Une erreur est survenue lors de l\'export. Veuillez réessayer.');
     }
+  };
+
+  // Import des métadonnées depuis CSV
+  const handleImportMetadata = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const csvText = e.target?.result as string;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          alert('Le fichier CSV est vide ou invalide.');
+          return;
+        }
+
+        const headers = lines[0].split(';').map(h => h.replace(/^"|"$/g, '').replace(/""/g, '"'));
+        
+        // Vérifier les en-têtes requis
+        const requiredHeaders = ['id', 'title', 'finalCode', 'hasClosestMatch'];
+        const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+        
+        if (missingHeaders.length > 0) {
+          alert(`En-têtes requis manquants: ${missingHeaders.join(', ')}`);
+          return;
+        }
+
+        // Parser les données
+        const metadataUpdates: { [accountId: string]: Record<string, any> } = {};
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(';').map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"'));
+          
+          if (values.length < 4) continue;
+          
+          const accountId = values[headers.indexOf('id')];
+          const hasClosestMatch = values[headers.indexOf('hasClosestMatch')] === 'true';
+          
+          // Extraire les métadonnées (colonnes après les 4 premières)
+          const metadata: Record<string, any> = {};
+          metadataFields.forEach(field => {
+            const fieldIndex = headers.indexOf(field.key);
+            if (fieldIndex >= 0 && values[fieldIndex]) {
+              metadata[field.key] = values[fieldIndex];
+            }
+          });
+          
+          if (accountId && Object.keys(metadata).length > 0) {
+            metadataUpdates[accountId] = metadata;
+          }
+        }
+
+        // Appliquer les mises à jour
+        Object.entries(metadataUpdates).forEach(([accountId, metadata]) => {
+          onMetadataChange(accountId, metadata);
+        });
+
+        alert(`${Object.keys(metadataUpdates).length} comptes mis à jour avec succès.`);
+        
+        // Réinitialiser l'input
+        event.target.value = '';
+        
+      } catch (error) {
+        console.error('Erreur lors de l\'import:', error);
+        alert('Une erreur est survenue lors de l\'import du fichier. Veuillez vérifier le format CSV.');
+      }
+    };
+    
+    reader.readAsText(file, 'utf-8');
   };
 
   return (
@@ -683,9 +737,9 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         </div>
       )}
 
-      {/* Boutons d'export et DropZone d'import */}
+      {/* Boutons d'export */}
       <div className="mt-6 text-center space-y-3">
-        <div className="flex justify-center gap-4 flex-wrap">
+        <div className="flex justify-center gap-4">
           <button
             onClick={handleExport}
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -698,129 +752,10 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           >
             📄 Exporter PCG complet ({totalPcgExportCount})
           </button>
-          <button
-            onClick={handleExportAccountsToCreate}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            📊 Exporter comptes à créer ({accountsNeedingMetadata.length})
-          </button>
         </div>
-        
-        {/* DropZone pour l'import des métadonnées */}
-        <div className="w-full max-w-2xl mx-auto">
-          <DropZone
-            dragState={dragState}
-            disabled={false}
-            loading={metadataFileInfo?.loadStatus === 'loading'}
-            fileInfo={metadataFileInfo}
-            onDragOver={handlers.handleDragOver}
-            onDragLeave={handlers.handleDragLeave}
-            onDrop={handlers.handleDrop}
-            onClick={!metadataFileInfo ? handlers.handleButtonClick : undefined}
-            onKeyDown={(e) => handlers.handleKeyDown(e, !metadataFileInfo ? handlers.handleButtonClick : undefined)}
-            ariaLabel={!metadataFileInfo
-              ? "Zone de dépôt pour les métadonnées. Glissez-déposez un fichier CSV ou cliquez pour parcourir"
-              : `Fichier de métadonnées: ${metadataFileInfo?.name}`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handlers.handleFileChange}
-              className="hidden"
-            />
-            
-            {!metadataFileInfo && (
-              <div className="space-y-2">
-                <div className="mx-auto w-8 h-8 text-gray-400">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p className="font-medium text-xs sm:text-sm">
-                    Glissez-déposez votre fichier de métadonnées CSV
-                  </p>
-                  <p className="text-xs">ou cliquez pour parcourir</p>
-                </div>
-              </div>
-            )}
-            
-            {metadataFileInfo?.loadStatus === 'loading' && (
-              <div className="space-y-2">
-                <div className="mx-auto w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-                <p className="text-sm text-blue-600">Import des métadonnées...</p>
-              </div>
-            )}
-            
-            {metadataFileInfo && (metadataFileInfo.loadStatus === 'success' || metadataFileInfo.loadStatus === 'error') && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      metadataFileInfo.loadStatus === 'success' ? 'bg-green-100 text-green-600' :
-                      'bg-red-100 text-red-600'
-                    }`}>
-                      {metadataFileInfo.loadStatus === 'success' ? (
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{metadataFileInfo?.name}</p>
-                      <p className="text-xs text-gray-500">{metadataFileInfo?.size}</p>
-                    </div>
-                  </div>
-                  
-                  <button
-                    type="button"
-                    onClick={handleClearMetadataFile}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className={`text-sm ${
-                  metadataFileInfo.loadStatus === 'success' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {metadataFileInfo.loadStatus === 'success' 
-                    ? `${metadataFileInfo.rowCount} métadonnées importées avec succès` 
-                    : 'Échec de l\'import'}
-                </div>
-                
-                <div className="flex justify-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={handlers.handleButtonClick}
-                    className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
-                  >
-                    Changer le fichier
-                  </button>
-                </div>
-              </div>
-            )}
-          </DropZone>
-        </div>
-        
-        <div className="space-y-1">
-          <p className="text-sm text-gray-500">
-            Contient tous les comptes PCG existants + les comptes clients non présents dans PCG
-          </p>
-          <p className="text-sm text-gray-500">
-            Export des comptes à créer : inclut les métadonnées pré-remplies et la colonne hasClosestMatch
-          </p>
-          <p className="text-sm text-gray-500">
-            Import : met à jour les métadonnées des comptes depuis un fichier CSV modifié (glissez-déposez ou cliquez)
-          </p>
-        </div>
+        <p className="text-sm text-gray-500">
+          Contient tous les comptes PCG existants + les comptes clients non présents dans PCG
+        </p>
       </div>
     </div>
   );
