@@ -59,66 +59,65 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   <ul className="text-xs text-gray-600 space-y-1">
                     {step.id === 'step1' && (
                       <>
-                        <li>• Importer 2 fichiers CSV obligatoires : comptes clients et comptes PCG_CNCJ</li>
+                        <li>• Importer 3 fichiers CSV obligatoires : comptes clients, comptes PCG et comptes CNCJ</li>
                         <li>• Validation automatique des colonnes requises (numéro, titre, etc.)</li>
                         <li>• Détection des erreurs de formatage et des données manquantes</li>
-                        <li>• Séparation automatique des comptes CNCJ du fichier PCG_CNCJ</li>
+                        <li>• Chargement séparé des comptes PCG et CNCJ dans leurs listes respectives</li>
                         <li>• Vérification que tous les fichiers sont correctement chargés</li>
                       </>
                     )}
                     {step.id === 'step2' && (
                       <>
-                        <li>• Fusion automatique des comptes ayant le même numéro ET le même titre</li>
-                        <li>• Regroupement des montants pour les comptes fusionnés</li>
-                        <li>• Conservation du premier numéro et titre rencontrés</li>
-                        <li>• Aucune action manuelle requise - visualisation uniquement</li>
-                        <li>• Les fusions réduisent le nombre de doublons à traiter</li>
+                        <li>• <strong>Algorithme:</strong> Fusion par clé composite <code>numéro-titre</code></li>
+                        <li>• <strong>Calcul:</strong> Conservation de la première occurrence</li>
+                        <li>• <strong>Logique:</strong> Un seul compte conservé par combinaison numéro + titre</li>
+                        <li>• <strong>Filtre:</strong> Uniquement les comptes avec numéro ET titre identiques</li>
+                        <li>• <strong>Résultat:</strong> Réduction automatique des doublons parfaits</li>
                       </>
                     )}
                     {step.id === 'step3' && (
                       <>
-                        <li>• Standardisation obligatoire : tous les numéros doivent avoir exactement 7 chiffres</li>
-                        <li>• Numéros trop courts : complétion automatique avec des zéros en fin</li>
-                        <li>• Numéros trop longs : troncature automatique pour garder 7 chiffres</li>
-                        <li>• Affichage avant/après pour validation des changements</li>
-                        <li>• Application obligatoire avant de continuer aux étapes suivantes</li>
+                        <li>• <strong>Algorithme:</strong> Normalisation forcée à 7 chiffres</li>
+                        <li>• <strong>Calcul troncature:</strong> <code>code.length &gt; 7 ? code.slice(0, 7)</code></li>
+                        <li>• <strong>Calcul complétion:</strong> <code>code.padEnd(7, '0')</code> (zéros en fin)</li>
+                        <li>• <strong>Validation:</strong> Tous les numéros clients → exactement 7 chiffres</li>
+                        <li>• <strong>Impact:</strong> Standardisation universelle pour les traitements suivants</li>
                       </>
                     )}
                     {step.id === 'step4' && (
                       <>
-                        <li>• Détection des doublons basée sur le numéro de compte uniquement</li>
-                        <li>• Conserver le compte avec le montant le plus élevé comme compte principal</li>
-                        <li>• Les autres comptes doublons doivent recevoir un nouveau numéro unique</li>
-                        <li>• Suggestion automatique de numéros de remplacement disponibles</li>
-                        <li>• Validation que les nouveaux numéros n'existent pas déjà</li>
-                        <li>• Résolution obligatoire de tous les doublons pour continuer</li>
+                        <li>• <strong>Algorithme:</strong> Détection par numéro exact identique</li>
+                        <li>• <strong>Calcul:</strong> Comptage des occurrences par numéro de compte</li>
+                        <li>• <strong>Logique:</strong> Résolution manuelle requise pour chaque doublon</li>
+                        <li>• <strong>Suggestion:</strong> Génération automatique de codes uniques disponibles</li>
+                        <li>• <strong>Validation:</strong> Vérification croisée pour éviter nouveaux conflits</li>
                       </>
                     )}
                     {step.id === 'step5' && (
                       <>
-                        <li>• Récapitulatif des corrections de doublons appliquées à l'étape 4</li>
-                        <li>• Visualisation des comptes modifiés avec leurs anciens et nouveaux numéros</li>
-                        <li>• Vérification que toutes les corrections ont été correctement appliquées</li>
-                        <li>• Possibilité de revenir en arrière si une correction semble incorrecte</li>
-                        <li>• Étape de validation avant de passer aux conflits CNCJ</li>
+                        <li>• <strong>Calcul:</strong> Application des corrections de l'étape 4</li>
+                        <li>• <strong>Validation:</strong> Vérification de l'intégrité des modifications</li>
+                        <li>• <strong>Tracking:</strong> Historique des codes originaux → corrigés</li>
+                        <li>• <strong>Contrôle:</strong> Possibilité de retour en arrière si erreur</li>
+                        <li>• <strong>Statistiques:</strong> Comptage des corrections appliquées</li>
                       </>
                     )}
                     {step.id === 'step6' && (
                       <>
-                        <li>• Détection des conflits avec les codes clients réservés par la CNCJ</li>
-                        <li>• Les comptes clients utilisant un code CNCJ doivent être modifiés</li>
-                        <li>• Attribution automatique de nouveaux codes disponibles</li>
-                        <li>• Respect obligatoire de la liste des codes CNCJ homologués</li>
-                        <li>• Validation finale avant export des corrections</li>
+                        <li>• <strong>Algorithme:</strong> Incrémentation contrainte (max 9 tentatives)</li>
+                        <li>• <strong>Contrainte:</strong> <code>incremented % 10 === 0 ? null : continue</code> (jamais de dizaine supérieure)</li>
+                        <li>• <strong>Calcul:</strong> <code>codeNum + 1</code> avec validation croisée CNCJ + clients</li>
+                        <li>• <strong>Validation:</strong> Vérification against codes CNCJ homologués</li>
+                        <li>• <strong>Résolution:</strong> Auto-correction ou erreur si contrainte violée</li>
                       </>
                     )}
                     {step.id === 'step7' && (
                       <>
-                        <li>• Résumé complet de toutes les corrections appliquées (étapes 4 et 6)</li>
-                        <li>• Visualisation des comptes modifiés avec filtres par type de correction</li>
-                        <li>• Validation finale avant la complétion des métadonnées</li>
-                        <li>• Dernière étape de révision avant le traitement final</li>
-                        <li>• Préparation des données pour l'étape de correspondances</li>
+                        <li>• <strong>Calcul:</strong> Agrégation des statistiques finales (étapes 4 + 6)</li>
+                        <li>• <strong>Algorithme:</strong> Construction de l'historique complet des codes</li>
+                        <li>• <strong>Métadonnées:</strong> Tracking source modifications (step4/step6)</li>
+                        <li>• <strong>Validation:</strong> Cohérence finale de toutes les corrections</li>
+                        <li>• <strong>Export:</strong> Préparation des données pour traitement final</li>
                       </>
                     )}
                   </ul>
@@ -149,11 +148,11 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
               <div className="bg-purple-100 rounded-lg p-3">
                 <h4 className="text-sm font-semibold text-purple-700 mb-2">📋 Règles de traitement :</h4>
                 <ul className="text-xs text-purple-600 space-y-1">
-                  <li>• Identification des comptes clients sans correspondance dans le plan comptable général</li>
-                  <li>• Remplissage automatique des métadonnées manquantes</li>
-                  <li>• Finalisation des données avant export complet</li>
-                  <li>• Validation finale de l'ensemble du traitement</li>
-                  <li>• Export final des données complètes et corrigées</li>
+                  <li>• <strong>Algorithme:</strong> Héritage PCG par préfixe (4 premiers chiffres)</li>
+                  <li>• <strong>Calcul:</strong> Différence numérique minimale pour trouver le compte PCG le plus proche</li>
+                  <li>• <strong>Logique:</strong> <code>code.substring(0, 4)</code> pour regrouper les comptes PCG</li>
+                  <li>• <strong>Métadonnées:</strong> Héritage automatique des données du compte PCG correspondant</li>
+                  <li>• <strong>Export:</strong> Finalisation des données complètes et corrigées</li>
                 </ul>
               </div>
             </div>
