@@ -113,7 +113,13 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'SET_NORMALIZATION_APPLIED':
       return { ...state, isNormalizationApplied: action.payload };
     case 'SET_MISSING_METADATA':
-      return { ...state, missingMetadata: action.payload };
+      return { 
+        ...state, 
+        missingMetadata: { 
+          ...state.missingMetadata, 
+          ...action.payload 
+        } 
+      };
     case 'SET_MISSING_METADATA_FIELD':
       return { 
         ...state, 
