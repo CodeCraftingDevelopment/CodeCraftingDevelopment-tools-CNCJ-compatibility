@@ -20,6 +20,7 @@ import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
 import { ProjectPersistence } from './components/ProjectPersistence';
 import { AppAction } from './types/accounts';
+import { APP_VERSION, formatVersion } from './utils/version';
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -517,9 +518,14 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🏦 Compte Processor
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              🏦 Compte Processor
+            </h1>
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+              {formatVersion(APP_VERSION)}
+            </span>
+          </div>
           <p className="text-gray-600">
             Import des comptes comptables client vers le plan comptable général et CNCJ
           </p>

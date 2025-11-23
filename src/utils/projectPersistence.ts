@@ -1,4 +1,5 @@
 import { AppState, Account, FileMetadata, MergeInfo, NormalizationAccount } from '../types/accounts';
+import { APP_VERSION, isNewerVersion } from './version';
 
 export interface ProjectFile {
   version: string;
@@ -32,7 +33,7 @@ export interface ProjectFile {
   };
 }
 
-export const CURRENT_VERSION = '1.0.0';
+export const CURRENT_VERSION = APP_VERSION;
 export const CANCELLED_ERROR_MESSAGE = 'Sauvegarde annulée';
 
 /**
@@ -311,6 +312,14 @@ export const loadProject = (file: File): Promise<ProjectFile> => {
         console.log(`📊 Comptes: ${projectFile.metadata.accountCounts.client} clients, ${projectFile.metadata.accountCounts.cncj} CNCJ, ${projectFile.metadata.accountCounts.general} généraux`);
         console.log(`📅 Créé le: ${new Date(projectFile.metadata.createdAt).toLocaleString()}`);
         console.log(`🔐 Checksum vérifié: ${projectFile.metadata.checksum.substring(0, 16)}...`);
+        console.log(`📦 Version du projet: ${projectFile.version}`);
+        
+        // Vérifier la compatibilité de version
+        if (isNewerVersion(APP_VERSION, projectFile.version)) {
+          console.warn(`⚠️ Le projet a été créé avec une version antérieure (${projectFile.version})`);
+        } else if (isNewerVersion(projectFile.version, APP_VERSION)) {
+          console.warn(`⚠️ Le projet a été créé avec une version plus récente (${projectFile.version})`);
+        }
         
         resolve(projectFile);
       } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename, CANCELLED_ERROR_MESSAGE } from '../utils/projectPersistence';
 import { AppState, AppDispatch } from '../types/accounts';
+import { APP_VERSION, isNewerVersion } from '../utils/version';
 
 interface ProjectPersistenceProps {
   state: AppState;
@@ -69,6 +70,25 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
     try {
       const projectFile = await loadProject(file);
       const newAppState = projectFileToAppState(projectFile);
+      
+      // Vérifier la compatibilité de version et avertir l'utilisateur
+      if (isNewerVersion(APP_VERSION, projectFile.version)) {
+        const message = `Ce projet a été créé avec une version antérieure (${projectFile.version}). Certaines fonctionnalités peuvent avoir évolué.`;
+        console.warn(message);
+        if (confirm(message + '\n\nVoulez-vous continuer le chargement ?')) {
+          // Continuer avec le chargement
+        } else {
+          return; // Annuler le chargement
+        }
+      } else if (isNewerVersion(projectFile.version, APP_VERSION)) {
+        const message = `Ce projet a été créé avec une version plus récente (${projectFile.version}) que votre application (${APP_VERSION}). Des données pourraient être perdues.`;
+        console.warn(message);
+        if (confirm(message + '\n\nVoulez-vous tout de même continuer le chargement ?')) {
+          // Continuer avec le chargement
+        } else {
+          return; // Annuler le chargement
+        }
+      }
       
       // Réinitialiser l'état avec les données chargées
       dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: newAppState.clientAccounts });

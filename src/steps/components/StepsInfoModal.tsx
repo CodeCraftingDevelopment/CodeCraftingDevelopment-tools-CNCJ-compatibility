@@ -1,5 +1,6 @@
 import React from 'react';
 import { STEPS_CONFIG } from '../../config/stepsConfig';
+import { APP_VERSION, formatVersion } from '../../utils/version';
 
 interface StepsInfoModalProps {
   onClose: () => void;
@@ -18,14 +19,19 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
           <h2 id="steps-info-title" className="text-lg font-semibold text-gray-900">
             Parcours de traitement
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Fermer la fenêtre d'information"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+              {formatVersion(APP_VERSION)}
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Fermer la fenêtre d'information"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-6">
