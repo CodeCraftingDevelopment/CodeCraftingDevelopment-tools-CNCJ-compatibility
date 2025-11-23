@@ -62,7 +62,7 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
 
     if (!isProjectFile(file)) {
       console.error('Le fichier sélectionné n\'est pas un fichier projet valide');
-      // TODO: Afficher une notification d'erreur
+      alert('Erreur : Le fichier sélectionné n\'est pas un fichier projet valide (.ccp ou .json requis)');
       return;
     }
 
