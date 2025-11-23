@@ -41,7 +41,7 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   cncjReplacementCodes,
   cncjConflictCorrections,
   mergedClientAccounts,
-  generalAccounts,
+  generalAccounts: _generalAccounts,
   finalFilter,
   onFilterChange
 }) => {

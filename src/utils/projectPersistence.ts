@@ -1,4 +1,4 @@
-import { AppState, Account, ProcessingResult, FileMetadata, MergeInfo, NormalizationAccount } from '../types/accounts';
+import { AppState, Account, FileMetadata, MergeInfo, NormalizationAccount } from '../types/accounts';
 
 export interface ProjectFile {
   version: string;
@@ -50,7 +50,7 @@ const calculateSHA256 = async (str: string): Promise<string> => {
  * Sérialisation déterministe pour garantir des checksums cohérents
  */
 const deterministicStringify = (obj: any): string => {
-  return JSON.stringify(obj, (key, value) => {
+  return JSON.stringify(obj, (_, value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       return Object.keys(value).sort().reduce((sorted: any, k) => {
         sorted[k] = value[k];

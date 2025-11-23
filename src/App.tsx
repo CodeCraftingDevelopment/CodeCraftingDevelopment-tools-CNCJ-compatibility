@@ -1,7 +1,7 @@
 import React, { useReducer, useCallback, useMemo, useState, useEffect } from 'react';
 
 import { NormalizationStep } from './components/NormalizationStep';
-import { Account, ProcessingResult, FileMetadata, AppState, MergeInfo } from './types/accounts';
+import { Account, ProcessingResult, FileMetadata, AppState } from './types/accounts';
 import { processAccounts, mergeIdenticalAccounts, findAccountsNeedingNormalization, applyNormalization } from './utils/accountUtils';
 import { cleanupFutureSteps } from './utils/stepCleanup';
 import { useStepValidation } from './hooks/useStepValidation';
@@ -19,31 +19,7 @@ import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
 import { ProjectPersistence } from './components/ProjectPersistence';
-
-type AppAction = 
-  | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
-  | { type: 'SET_CNCJ_ACCOUNTS'; payload: Account[] }
-  | { type: 'SET_GENERAL_ACCOUNTS'; payload: Account[] }
-  | { type: 'SET_CLIENT_FILE_INFO'; payload: FileMetadata | null }
-  | { type: 'SET_CNCJ_FILE_INFO'; payload: FileMetadata | null }
-  | { type: 'SET_GENERAL_FILE_INFO'; payload: FileMetadata | null }
-  | { type: 'SET_RESULT'; payload: ProcessingResult | null }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERRORS'; payload: string[] }
-  | { type: 'CLEAR_ERRORS' }
-  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal' }
-  | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
-  | { type: 'CLEAR_REPLACEMENT_CODES' }
-  | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
-  | { type: 'CLEAR_CNCJ_REPLACEMENT_CODES' }
-  | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
-  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
-  | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
-  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
-  | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: import('./types/accounts').NormalizationAccount[] }
-  | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
-  | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: Record<string, any> } }
-  | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } };
+import { AppAction } from './types/accounts';
 
 const initialState: AppState = {
   clientAccounts: [],
