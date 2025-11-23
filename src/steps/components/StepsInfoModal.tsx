@@ -39,7 +39,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   </h3>
                 </div>
                 <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">
-                  {step.description}
+                  {step.badge}
                 </span>
               </div>
               
@@ -106,21 +106,51 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                         <li>• Validation finale avant export des corrections</li>
                       </>
                     )}
+                    {step.id === 'step7' && (
+                      <>
+                        <li>• Résumé complet de toutes les corrections appliquées (étapes 4 et 6)</li>
+                        <li>• Visualisation des comptes modifiés avec filtres par type de correction</li>
+                        <li>• Validation finale avant la complétion des métadonnées</li>
+                        <li>• Dernière étape de révision avant le traitement final</li>
+                        <li>• Préparation des données pour l'étape de correspondances</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
             </div>
           ))}
 
+          {/* Étape finale - Correspondances manquantes */}
           <div className="border border-purple-200 bg-purple-50 rounded-lg p-4">
-            <h3 className="text-base font-semibold text-purple-900 mb-2">
-              Récapitulatif final
-            </h3>
-            <p className="text-sm text-purple-800 leading-relaxed">
-              La dernière étape synthétise toutes les corrections appliquées :
-              doublons résolus côté client, conflits avec les codes CNCJ et ajustements
-              finaux exportables.
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">🔧</span>
+                <h3 className="text-base font-semibold text-purple-900">
+                  8. Correspondances manquantes
+                </h3>
+              </div>
+              <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                Étape Finale
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-sm text-purple-800 leading-relaxed">
+                Traitement des lignes sans correspondances PCG pour remplir les colonnes manquantes et compléter les métadonnées.
+              </p>
+              
+              <div className="bg-purple-100 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-purple-700 mb-2">📋 Règles de traitement :</h4>
+                <ul className="text-xs text-purple-600 space-y-1">
+                  <li>• Identification des comptes clients sans correspondance dans le plan comptable général</li>
+                  <li>• Remplissage automatique des métadonnées manquantes</li>
+                  <li>• Finalisation des données avant export complet</li>
+                  <li>• Validation finale de l'ensemble du traitement</li>
+                  <li>• Export final des données complètes et corrigées</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
