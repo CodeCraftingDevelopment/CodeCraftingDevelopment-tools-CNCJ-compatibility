@@ -18,6 +18,7 @@ import { Step7FinalSummary } from './steps/Step7FinalSummary';
 import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
+import { ProjectPersistence } from './components/ProjectPersistence';
 
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
@@ -546,6 +547,49 @@ const App: React.FC = () => {
           <p className="text-gray-600">
             Traitement et comparaison de comptes comptables clients et CNCJ
           </p>
+          
+          {/* Project Persistence Controls */}
+          <div className="flex justify-center mt-4">
+            <ProjectPersistence
+              state={state}
+              dispatch={dispatch}
+              onProjectLoaded={(newState) => {
+                // Recalculate processing results if we have all the data
+                if (newState.clientAccounts.length > 0 && 
+                    newState.cncjAccounts.length > 0 && 
+                    newState.generalAccounts.length > 0) {
+                  processClientAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
+                  
+                  // If user was at step 6 or beyond, recalculate CNCJ conflicts ONLY if no manual corrections exist
+                  // Wait for processing to complete, then check results
+                  if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
+                    setTimeout(() => {
+                      // Check if processing results are available
+                      if (state.result) {
+                        const mergedAccounts = newState.clientAccounts.map(account => {
+                          const replacementCode = newState.replacementCodes[account.id];
+                          if (replacementCode?.trim()) {
+                            return { ...account, number: replacementCode.trim() };
+                          }
+                          return account;
+                        });
+                        
+                        const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
+                        dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+                        
+                        // Only recalculate corrections if user hasn't made manual changes
+                        const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
+                        if (!hasManualCorrections) {
+                          const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
+                          dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
+                        }
+                      }
+                    }, 600); // Wait for processClientAccounts to complete
+                  }
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Upload Errors */}

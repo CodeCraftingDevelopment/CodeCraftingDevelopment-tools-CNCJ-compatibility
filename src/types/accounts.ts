@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface Account {
   id: string;
   number: string;
@@ -72,3 +74,5 @@ export interface AppState {
   isNormalizationApplied: boolean;
   missingMetadata: { [accountId: string]: Record<string, any> };
 }
+
+export type AppDispatch = React.Dispatch<AppAction>;

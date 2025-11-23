@@ -11,6 +11,7 @@ Compte Processor est une application web React/TypeScript qui permet de :
 - Importer et gérer des corrections avec aperçu avant application
 - Exporter les résultats de traitement au format JSON
 - Afficher les comptes avec numéros et titres descriptifs
+- **Sauvegarder et charger des projets** complets pour le travail collaboratif
 
 ## ✨ Fonctionnalités
 
@@ -23,6 +24,10 @@ Compte Processor est une application web React/TypeScript qui permet de :
 - **Coloration des résultats** : Vert (codes uniques), Rouge (doublons), Gris (non trouvés)
 - **Export des doublons** : Export CSV des doublons avec codes de remplacement
 - **Export des résultats** : Téléchargement des résultats au format JSON
+- **Sauvegarde de projet** : Export complet de l'état du travail au format `.ccp`
+- **Chargement de projet** : Restauration complète d'un projet précédemment sauvegardé
+- **Intégrité des données** : Vérification par checksum SHA256 pour les transferts
+- **Travail collaboratif** : Transfert de projets entre utilisateurs et environnements
 - **Interface responsive** : Design moderne avec Tailwind CSS
 - **Traitement en temps réel** : Feedback visuel pendant le traitement
 
@@ -108,6 +113,60 @@ Numéro compte,Titre,Code remplacement
 5. **Vérifier les doublons** : Consultez l'aperçu coloré (vert/rouge/gris) des codes
 6. **Appliquer les corrections** : Cliquez sur "Appliquer les codes uniques" pour valider
 7. **Exporter les résultats** : Utilisez les boutons d'export selon vos besoins
+8. **Sauvegarder le projet** : Cliquez sur "💾 Sauvegarder le projet" pour conserver votre travail
+
+### 💾 Sauvegarde et chargement de projets
+
+Le système de persistance permet de sauvegarder et charger l'état complet du travail pour faciliter la collaboration et la reprise du travail.
+
+#### Format de fichier `.ccp`
+
+Les projets sont sauvegardés au format `.ccp` (Compte Processor Project) :
+```json
+{
+  "version": "1.0.0",
+  "metadata": {
+    "createdAt": "2025-01-23T10:30:00.000Z",
+    "createdBy": "Compte Processor User",
+    "description": "Projet avec 1500 comptes clients, 75 comptes CNCJ, 8000 comptes généraux",
+    "accountCounts": {
+      "client": 1500,
+      "cncj": 75,
+      "general": 8000
+    },
+    "checksum": "sha256_hash_pour_vérification_intégrité"
+  },
+  "data": {
+    "clientAccounts": [...],
+    "cncjAccounts": [...],
+    "generalAccounts": [...],
+    "replacementCodes": {...},
+    "currentStep": "step4",
+    // ... toutes les données brutes du projet
+  }
+}
+```
+
+#### Flux de travail collaboratif
+
+1. **Utilisateur 1** : Travaille sur le projet → Clique "💾 Sauvegarder le projet" → Fichier `.ccp` généré
+2. **Transfert** : Partagez le fichier `.ccp` par email, USB, cloud, etc.
+3. **Utilisateur 2** : Ouvre l'application → Clique "📁 Charger un projet" → Sélectionne le fichier `.ccp`
+4. **Restauration** : L'état complet est restauré avec toutes les corrections manuelles et l'étape en cours
+
+#### Sécurité et intégrité
+
+- **Checksum SHA256** : Vérifie automatiquement l'intégrité du fichier lors du chargement
+- **Validation de format** : Le fichier est validé avant restauration
+- **Préservation des corrections** : Toutes les modifications manuelles sont conservées
+- **Compatibilité cross-plateforme** : Fonctionne sur Windows, Mac, Linux
+
+#### Bonnes pratiques
+
+- **Sauvegardez régulièrement** : Après chaque étape importante du traitement
+- **Nommez clairement** : Les fichiers incluent automatiquement la date de création
+- **Vérifiez l'intégrité** : En cas de doute sur un fichier transféré
+- **Travaillez à plusieurs** : Plusieurs utilisateurs peuvent collaborer sur le même projet
 
 ### Import et gestion des corrections
 
@@ -357,6 +416,26 @@ Hook pour gérer le glisser-déposer de fichiers.
 - **Solution** : Diviser les gros fichiers en plusieurs parties plus petites
 - **Conseil** : Vider le cache du navigateur si les performances se dégradent
 
+#### Erreur de sauvegarde du projet
+- **Cause** : Aucune donnée à sauvegarder ou erreur JavaScript
+- **Solution** : Assurez-vous d'avoir importé au moins un fichier avant de sauvegarder
+- **Conseil** : Vérifiez la console du navigateur pour les erreurs détaillées
+
+#### Erreur de chargement du projet
+- **Cause** : Fichier `.ccp` corrompu, modifié ou format invalide
+- **Solution** : Vérifiez l'intégrité du fichier et réessayez
+- **Conseil** : Le checksum SHA256 est automatiquement vérifié lors du chargement
+
+#### Checksum invalide lors du chargement
+- **Cause** : Le fichier a été modifié manuellement ou corrompu pendant le transfert
+- **Solution** : Obtenez une nouvelle copie du fichier original
+- **Conseil** : Évitez de modifier les fichiers `.ccp` dans un éditeur de texte
+
+#### Format de fichier projet invalide
+- **Cause** : Le fichier sélectionné n'est pas un fichier `.ccp` valide
+- **Solution** : Utilisez uniquement les fichiers générés par Compte Processor
+- **Conseil** : Vérifiez que le fichier a l'extension `.ccp` et contient du JSON valide
+
 ### Performance
 
 - Pour les gros fichiers (>10 000 lignes), l'application peut prendre quelques secondes
@@ -400,6 +479,14 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - HTTPS recommandé pour la production
 
 ## 📝 Notes de version
+
+### v1.3.0
+- 💾 **Système de persistance** : Sauvegarde et chargement complets des projets au format `.ccp`
+- 🔐 **Intégrité des données** : Vérification par checksum SHA256 pour les transferts
+- 🔄 **Travail collaboratif** : Transfert de projets entre utilisateurs et environnements
+- 📊 **Métadonnées enrichies** : Informations de création, comptes et description dans les fichiers
+- 🎯 **Restauration d'état** : Préservation complète de l'étape en cours et des corrections manuelles
+- 🛡️ **Validation robuste** : Format de fichier et intégrité vérifiés avant chargement
 
 ### v1.2.0
 - 🔄 **Synchronisation CNCJ** : Script automatique pour synchroniser la colonne `isCNCJ` dans les comptes PCG
