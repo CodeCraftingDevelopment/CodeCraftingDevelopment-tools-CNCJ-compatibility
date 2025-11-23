@@ -1,8 +1,8 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
-## 2024-11-20
+## 2025-11-20
 
-### Ajouts du 2024-11-20 (Suggestions automatiques - Étape 4)
+### Ajouts du 2025-11-20 (Suggestions automatiques - Étape 4)
 
 #### Fonctionnalité : Suggestion automatique de codes pour les doublons
 - **Algorithme de suggestion** : calcul automatique des codes de remplacement pour les doublons
@@ -157,9 +157,9 @@ export const STEPS_CONFIG: StepConfig[] = [
 
 ---
 
-## 2024-11-22
+## 2025-11-22
 
-### Ajouts du 2024-11-22 (Synchronisation des comptes CNCJ)
+### Ajouts du 2025-11-22 (Synchronisation des comptes CNCJ)
 
 #### Fonctionnalité : Synchronisation automatique de la colonne isCNCJ
 - **Script de synchronisation** : Création du script `update_cncj_accounts.py` pour mettre à jour automatiquement la colonne `isCNCJ` dans `Comptes_PCG_CNCJ.csv`
@@ -187,4 +187,4 @@ export const STEPS_CONFIG: StepConfig[] = [
 
 ---
 
-*Dernière mise à jour : 22/11/2024*
+*Dernière mise à jour : 22/11/2025*

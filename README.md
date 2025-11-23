@@ -218,7 +218,7 @@ Numéro compte,Titre,Code remplacement
 
 ### Stack technique
 
-- **Frontend** : React 18 avec TypeScript
+- **Frontend** : React 19 avec TypeScript
 - **Build tool** : Vite
 - **Styling** : Tailwind CSS
 - **CSV Parsing** : PapaParse

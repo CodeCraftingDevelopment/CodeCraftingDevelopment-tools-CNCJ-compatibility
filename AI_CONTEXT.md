@@ -43,7 +43,7 @@ Fenêtre modale listant les lignes ignorées (tableau, export CSV) et les messag
 ## Architecture Technique
 
 ### Stack
-- **Framework** : React 18 + TypeScript
+- **Framework** : React 19 + TypeScript
 - **Build** : Vite
 - **Styling** : TailwindCSS
 - **State Management** : useReducer (pas de Redux)
@@ -745,4 +745,4 @@ console.log('Navigation vers l\'étape suivante');
 
 ---
 
-*Ce document est maintenu à jour avec le projet. Dernière mise à jour : 20/11/2024*
+*Ce document est maintenu à jour avec le projet. Dernière mise à jour : 20/11/2025*
