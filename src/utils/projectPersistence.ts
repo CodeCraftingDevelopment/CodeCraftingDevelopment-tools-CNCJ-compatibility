@@ -25,6 +25,7 @@ export interface ProjectFile {
     cncjReplacementCodes: { [key: string]: string };
     mergeInfo: MergeInfo[];
     cncjConflictCorrections: { [key: string]: string | 'error' };
+    cncjForcedValidations: string[];
     finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
     accountsNeedingNormalization: NormalizationAccount[];
     isNormalizationApplied: boolean;
@@ -79,6 +80,7 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       cncjReplacementCodes: state.cncjReplacementCodes,
       mergeInfo: state.mergeInfo,
       cncjConflictCorrections: state.cncjConflictCorrections,
+      cncjForcedValidations: Array.from(state.cncjForcedValidations),
       finalFilter: state.finalFilter,
       accountsNeedingNormalization: state.accountsNeedingNormalization,
       isNormalizationApplied: state.isNormalizationApplied,
@@ -368,6 +370,7 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     mergeInfo: data.mergeInfo,
     cncjConflictResult: null, // Sera recalculé si nécessaire
     cncjConflictCorrections: data.cncjConflictCorrections,
+    cncjForcedValidations: new Set(data.cncjForcedValidations || []), // Convertir array en Set avec compatibilité ascendante
     finalFilter: data.finalFilter,
     accountsNeedingNormalization: data.accountsNeedingNormalization,
     isNormalizationApplied: data.isNormalizationApplied,

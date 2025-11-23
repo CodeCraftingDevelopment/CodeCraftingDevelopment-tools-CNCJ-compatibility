@@ -74,6 +74,7 @@ export interface AppState {
   mergeInfo: MergeInfo[];
   cncjConflictResult: ProcessingResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
+  cncjForcedValidations: Set<string>;
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
@@ -99,6 +100,8 @@ export type AppAction =
   | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
   | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
+  | { type: 'SET_CNCJ_FORCED_VALIDATION'; payload: { accountId: string; forced: boolean } }
+  | { type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' }
   | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }

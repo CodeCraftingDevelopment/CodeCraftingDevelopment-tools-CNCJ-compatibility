@@ -7,6 +7,7 @@ interface UseStepValidationProps {
   cncjConflictResult: ProcessingResult | null;
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
+  cncjForcedValidations: Set<string>;
   cncjAccounts: Account[];
   mergedClientAccounts: Account[];
 }
@@ -16,6 +17,7 @@ export const useStepValidation = ({
   cncjConflictResult,
   replacementCodes,
   cncjReplacementCodes,
+  cncjForcedValidations,
   cncjAccounts,
   mergedClientAccounts
 }: UseStepValidationProps) => {
@@ -94,6 +96,11 @@ export const useStepValidation = ({
     
     // Vérifier que tous les conflits CNCJ ont un code valide et unique
     return cncjConflictResult.duplicates.every((account) => {
+      // Skip validation if this account is forced
+      if (cncjForcedValidations.has(account.id)) {
+        return true;
+      }
+      
       const currentCode = cncjReplacementCodes[account.id]?.trim();
       const isEmpty = !currentCode;
       const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
@@ -103,7 +110,7 @@ export const useStepValidation = ({
       
       return !isEmpty && !isDuplicateCode;
     });
-  }, [cncjConflictResult, cncjReplacementCodes, cncjAccounts, mergedClientAccounts]);
+  }, [cncjConflictResult, cncjReplacementCodes, cncjForcedValidations, cncjAccounts, mergedClientAccounts]);
 
   return {
     allDuplicatesResolved,

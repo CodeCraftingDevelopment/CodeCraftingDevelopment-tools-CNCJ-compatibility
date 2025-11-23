@@ -7,8 +7,10 @@ interface Step6CNCJConflictsProps {
   loading: boolean;
   cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
+  cncjForcedValidations: Set<string>;
   cncjCodes: Set<string>;
   onCncjReplacementCodeChange: (accountId: string, code: string) => void;
+  onCncjForcedValidationChange: (accountId: string, forced: boolean) => void;
 }
 
 export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
@@ -16,8 +18,10 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   loading,
   cncjReplacementCodes,
   cncjConflictCorrections,
+  cncjForcedValidations,
   cncjCodes,
-  onCncjReplacementCodeChange
+  onCncjReplacementCodeChange,
+  onCncjForcedValidationChange
 }) => {
   return (
     <ResultsDisplay
@@ -30,6 +34,8 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       conflictType="cncj-conflicts"
       corrections={cncjConflictCorrections}
       cncjCodes={cncjCodes}
+      cncjForcedValidations={cncjForcedValidations}
+      onCncjForcedValidationChange={onCncjForcedValidationChange}
     />
   );
 };

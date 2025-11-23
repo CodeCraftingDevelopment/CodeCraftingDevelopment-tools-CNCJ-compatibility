@@ -41,6 +41,7 @@ const initialState: AppState = {
   mergeInfo: [],
   cncjConflictResult: null,
   cncjConflictCorrections: {},
+  cncjForcedValidations: new Set(),
   finalFilter: 'all',
   accountsNeedingNormalization: [],
   isNormalizationApplied: false,
@@ -108,6 +109,17 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, cncjConflictResult: action.payload };
     case 'SET_CNCJ_CONFLICT_CORRECTIONS':
       return { ...state, cncjConflictCorrections: action.payload };
+    case 'SET_CNCJ_FORCED_VALIDATION': {
+      const newForcedValidations = new Set(state.cncjForcedValidations);
+      if (action.payload.forced) {
+        newForcedValidations.add(action.payload.accountId);
+      } else {
+        newForcedValidations.delete(action.payload.accountId);
+      }
+      return { ...state, cncjForcedValidations: newForcedValidations };
+    }
+    case 'CLEAR_CNCJ_FORCED_VALIDATIONS':
+      return { ...state, cncjForcedValidations: new Set() };
     case 'SET_FINAL_FILTER':
       return { ...state, finalFilter: action.payload };
     case 'SET_ACCOUNTS_NEEDING_NORMALIZATION':
@@ -163,6 +175,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: null });
     dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: {} });
+    dispatch({ type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' });
     
     if (source === 'client') {
       // NE vider mergeInfo QUE pour les fichiers clients (pas pendant le chargement)
@@ -328,6 +341,10 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
+  const handleCncjForcedValidationChange = useCallback((accountId: string, forced: boolean) => {
+    dispatch({ type: 'SET_CNCJ_FORCED_VALIDATION', payload: { accountId, forced } });
+  }, []);
+
   const handleMetadataChange = useCallback((accountId: string, metadata: Record<string, string | number | boolean | null>) => {
     dispatch({ type: 'SET_MISSING_METADATA', payload: { [accountId]: metadata } });
   }, []);
@@ -339,6 +356,7 @@ const App: React.FC = () => {
     cncjConflictResult: state.cncjConflictResult,
     replacementCodes: state.replacementCodes,
     cncjReplacementCodes: state.cncjReplacementCodes,
+    cncjForcedValidations: state.cncjForcedValidations,
     cncjAccounts: state.cncjAccounts,
     mergedClientAccounts
   });
@@ -553,8 +571,10 @@ const App: React.FC = () => {
               loading={state.loading}
               cncjReplacementCodes={state.cncjReplacementCodes}
               cncjConflictCorrections={state.cncjConflictCorrections}
+              cncjForcedValidations={state.cncjForcedValidations}
               cncjCodes={cncjCodes}
               onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
+              onCncjForcedValidationChange={handleCncjForcedValidationChange}
             />
             <StepNavigation
               currentStep={currentStepConfig}

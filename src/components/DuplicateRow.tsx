@@ -11,6 +11,8 @@ interface DuplicateRowProps {
   conflictType?: 'duplicates' | 'cncj-conflicts';
   corrections?: { [key: string]: string | 'error' };
   suggestedCode?: string | null;
+  cncjForcedValidations?: Set<string>;
+  onCncjForcedValidationChange?: (accountId: string, forced: boolean) => void;
 }
 
 export const DuplicateRow: React.FC<DuplicateRowProps> = ({
@@ -21,7 +23,9 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isCncjCode = false,
   conflictType = 'duplicates',
   corrections = {},
-  suggestedCode
+  suggestedCode,
+  cncjForcedValidations = new Set(),
+  onCncjForcedValidationChange
 }) => {
   const isEmpty = !replacementCode?.trim();
   
@@ -139,11 +143,25 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
       
       {/* Afficher une erreur pour les conflits CNCJ */}
       {conflictType === 'cncj-conflicts' && corrections[account.id] && (
-        <div className="mt-2 flex items-center space-x-2">
-          <span className="text-xs text-gray-600">Statut:</span>
-          <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
-            ⚠️ Erreur de correspondance CNCJ
-          </span>
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-gray-600">Statut:</span>
+            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+              ⚠️ Erreur de correspondance CNCJ
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-xs text-gray-600 whitespace-nowrap">
+              Forcer la validation:
+            </label>
+            <input
+              type="checkbox"
+              checked={cncjForcedValidations.has(account.id)}
+              onChange={(e) => onCncjForcedValidationChange?.(account.id, e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              title="Cocher pour valider cette ligne sans changer le code de compte"
+            />
+          </div>
         </div>
       )}
     </div>

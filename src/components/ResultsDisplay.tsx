@@ -18,6 +18,8 @@ interface ResultsDisplayProps {
   conflictType?: 'duplicates' | 'cncj-conflicts';
   corrections?: { [key: string]: string | 'error' };
   cncjCodes?: Set<string>;
+  cncjForcedValidations?: Set<string>;
+  onCncjForcedValidationChange?: (accountId: string, forced: boolean) => void;
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
   duplicateIdsFromStep4?: Set<string>;
@@ -32,6 +34,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   conflictType = 'duplicates',
   corrections = {},
   cncjCodes,
+  cncjForcedValidations = new Set(),
+  onCncjForcedValidationChange,
   mergedClientAccounts,
   originalClientAccounts,
   duplicateIdsFromStep4
@@ -295,6 +299,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       conflictType={conflictType}
                       corrections={corrections}
                       suggestedCode={suggestions.get(account.id)}
+                      cncjForcedValidations={cncjForcedValidations}
+                      onCncjForcedValidationChange={onCncjForcedValidationChange}
                     />
                   );
                 });

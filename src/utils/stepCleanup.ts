@@ -6,6 +6,7 @@ interface CleanupConfig {
   replacementCodes?: boolean;
   cncjConflictResult?: boolean;
   cncjConflictCorrections?: boolean;
+  cncjForcedValidations?: boolean;
   finalFilter?: boolean;
   accountsNeedingNormalization?: boolean;
   isNormalizationApplied?: boolean;
@@ -17,6 +18,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictCorrections: true,
+    cncjForcedValidations: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
     isNormalizationApplied: true
@@ -25,6 +27,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictCorrections: true,
+    cncjForcedValidations: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
     isNormalizationApplied: true
@@ -33,14 +36,17 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictCorrections: true,
+    cncjForcedValidations: true,
     finalFilter: true
   },
   step4: {
     cncjConflictResult: true,
     cncjConflictCorrections: true,
+    cncjForcedValidations: true,
     finalFilter: true
   },
   step5: {
+    cncjForcedValidations: true,
     finalFilter: true
   },
   step6: {
@@ -65,6 +71,9 @@ export const cleanupFutureSteps = (state: AppState, targetStep: Step): AppState 
   }
   if (config.cncjConflictCorrections) {
     newState.cncjConflictCorrections = {};
+  }
+  if (config.cncjForcedValidations) {
+    newState.cncjForcedValidations = new Set();
   }
   if (config.finalFilter) {
     newState.finalFilter = 'all';
