@@ -103,7 +103,7 @@ export const useMetadataImport = ({
         });
 
       } catch (error) {
-        console.error('Erreur lors de l\'import:', error);
+        console.error('Metadata import error:', error);
         setMetadataFileInfo({
           name: file.name,
           size: formatFileSize(file.size),

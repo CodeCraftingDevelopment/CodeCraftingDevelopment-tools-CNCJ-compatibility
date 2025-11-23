@@ -3,8 +3,7 @@ import { Account, FileMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
 import { normalizeAccountCode } from '../utils/accountUtils';
 
-// Flag debug pour éviter le spam de logs en production
-const DEBUG = process.env.NODE_ENV === 'development';
+// Debug logging removed for production - use React DevTools if needed
 
 /**
  * Bug fix for Step 6 CSV import:
@@ -53,16 +52,7 @@ export const useCorrectionsImport = ({
     let replacementCode = match[4].trim(); // code remplacement (colonne 4)
     const suggestion = match[5] ? match[5].trim() : '';
     
-    if (DEBUG) {
-      console.log('🔍 DEBUG - Parsing CSV line:', {
-        originalLine: line,
-        accountNumber,
-        title,
-        replacementCode,
-        suggestion,
-        regexMatch: match
-      });
-    }
+    // Debug logging removed for production - use React DevTools if needed
     
     // Utiliser la suggestion si le code de remplacement est vide
     if (!replacementCode && suggestion) {
@@ -84,14 +74,7 @@ export const useCorrectionsImport = ({
     const normalizedAccountNumber = normalizeAccountCode(accountNumber);
     const normalizedTitle = normalizeTitle(title);
     
-    if (DEBUG) {
-      console.log('🔍 DEBUG - Recherche du compte:', {
-        csvAccountNumber: accountNumber,
-        csvTitle: title,
-        normalizedAccountNumber,
-        normalizedTitle
-      });
-    }
+    // Debug logging removed for production - use React DevTools if needed
     
     // Essayer d'abord le matching direct par code original 8 chiffres + titre normalisé
     let account = duplicates.find(d => 
@@ -99,41 +82,17 @@ export const useCorrectionsImport = ({
       d.title && normalizeTitle(d.title) === normalizedTitle
     );
     
-    if (DEBUG) {
-      console.log('🔍 DEBUG - Résultat matching originalNumber:', {
-        found: !!account,
-        accountFound: account ? {
-          id: account.id,
-          originalNumber: account.originalNumber,
-          number: account.number,
-          title: account.title,
-          normalizedTitle: account.title ? normalizeTitle(account.title) : null
-        } : null
-      });
-    }
+    // Debug logging removed for production - use React DevTools if needed
     
     // Si pas trouvé, essayer le matching par numéro normalisé + titre normalisé
     if (!account) {
-      if (DEBUG) {
-        console.log('🔍 DEBUG - Tentative matching par numéro normalisé...');
-      }
+      // Debug logging removed for production - use React DevTools if needed
       account = duplicates.find(d => 
         d.number === normalizedAccountNumber && 
         d.title && normalizeTitle(d.title) === normalizedTitle
       );
       
-      if (DEBUG) {
-        console.log('🔍 DEBUG - Résultat matching normalisé:', {
-          found: !!account,
-          accountFound: account ? {
-            id: account.id,
-            originalNumber: account.originalNumber,
-            number: account.number,
-            title: account.title,
-            normalizedTitle: account.title ? normalizeTitle(account.title) : null
-          } : null
-        });
-      }
+      // Debug logging removed for production - use React DevTools if needed
     }
     
     return account;
@@ -206,21 +165,7 @@ export const useCorrectionsImport = ({
       let duplicateCodeCount = 0;
       const allOriginalCodes = getAllOriginalCodes();
       
-      // Log des duplicates disponibles une seule fois avant la boucle (optimisation performance)
-      if (DEBUG) {
-        const accountsWithoutOriginalNumber = duplicates.filter(d => !d.originalNumber);
-        console.log('🔍 DEBUG - Tous les duplicates disponibles:', {
-          total: duplicates.length,
-          withoutOriginalNumber: accountsWithoutOriginalNumber.length,
-          accounts: duplicates.map(d => ({
-            id: d.id,
-            originalNumber: d.originalNumber,
-            number: d.number,
-            title: d.title,
-            normalizedTitle: d.title ? normalizeTitle(d.title) : null
-          }))
-        });
-      }
+      // Debug logging removed for production - use React DevTools if needed
       
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -231,19 +176,10 @@ export const useCorrectionsImport = ({
         
         const [accountNumber, title, replacementCode] = parsedLine;
         
-        if (DEBUG) {
-        console.log('🔍 DEBUG - Ligne CSV parsée:', {
-          lineNumber: i,
-          accountNumber,
-          title,
-          replacementCode
-        });
-      }
+        // Debug logging removed for production - use React DevTools if needed
       
       if (!accountNumber || !title || !replacementCode) {
-        if (DEBUG) {
-          console.log('⚠️ DEBUG - Données manquantes, ligne ignorée');
-        }
+        // Debug logging removed for production - use React DevTools if needed
         continue;
       }
         
@@ -262,16 +198,7 @@ export const useCorrectionsImport = ({
         }
       }
       
-      // Log de résumé après l'import (feedback rapide)
-      const totalLines = lines.length - 1; // Exclure l'en-tête
-      if (DEBUG) {
-        console.log('📊 Import summary:', {
-          total: totalLines,
-          matched: processedCount,
-          unmatched: totalLines - processedCount,
-          duplicateCodeCount
-        });
-      }
+      // Summary logging removed for production - use React DevTools if needed
       
       setCorrectionsFileInfo({
         name: file.name,

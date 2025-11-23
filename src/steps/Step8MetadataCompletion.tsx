@@ -2,12 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { Account, ProcessingResult } from '../types/accounts';
 import { StepStatsGrid, StepStat, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
-import { sanitizeCsvValue } from '../utils/fileUtils';
 import { useMetadataImport } from '../hooks/useMetadataImport';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from '../components/DropZone';
-
-type ModificationSource = 'step4' | 'step6' | 'step4+step6' | null;
+import { exportToCsv, escapeCsvCell } from '../utils/csvExportUtils';
+import {
+  normalizeForDisplay,
+  computeFinalCode,
+  preparePcgLookups,
+  type ModificationSource
+} from '../utils/accountMatchingUtils';
 
 interface SummaryRow {
   id: string;
@@ -78,29 +82,11 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     }));
   };
 
-  // Normaliser un code à 7 chiffres pour l'affichage
-  const normalizeForDisplay = (code: string): string => {
-    if (!code || code === '-' || code === 'Erreur') return code;
-    return code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
-  };
+  // Normaliser un code à 7 chiffres pour l'affichage (utilitaire importé)
+  // Utilise normalizeForDisplay de accountMatchingUtils
 
-  // Calculer le code final pour un compte
-  const computeFinalCode = (account: Account): string => {
-    const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-    const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
-    
-    const isStep4Duplicate = step4Ids.has(account.id);
-    const isStep6Conflict = step6Ids.has(account.id);
-    
-    // Logique pour calculer le code final
-    if (isStep6Conflict && cncjReplacementCodes[account.id]) {
-      return cncjReplacementCodes[account.id];
-    }
-    if (isStep4Duplicate && replacementCodes[account.id]) {
-      return replacementCodes[account.id];
-    }
-    return account.number;
-  };
+  // Calculer le code final pour un compte (utilitaire importé)
+  // Utilise computeFinalCode de accountMatchingUtils
 
   // Reconstruire les données de résumé (logique de l'étape 7)
   const finalSummaryData: SummaryRow[] = useMemo(() => {
@@ -149,44 +135,19 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     });
   }, [clientAccounts, mergedClientAccounts, result, cncjConflictResult, replacementCodes, cncjReplacementCodes, cncjConflictCorrections]);
 
-  // Fonction partagée pour échapper correctement les guillemets et caractères spéciaux dans les cellules CSV
-  const escapeCsvCell = (cell: any): string => {
-    if (cell === undefined || cell === null) return '""';
-    const cellStr = String(cell);
-    const cleaned = cellStr.replace(/[\r\n]+/g, ' ');
-    const escaped = sanitizeCsvValue(cleaned).replace(/"/g, '""');
-    return `"${escaped}"`;
-  };
+  // Fonction d'échappement CSV (utilitaire importé)
+  // Utilise escapeCsvCell de csvExportUtils
 
   // Export des correspondances (logique de l'étape 7)
   const handleExport = () => {
-    try {
-      const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
-      
-      const csvRows = finalSummaryData.map(row => {
-        const finalCode = computeFinalCodeForSummary(row);
-        return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
-      });
-      
-      const escapedHeaders = csvHeaders.map(escapeCsvCell);
-      
-      const csvContent = [
-        escapedHeaders.join(';'),
-        ...csvRows.map(row => row.map(escapeCsvCell).join(';'))
-      ].join('\n');
-      
-      const bom = '\uFEFF';
-      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'correspondances-comptes.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Erreur lors de l\'export des correspondances:', error);
-      alert('Une erreur est survenue lors de l\'export. Veuillez réessayer.');
-    }
+    const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
+    
+    const csvRows = finalSummaryData.map(row => {
+      const finalCode = computeFinalCodeForSummary(row);
+      return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
+    });
+    
+    exportToCsv(csvHeaders, csvRows, 'correspondances-comptes.csv');
   };
 
   // Export PCG complet (logique de l'étape 7)
@@ -208,27 +169,14 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         'statusSelect', 'isCNCJ'
       ];
 
-      const pcgLookup = new Map<string, Account>();
-      generalAccounts.forEach(account => {
-        pcgLookup.set(account.number, account);
-      });
+      const { pcgLookup } = preparePcgLookups(generalAccounts);
 
       const clientCodesNotInPcg = finalSummaryData.filter(row => {
         const finalCode = normalizeForDisplay(computeFinalCodeForSummary(row));
         return !pcgLookup.has(finalCode);
       });
 
-      const pcgAccountsByPrefix = new Map<string, typeof generalAccounts>();
-      generalAccounts.forEach(account => {
-        const codeNum = parseInt(account.number);
-        if (!isNaN(codeNum) && account.number.length >= 4) {
-          const prefix = account.number.substring(0, 4);
-          if (!pcgAccountsByPrefix.has(prefix)) {
-            pcgAccountsByPrefix.set(prefix, []);
-          }
-          pcgAccountsByPrefix.get(prefix)?.push(account);
-        }
-      });
+      const { pcgAccountsByPrefix } = preparePcgLookups(generalAccounts);
 
       const csvRows: string[][] = [];
 
@@ -390,7 +338,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     });
 
     return clientAccounts.map(account => {
-      const finalCode = normalizeForDisplay(computeFinalCode(account));
+      const finalCode = normalizeForDisplay(computeFinalCode(account, result, cncjConflictResult, replacementCodes, cncjReplacementCodes));
       const isInPcg = pcgLookup.has(finalCode);
       
       let inheritedData: Record<string, any> = {};
