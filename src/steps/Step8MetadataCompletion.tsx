@@ -631,69 +631,63 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                 return (
                   <div
                     key={row.id}
-                    className={`border rounded-lg shadow-sm transition-all duration-200 ${
+                    className={`border rounded-lg shadow-sm transition-all duration-200 overflow-hidden ${
                       row.hasClosestMatch 
                         ? 'border-green-200 bg-green-50' 
                         : 'border-red-200 bg-red-50'
                     }`}
                   >
-                    <div className="p-4">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            {/* Individual toggle button */}
-                            <button
-                              onClick={() => toggleCard(row.id)}
-                              className={`p-1 rounded-md hover:bg-gray-200 transition-colors ${
-                                isCollapsed ? 'hover:bg-gray-300' : ''
-                              }`}
-                              title={isCollapsed ? "Développer" : "Réduire"}
-                            >
-                              <span className={`transform transition-transform duration-200 inline-block ${
-                                isCollapsed ? 'rotate-0' : 'rotate-90'
-                              }`}>
-                                ▶
-                              </span>
-                            </button>
-                            
-                            <h3 className="text-base font-semibold text-gray-900">{row.title}</h3>
-                          </div>
-                          
-                          {/* Historique des codes */}
-                          <div className="space-y-1 ml-6">
-                            <div className="flex items-center space-x-2 text-xs">
-                              <span className="text-gray-500">Original:</span>
-                              <span className="font-mono text-gray-600">{row.codeHistory.originalCode}</span>
-                              <span className="text-gray-400">→</span>
-                              <span className="text-gray-500">Normalisé:</span>
-                              <span className="font-mono text-gray-600">{row.codeHistory.normalizedCode}</span>
-                              {row.codeHistory.step4Code && (
-                                <>
-                                  <span className="text-gray-400">→</span>
-                                  <span className="text-gray-500">Doublon corrigé:</span>
-                                  <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
-                                </>
-                              )}
-                              {row.codeHistory.step6Code && (
-                                <>
-                                  <span className="text-gray-400">→</span>
-                                  <span className="text-gray-500">Step6:</span>
-                                  <span className="font-mono text-orange-600">{row.codeHistory.step6Code}</span>
-                                </>
-                              )}
-                              <span className="text-gray-400">→</span>
-                              <span className="text-gray-500">Final:</span>
-                              <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
-                              {row.codeHistory.referencePcgCode && (
-                                <>
-                                  <span className="text-gray-400">→</span>
-                                  <span className="text-gray-500">PCG référence:</span>
-                                  <span className="font-mono text-purple-600">{row.codeHistory.referencePcgCode}</span>
-                                </>
-                              )}
-                            </div>
+                    {/* Full-width clickable header */}
+                    <button
+                      onClick={() => toggleCard(row.id)}
+                      className={`w-full p-4 transition-colors flex items-center justify-between ${
+                        row.hasClosestMatch 
+                          ? 'bg-green-50 hover:bg-green-100' 
+                          : 'bg-red-50 hover:bg-red-100'
+                      }`}
+                      aria-expanded={!isCollapsed}
+                    >
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-base font-semibold text-gray-900">{row.title}</h3>
+                        </div>
+                        
+                        {/* Historique des codes */}
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2 text-xs">
+                            <span className="text-gray-500">Original:</span>
+                            <span className="font-mono text-gray-600">{row.codeHistory.originalCode}</span>
+                            <span className="text-gray-400">→</span>
+                            <span className="text-gray-500">Normalisé:</span>
+                            <span className="font-mono text-gray-600">{row.codeHistory.normalizedCode}</span>
+                            {row.codeHistory.step4Code && (
+                              <>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-gray-500">Doublon corrigé:</span>
+                                <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
+                              </>
+                            )}
+                            {row.codeHistory.step6Code && (
+                              <>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-gray-500">Step6:</span>
+                                <span className="font-mono text-orange-600">{row.codeHistory.step6Code}</span>
+                              </>
+                            )}
+                            <span className="text-gray-400">→</span>
+                            <span className="text-gray-500">Final:</span>
+                            <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
+                            {row.codeHistory.referencePcgCode && (
+                              <>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-gray-500">PCG référence:</span>
+                                <span className="font-mono text-purple-600">{row.codeHistory.referencePcgCode}</span>
+                              </>
+                            )}
                           </div>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-3">
                         <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
                           row.hasClosestMatch
                             ? 'bg-green-600 text-white'
@@ -701,11 +695,20 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                         }`}>
                           {row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance'}
                         </span>
+                        <span 
+                          className={`text-gray-500 transition-transform duration-200 ${
+                            !isCollapsed ? 'rotate-180' : ''
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ▼
+                        </span>
                       </div>
+                    </button>
 
                       {/* Metadata grid - only show when expanded */}
                       {!isCollapsed && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="p-4 mt-4 pt-4 border-t border-gray-200">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {metadataFields.map((field) => {
                       const value = row.inheritedData[field.key] || '';
@@ -750,7 +753,6 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                   </div>
                         </div>
                       )}
-                    </div>
                   </div>
                 );
               })}
