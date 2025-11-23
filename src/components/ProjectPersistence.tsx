@@ -172,20 +172,6 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
         </div>
       )}
 
-      {/* Information sur le mode de sauvegarde */}
-      {hasDataToSave && (
-        <div className="flex items-center text-sm text-gray-600">
-          <span className="mr-2">📊</span>
-          <span>
-            {state.clientAccounts.length} clients • {state.cncjAccounts.length} CNCJ • {state.generalAccounts.length} généraux
-          </span>
-          {hasFileSystemAccess && (
-            <span className="ml-2 text-xs text-blue-600">
-              • Explorateur de fichiers disponible
-            </span>
-          )}
-        </div>
-      )}
-    </div>
+          </div>
   );
 };

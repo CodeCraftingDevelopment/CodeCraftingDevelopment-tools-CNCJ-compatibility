@@ -521,7 +521,7 @@ const App: React.FC = () => {
             🏦 Compte Processor
           </h1>
           <p className="text-gray-600">
-            Traitement et comparaison de comptes comptables clients et CNCJ
+            Import des comptes comptables client vers le plan comptable général et CNCJ
           </p>
           
           {/* Project Persistence Controls */}
