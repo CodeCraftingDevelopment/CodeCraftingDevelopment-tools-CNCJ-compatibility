@@ -595,9 +595,10 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={4}>
+      <StepStatsGrid columns={5}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={accountsWithClosestMatch.length} label="Avec correspondance proche" color="green" />
+        <StepStat value={`<- ${accountsWithClosestMatch.length + accountsWithoutClosestMatch.length} ->`} label="" color="orange" />
         <StepStat value={accountsWithoutClosestMatch.length} label="Sans correspondance" color="red" />
         <StepStat value={accountsInPcg.length} label="Comptes dans PCG" color="purple" />
       </StepStatsGrid>
