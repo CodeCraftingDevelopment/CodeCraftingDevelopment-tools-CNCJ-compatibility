@@ -2,7 +2,7 @@ import React from 'react';
 
 // Composant pour afficher une statistique
 interface StepStatProps {
-  value: number;
+  value: number | string;
   label: string;
   color?: 'blue' | 'green' | 'orange' | 'red' | 'purple';
 }
