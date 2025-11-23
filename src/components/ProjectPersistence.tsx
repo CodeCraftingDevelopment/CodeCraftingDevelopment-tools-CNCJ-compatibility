@@ -102,6 +102,7 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       // Utiliser les actions de clear pour réinitialiser proprement
       dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
       dispatch({ type: 'CLEAR_CNCJ_REPLACEMENT_CODES' });
+      dispatch({ type: 'CLEAR_MISSING_METADATA' });
       
       // Puis appliquer tous les codes de remplacement
       Object.entries(newAppState.replacementCodes).forEach(([accountId, code]) => {

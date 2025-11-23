@@ -103,6 +103,7 @@ export type AppAction =
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
   | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: AccountMetadata } }
-  | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } };
+  | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } }
+  | { type: 'CLEAR_MISSING_METADATA' };
 
 export type AppDispatch = React.Dispatch<AppAction>;
