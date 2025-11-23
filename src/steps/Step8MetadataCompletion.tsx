@@ -41,6 +41,7 @@ interface Step8MetadataCompletionProps {
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
+  missingMetadata: { [accountId: string]: Record<string, any> };
   onMetadataChange: (accountId: string, metadata: Record<string, any>) => void;
 }
 
@@ -53,6 +54,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   result,
   cncjConflictResult,
   cncjConflictCorrections,
+  missingMetadata,
   onMetadataChange
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -400,17 +402,21 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         }
       }
 
+      // Utiliser les métadonnées importées si elles existent, sinon utiliser les données héritées
+      const importedMetadata = missingMetadata[account.id] || {};
+      const finalInheritedData = { ...inheritedData, ...importedMetadata };
+
       return {
         id: account.id,
         title: account.title || 'Sans titre',
         finalCode,
-        inheritedData,
+        inheritedData: finalInheritedData,
         isInherited: !isInPcg && isInherited,
         hasClosestMatch: !isInPcg && isInherited && matchingPcgAccounts.length > 0,
         isInPcg
       };
     });
-  }, [clientAccounts, generalAccounts, replacementCodes, cncjReplacementCodes, result, cncjConflictResult]);
+  }, [clientAccounts, generalAccounts, replacementCodes, cncjReplacementCodes, result, cncjConflictResult, missingMetadata]);
 
   // Comptes qui nécessitent une attention (non présents dans PCG)
   const accountsNeedingMetadata = metadataData.filter(row => !row.isInPcg);

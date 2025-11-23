@@ -762,6 +762,7 @@ const App: React.FC = () => {
               result={state.result}
               cncjConflictResult={state.cncjConflictResult}
               cncjConflictCorrections={state.cncjConflictCorrections}
+              missingMetadata={state.missingMetadata}
               onMetadataChange={handleMetadataChange}
             />
             <StepNavigation
