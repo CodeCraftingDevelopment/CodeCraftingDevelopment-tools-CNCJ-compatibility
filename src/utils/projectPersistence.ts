@@ -33,6 +33,7 @@ export interface ProjectFile {
 }
 
 export const CURRENT_VERSION = '1.0.0';
+export const CANCELLED_ERROR_MESSAGE = 'Sauvegarde annulée';
 
 /**
  * Calcule le hash SHA256 d'une chaîne de caractères
@@ -116,6 +117,10 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
     
     console.log('✅ Projet sauvegardé avec succès');
   } catch (error) {
+    // Laisser l'erreur d'annulation se propager sans la modifier
+    if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
+      throw error;
+    }
     console.error('❌ Erreur lors de la sauvegarde du projet:', error);
     throw new Error('Échec de la sauvegarde du projet');
   }
@@ -152,7 +157,7 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     if (error instanceof DOMException && error.name === 'AbortError') {
       // L'utilisateur a annulé la boîte de dialogue
       console.log('📝 Sauvegarde annulée par l\'utilisateur');
-      throw new Error('Sauvegarde annulée');
+      throw new Error(CANCELLED_ERROR_MESSAGE);
     } else {
       // Autre erreur (permissions, etc.) - fallback avec message informatif
       console.warn('⚠️ File System Access API échoué, fallback vers download classique:', error.message);

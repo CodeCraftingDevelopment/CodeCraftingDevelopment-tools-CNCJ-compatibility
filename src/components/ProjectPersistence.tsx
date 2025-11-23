@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename } from '../utils/projectPersistence';
+import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename, CANCELLED_ERROR_MESSAGE } from '../utils/projectPersistence';
 import { AppState, AppDispatch } from '../types/accounts';
 
 interface ProjectPersistenceProps {
@@ -41,11 +41,11 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       // Réinitialiser le nom de fichier avec une nouvelle date après sauvegarde réussie
       setFilename(generateDefaultFilename());
     } catch (error) {
-      console.error('Erreur de sauvegarde:', error);
-      if (error instanceof Error && error.message === 'Sauvegarde annulée') {
+      if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
         // Ne rien afficher si l'utilisateur a annulé
         return;
       }
+      console.error('Erreur de sauvegarde:', error);
       alert('Erreur lors de la sauvegarde du projet. Veuillez réessayer.');
     } finally {
       setIsSaving(false);
