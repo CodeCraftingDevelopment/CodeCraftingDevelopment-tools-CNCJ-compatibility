@@ -30,6 +30,14 @@ interface MetadataRow {
   isInherited: boolean;
   hasClosestMatch: boolean; // true si la recherche a abouti, false sinon
   isInPcg: boolean; // pour le filtrage correct
+  // Ajout de l'historique des codes
+  codeHistory: {
+    originalCode: string; // Code original 8 chiffres
+    normalizedCode: string; // Code normalisé 7 chiffres
+    step4Code?: string; // Code après étape 4 (si doublon)
+    step6Code?: string; // Code après étape 6 (si conflit CNCJ)
+    finalCode: string; // Code final
+  };
 }
 
 interface Step8MetadataCompletionProps {
@@ -406,14 +414,36 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const importedMetadata = missingMetadata[account.id] || {};
       const finalInheritedData = { ...inheritedData, ...importedMetadata };
 
+      // Calculer l'historique des codes
+      const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
+      const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+      
+      const isStep4Duplicate = step4Ids.has(account.id);
+      const isStep6Conflict = step6Ids.has(account.id);
+      
+      const originalCode = account.originalNumber || getDisplayCode(account);
+      const normalizedCode = account.number;
+      const step4Code = isStep4Duplicate ? replacementCodes[account.id] : undefined;
+      const step6Code = isStep6Conflict ? cncjReplacementCodes[account.id] : undefined;
+      const finalCodeValue = finalCode;
+
+      const codeHistory = {
+        originalCode,
+        normalizedCode,
+        step4Code,
+        step6Code,
+        finalCode: finalCodeValue
+      };
+
       return {
         id: account.id,
         title: account.title || 'Sans titre',
-        finalCode,
+        finalCode: finalCodeValue,
         inheritedData: finalInheritedData,
         isInherited: !isInPcg && isInherited,
         hasClosestMatch: !isInPcg && isInherited && matchingPcgAccounts.length > 0,
-        isInPcg
+        isInPcg,
+        codeHistory
       };
     });
   }, [clientAccounts, generalAccounts, replacementCodes, cncjReplacementCodes, result, cncjConflictResult, missingMetadata]);
@@ -626,9 +656,36 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-900">{row.title}</h3>
-                      <p className="text-sm text-gray-600 font-mono">{row.finalCode}</p>
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 mb-2">{row.title}</h3>
+                      
+                      {/* Historique des codes */}
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-gray-500">Original:</span>
+                          <span className="font-mono text-gray-600">{row.codeHistory.originalCode}</span>
+                          <span className="text-gray-400">→</span>
+                          <span className="text-gray-500">Normalisé:</span>
+                          <span className="font-mono text-gray-600">{row.codeHistory.normalizedCode}</span>
+                          {row.codeHistory.step4Code && (
+                            <>
+                              <span className="text-gray-400">→</span>
+                              <span className="text-gray-500">Step4:</span>
+                              <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
+                            </>
+                          )}
+                          {row.codeHistory.step6Code && (
+                            <>
+                              <span className="text-gray-400">→</span>
+                              <span className="text-gray-500">Step6:</span>
+                              <span className="font-mono text-orange-600">{row.codeHistory.step6Code}</span>
+                            </>
+                          )}
+                          <span className="text-gray-400">→</span>
+                          <span className="text-gray-500">Final:</span>
+                          <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
+                        </div>
+                      </div>
                     </div>
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
                       row.hasClosestMatch
