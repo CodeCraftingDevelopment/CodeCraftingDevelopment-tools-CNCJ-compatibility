@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import { Account, FileUploadResult, ProcessingResult, MergeInfo, NormalizationAccount, InvalidRow } from '../types/accounts';
 import { detectCSVFormat, extractAccountData, isValidAccountNumber } from './csvFormatDetector';
+import { CSVFormat } from './csvFormatDetector';
 
 export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Promise<FileUploadResult> => {
   return new Promise((resolve) => {
@@ -14,10 +15,10 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
         let totalRows = 0;
         let skippedRows = 0;
         const invalidRows: InvalidRow[] = [];
-        let headers: any = null;
-        let detectedFormat: any = null;
+        let headers: string[] | null = null;
+        let detectedFormat: CSVFormat | null = null;
         
-        result.data.forEach((row: any, index: number) => {
+        result.data.forEach((row: unknown, index: number) => {
           const cells = Array.isArray(row) ? row : Object.values(row ?? {});
 
           if (cells.length === 0) {
@@ -55,11 +56,11 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
           // Logique pour les fichiers standards
           // Détecter le format une seule fois avec les headers
           if (!detectedFormat) {
-            detectedFormat = detectCSVFormat(cells as any, headers as any);
+            detectedFormat = detectCSVFormat(cells as unknown, headers as string[] | undefined);
           }
           
           const format = detectedFormat;
-          const { accountNumber, accountTitle } = extractAccountData(cells as any, format);
+          const { accountNumber, accountTitle } = extractAccountData(cells as unknown, format);
           const trimmedAccountNumber = accountNumber?.trim();
 
           const recordInvalid = (reason: string) => {
@@ -84,7 +85,7 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
           
           if (isValidAccountNumber(trimmedAccountNumber, shouldAllowAlpha)) {
             // Stocker les données brutes pour les fichiers PCG (format axelor)
-            let rawData: Record<string, any> | undefined;
+            let rawData: Record<string, unknown> | undefined;
             if (isAxelorFormat && headers && Array.isArray(headers)) {
               rawData = {};
               // S'assurer que cells a la même longueur que headers pour éviter les décalages

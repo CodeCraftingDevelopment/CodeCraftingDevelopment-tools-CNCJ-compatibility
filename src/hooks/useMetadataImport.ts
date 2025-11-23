@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { Account, FileMetadata } from '../types/accounts';
+import { Account, FileMetadata, AccountMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
 
 interface UseMetadataImportProps {
   _accountsNeedingMetadata: Account[];
   metadataFields: Array<{ key: string; label: string; type: string; options?: string[] }>;
-  onMetadataChange: (accountId: string, metadata: Record<string, any>) => void;
+  onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
 
 export const useMetadataImport = ({

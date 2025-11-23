@@ -1,12 +1,17 @@
 import React from 'react';
 
+// Interface for account metadata fields
+export interface AccountMetadata {
+  [key: string]: string | number | boolean | null;
+}
+
 export interface Account {
   id: string;
   number: string;
   title?: string;
   source: 'client' | 'cncj' | 'general';
   originalNumber?: string; // Code original 8 chiffres du fichier d'import
-  rawData?: Record<string, any>; // Données brutes du CSV (pour PCG avec 24 colonnes)
+  rawData?: Record<string, unknown>; // Données brutes du CSV (pour PCG avec 24 colonnes)
 }
 
 export interface NormalizationAccount {
@@ -72,7 +77,7 @@ export interface AppState {
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
-  missingMetadata: { [accountId: string]: Record<string, any> };
+  missingMetadata: { [accountId: string]: AccountMetadata };
 }
 
 export type AppAction = 
@@ -97,7 +102,7 @@ export type AppAction =
   | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
-  | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: Record<string, any> } }
+  | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: AccountMetadata } }
   | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } };
 
 export type AppDispatch = React.Dispatch<AppAction>;

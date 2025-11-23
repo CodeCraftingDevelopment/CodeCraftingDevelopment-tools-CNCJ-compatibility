@@ -5,11 +5,15 @@ export interface CSVRowData {
   accountTitle: string;
 }
 
-export const detectCSVFormat = (row: Record<string, unknown>, headers?: string[]): CSVFormat => {
+export const detectCSVFormat = (row: unknown, headers?: string[]): CSVFormat => {
+  if (!row || typeof row !== 'object') {
+    return 'unknown';
+  }
+  
   // Détecter le format Axelor (Comptes_PCG.csv)
   if (headers && typeof headers === 'object') {
     const headerKeys = Array.isArray(headers) ? headers : Object.values(headers);
-    const hasAxelorHeaders = headerKeys.some((h: any) => 
+    const hasAxelorHeaders = headerKeys.some((h: unknown) => 
       typeof h === 'string' && (
         h.includes('accountType.importId') || 
         h.includes('importId') && h.includes('code')
@@ -25,10 +29,11 @@ export const detectCSVFormat = (row: Record<string, unknown>, headers?: string[]
   } else if (Array.isArray(row)) {
     return 'array';
   } else if (row && typeof row === 'object') {
-    if (row.account) {
+    const rowObj = row as Record<string, unknown>;
+    if (rowObj['account']) {
       return 'object';
     }
-    const keys = Object.keys(row);
+    const keys = Object.keys(rowObj);
     if (keys.length >= 2) {
       return 'object';
     }
@@ -36,32 +41,47 @@ export const detectCSVFormat = (row: Record<string, unknown>, headers?: string[]
   return 'unknown';
 };
 
-export const extractAccountData = (row: Record<string, unknown>, format: CSVFormat): CSVRowData => {
+export const extractAccountData = (row: unknown, format: CSVFormat): CSVRowData => {
+  if (!row || typeof row !== 'object') {
+    return {
+      accountNumber: '',
+      accountTitle: ''
+    };
+  }
+  
+  const rowObj = row as Record<string, unknown>;
+  
   switch (format) {
     case 'string':
       return {
-        accountNumber: row.toString().trim(),
+        accountNumber: rowObj.toString().trim(),
         accountTitle: ''
       };
       
     case 'array':
+      if (Array.isArray(rowObj)) {
+        return {
+          accountNumber: rowObj[0]?.toString().trim() || '',
+          accountTitle: rowObj[1]?.toString().trim() || ''
+        };
+      }
       return {
-        accountNumber: row[0]?.toString().trim() || '',
-        accountTitle: row[1]?.toString().trim() || ''
+        accountNumber: '',
+        accountTitle: ''
       };
     
     case 'axelor':
       // Format Axelor: code -> numéro, name -> titre
-      if (Array.isArray(row)) {
+      if (Array.isArray(rowObj)) {
         return {
-          accountNumber: row[1]?.toString().trim() || '', // code
-          accountTitle: row[3]?.toString().trim() || ''    // name
+          accountNumber: rowObj[1]?.toString().trim() || '', // code
+          accountTitle: rowObj[3]?.toString().trim() || ''    // name
         };
-      } else if (row && typeof row === 'object') {
+      } else {
         // Accès direct par nom de colonne (PapaParse crée un objet avec les noms d'en-têtes)
         return {
-          accountNumber: row['code']?.toString().trim() || '',
-          accountTitle: row['name']?.toString().trim() || ''
+          accountNumber: rowObj['code']?.toString().trim() || '',
+          accountTitle: rowObj['name']?.toString().trim() || ''
         };
       }
       return {
@@ -70,18 +90,18 @@ export const extractAccountData = (row: Record<string, unknown>, format: CSVForm
       };
       
     case 'object':
-      if (row.account) {
+      if (rowObj.account) {
         return {
-          accountNumber: row.account.toString().trim(),
-          accountTitle: row.title?.toString().trim() || ''
+          accountNumber: rowObj.account.toString().trim(),
+          accountTitle: rowObj.title?.toString().trim() || ''
         };
       }
       // Try first two columns
       {
-        const keys = Object.keys(row);
+        const keys = Object.keys(rowObj);
         return {
-          accountNumber: row[keys[0]]?.toString().trim() || '',
-          accountTitle: row[keys[1]]?.toString().trim() || ''
+          accountNumber: rowObj[keys[0]]?.toString().trim() || '',
+          accountTitle: rowObj[keys[1]]?.toString().trim() || ''
         };
       }
       

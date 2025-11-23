@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Account, ProcessingResult } from '../types/accounts';
+import { Account, ProcessingResult, AccountMetadata } from '../types/accounts';
+import { toAccountMetadata } from '../utils/typeGuards';
 import { StepStatsGrid, StepStat, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
 import { useMetadataImport } from '../hooks/useMetadataImport';
@@ -30,7 +31,7 @@ interface MetadataRow {
   id: string;
   title: string;
   finalCode: string;
-  inheritedData: Record<string, any>;
+  inheritedData: AccountMetadata;
   isInherited: boolean;
   hasClosestMatch: boolean; // true si la recherche a abouti, false sinon
   isInPcg: boolean; // pour le filtrage correct
@@ -54,8 +55,8 @@ interface Step8MetadataCompletionProps {
   result: ProcessingResult | null;
   cncjConflictResult: ProcessingResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
-  missingMetadata: { [accountId: string]: Record<string, any> };
-  onMetadataChange: (accountId: string, metadata: Record<string, any>) => void;
+  missingMetadata: { [accountId: string]: AccountMetadata };
+  onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
 
 export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = ({
@@ -188,30 +189,30 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         return {
           code: parseInt(account.number) || 0,
           row: [
-            importId,
+            String(importId),
             account.number,
-            data.parent_code || '',
+            String(data.parent_code || ''),
             account.title || '',
-            data['accountType.importId'] || '',
-            data.isRegulatoryAccount ?? 'false',
-            data.commonPosition || '0',
-            data.reconcileOk || '',
-            data.compatibleAccounts || '',
-            data.useForPartnerBalance ?? '',
-            data.isTaxAuthorizedOnMoveLine ?? '',
-            data.isTaxRequiredOnMoveLine ?? '',
-            data.defaultTaxSet || '',
-            data.vatSystemSelect || '',
-            data.isRetrievedOnPaymentSession ?? '',
-            data['serviceType.code'] || '',
-            data.manageCutOffPeriod ?? '',
-            data.hasAutomaticApplicationAccountingDate ?? '',
-            data.analyticDistributionAuthorized ?? '',
-            data.analyticDistributionRequiredOnInvoiceLines ?? '',
-            data.analyticDistributionRequiredOnMoveLines ?? '',
-            data['analyticDistributionTemplate.importId'] || '',
-            data.statusSelect || '1',
-            data.isCNCJ ?? 'false'
+            String(data['accountType.importId'] || ''),
+            String(data.isRegulatoryAccount ?? 'false'),
+            String(data.commonPosition || '0'),
+            String(data.reconcileOk || ''),
+            String(data.compatibleAccounts || ''),
+            String(data.useForPartnerBalance ?? ''),
+            String(data.isTaxAuthorizedOnMoveLine ?? ''),
+            String(data.isTaxRequiredOnMoveLine ?? ''),
+            String(data.defaultTaxSet || ''),
+            String(data.vatSystemSelect || ''),
+            String(data.isRetrievedOnPaymentSession ?? ''),
+            String(data['serviceType.code'] || ''),
+            String(data.manageCutOffPeriod ?? ''),
+            String(data.hasAutomaticApplicationAccountingDate ?? ''),
+            String(data.analyticDistributionAuthorized ?? ''),
+            String(data.analyticDistributionRequiredOnInvoiceLines ?? ''),
+            String(data.analyticDistributionRequiredOnMoveLines ?? ''),
+            String(data['analyticDistributionTemplate.importId'] || ''),
+            String(data.statusSelect || '1'),
+            String(data.isCNCJ ?? 'false')
           ]
         };
       });
@@ -222,7 +223,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         const code = normalizeForDisplay(computeFinalCodeForSummary(row));
         const name = row.title;
         
-        let inheritedData: Record<string, string | number | boolean | null> = {};
+        let inheritedData: AccountMetadata = {};
         
         if (code.length >= 4) {
           const prefix = code.substring(0, 4);
@@ -238,7 +239,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                 return currentDiff < closestDiff ? current : closest;
               });
               
-              inheritedData = {...(closestPcgAccount.rawData || {})};
+              inheritedData = toAccountMetadata(closestPcgAccount.rawData || {});
               delete inheritedData.importId;
               delete inheritedData.code;
               delete inheritedData.name;
@@ -250,29 +251,29 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           code: parseInt(code) || 0,
           row: [
             importId,
-            code,
-            inheritedData.parent_code || '',
+            String(code),
+            String(inheritedData.parent_code || ''),
             name,
-            inheritedData['accountType.importId'] || 'AT001',
-            inheritedData.isRegulatoryAccount ?? 'false',
-            inheritedData.commonPosition || '0',
-            inheritedData.reconcileOk || '',
-            inheritedData.compatibleAccounts || '',
-            inheritedData.useForPartnerBalance ?? '',
-            inheritedData.isTaxAuthorizedOnMoveLine ?? '',
-            inheritedData.isTaxRequiredOnMoveLine ?? '',
-            inheritedData.defaultTaxSet || '',
-            inheritedData.vatSystemSelect || '',
-            inheritedData.isRetrievedOnPaymentSession ?? '',
-            inheritedData['serviceType.code'] || '',
-            inheritedData.manageCutOffPeriod ?? '',
-            inheritedData.hasAutomaticApplicationAccountingDate ?? '',
-            inheritedData.analyticDistributionAuthorized ?? '',
-            inheritedData.analyticDistributionRequiredOnInvoiceLines ?? '',
-            inheritedData.analyticDistributionRequiredOnMoveLines ?? '',
-            inheritedData['analyticDistributionTemplate.importId'] || '',
-            inheritedData.statusSelect || '1',
-            inheritedData.isCNCJ ?? 'false'
+            String(inheritedData['accountType.importId'] || 'AT001'),
+            String(inheritedData.isRegulatoryAccount ?? 'false'),
+            String(inheritedData.commonPosition || '0'),
+            String(inheritedData.reconcileOk || ''),
+            String(inheritedData.compatibleAccounts || ''),
+            String(inheritedData.useForPartnerBalance ?? ''),
+            String(inheritedData.isTaxAuthorizedOnMoveLine ?? ''),
+            String(inheritedData.isTaxRequiredOnMoveLine ?? ''),
+            String(inheritedData.defaultTaxSet || ''),
+            String(inheritedData.vatSystemSelect || ''),
+            String(inheritedData.isRetrievedOnPaymentSession ?? ''),
+            String(inheritedData['serviceType.code'] || ''),
+            String(inheritedData.manageCutOffPeriod ?? ''),
+            String(inheritedData.hasAutomaticApplicationAccountingDate ?? ''),
+            String(inheritedData.analyticDistributionAuthorized ?? ''),
+            String(inheritedData.analyticDistributionRequiredOnInvoiceLines ?? ''),
+            String(inheritedData.analyticDistributionRequiredOnMoveLines ?? ''),
+            String(inheritedData['analyticDistributionTemplate.importId'] || ''),
+            String(inheritedData.statusSelect || '1'),
+            String(inheritedData.isCNCJ ?? 'false')
           ]
         };
       });
@@ -341,7 +342,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const finalCode = normalizeForDisplay(computeFinalCode(account, result, cncjConflictResult, replacementCodes, cncjReplacementCodes));
       const isInPcg = pcgLookup.has(finalCode);
       
-      let inheritedData: Record<string, string | number | boolean | null> = {};
+      let inheritedData: AccountMetadata = {};
       let isInherited = false;
       let matchingPcgAccounts: Account[] = [];
       let referencePcgCode: string | undefined;
@@ -363,7 +364,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
               return currentDiff < closestDiff ? current : closest;
             });
             
-            inheritedData = {...(closestPcgAccount.rawData || {})};
+            inheritedData = toAccountMetadata(closestPcgAccount.rawData || {});
             delete inheritedData.importId;
             delete inheritedData.code;
             delete inheritedData.name;
@@ -716,7 +717,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                           </label>
                           {field.type === 'select' ? (
                             <select
-                              value={value}
+                              value={typeof value === 'boolean' ? String(value) : value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
                               className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
                                 row.hasClosestMatch
@@ -733,7 +734,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                           ) : (
                             <input
                               type="text"
-                              value={value}
+                              value={typeof value === 'boolean' ? String(value) : value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
                               className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
                                 row.hasClosestMatch

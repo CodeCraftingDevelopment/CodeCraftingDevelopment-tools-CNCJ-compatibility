@@ -1,4 +1,4 @@
-import { AppState, Account, FileMetadata, MergeInfo, NormalizationAccount } from '../types/accounts';
+import { AppState, Account, FileMetadata, MergeInfo, NormalizationAccount, AccountMetadata } from '../types/accounts';
 import { APP_VERSION, isNewerVersion } from './version';
 
 export interface ProjectFile {
@@ -28,7 +28,7 @@ export interface ProjectFile {
     finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
     accountsNeedingNormalization: NormalizationAccount[];
     isNormalizationApplied: boolean;
-    missingMetadata: { [accountId: string]: Record<string, string | number | boolean | null> };
+    missingMetadata: { [accountId: string]: AccountMetadata };
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
   };
 }
@@ -155,14 +155,14 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     await writable.close();
     
     // Projet sauvegardé avec File System Access API
-  } catch (error: any) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') {
       // L'utilisateur a annulé la boîte de dialogue
       // Sauvegarde annulée par l'utilisateur
       throw new Error(CANCELLED_ERROR_MESSAGE);
     } else {
       // Autre erreur (permissions, etc.) - fallback avec message informatif
-      console.warn('⚠️ File System Access API échoué, fallback vers download classique:', error.message);
+      console.warn('⚠️ File System Access API échoué, fallback vers download classique:', error instanceof Error ? error.message : 'Unknown error');
       // Attendre un peu pour que l'utilisateur voie le message avant de continuer
       await new Promise(resolve => setTimeout(resolve, 100));
       await saveWithDownload(jsonString, filename);
@@ -231,24 +231,29 @@ export const generateDefaultFilename = (): string => {
 /**
  * Valide la structure d'un fichier projet chargé
  */
-export const validateProjectFile = (projectFile: any): projectFile is ProjectFile => {
+export const validateProjectFile = (projectFile: unknown): projectFile is ProjectFile => {
   try {
+    if (!projectFile || typeof projectFile !== 'object') {
+      return false;
+    }
+    const obj = projectFile as Record<string, unknown>;
+    
     // Vérifier la version
-    if (!projectFile.version || typeof projectFile.version !== 'string') {
+    if (!obj.version || typeof obj.version !== 'string') {
       return false;
     }
 
     // Vérifier les métadonnées
-    if (!projectFile.metadata || !projectFile.metadata.createdAt) {
+    if (!obj.metadata || typeof obj.metadata !== 'object' || !(obj.metadata as Record<string, unknown>).createdAt) {
       return false;
     }
 
     // Vérifier les données
-    if (!projectFile.data) {
+    if (!obj.data || typeof obj.data !== 'object') {
       return false;
     }
 
-    const { data } = projectFile;
+    const data = obj.data as Record<string, unknown>;
     
     // Vérifier les tableaux de comptes
     if (!Array.isArray(data.clientAccounts) || 
@@ -265,14 +270,12 @@ export const validateProjectFile = (projectFile: any): projectFile is ProjectFil
     }
 
     // Vérifier le filtre final
-    const validFilters = ['all', 'step4', 'step6', 'step4+step6', 'toCreate'];
-    if (!validFilters.includes(data.finalFilter)) {
+    if (typeof data.finalFilter !== 'string' || !['all', 'step4', 'step6', 'step4+step6', 'toCreate'].includes(data.finalFilter)) {
       return false;
     }
 
     // Vérifier l'étape actuelle
-    const validSteps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'stepFinal'];
-    if (!validSteps.includes(data.currentStep)) {
+    if (typeof data.currentStep !== 'string' || !['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'stepFinal'].includes(data.currentStep)) {
       return false;
     }
 

@@ -1,4 +1,5 @@
 import { Account, ProcessingResult } from '../types/accounts';
+import { toAccountMetadata } from './typeGuards';
 
 /**
  * Types pour la logique de matching et d'héritage
@@ -81,7 +82,7 @@ export const inheritPcgMetadata = (
     return { inheritedData: {} };
   }
   
-  const inheritedData = { ...(closestPcgAccount.rawData || {}) };
+  const inheritedData = toAccountMetadata(closestPcgAccount.rawData || {});
   delete inheritedData.importId;
   delete inheritedData.code;
   delete inheritedData.name;
