@@ -234,26 +234,26 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             account.number,
             data.parent_code || '',
             account.title || '',
-            data['accountType.importId'] || 'AT001',
-            data.isRegulatoryAccount || 'false',
+            data['accountType.importId'] || '',
+            data.isRegulatoryAccount ?? 'false',
             data.commonPosition || '0',
             data.reconcileOk || '',
             data.compatibleAccounts || '',
-            data.useForPartnerBalance || '',
-            data.isTaxAuthorizedOnMoveLine || '',
-            data.isTaxRequiredOnMoveLine || '',
+            data.useForPartnerBalance ?? '',
+            data.isTaxAuthorizedOnMoveLine ?? '',
+            data.isTaxRequiredOnMoveLine ?? '',
             data.defaultTaxSet || '',
             data.vatSystemSelect || '',
-            data.isRetrievedOnPaymentSession || '',
+            data.isRetrievedOnPaymentSession ?? '',
             data['serviceType.code'] || '',
-            data.manageCutOffPeriod || '',
-            data.hasAutomaticApplicationAccountingDate || '',
-            data.analyticDistributionAuthorized || '',
-            data.analyticDistributionRequiredOnInvoiceLines || '',
-            data.analyticDistributionRequiredOnMoveLines || '',
+            data.manageCutOffPeriod ?? '',
+            data.hasAutomaticApplicationAccountingDate ?? '',
+            data.analyticDistributionAuthorized ?? '',
+            data.analyticDistributionRequiredOnInvoiceLines ?? '',
+            data.analyticDistributionRequiredOnMoveLines ?? '',
             data['analyticDistributionTemplate.importId'] || '',
             data.statusSelect || '1',
-            data.isCNCJ || 'false'
+            data.isCNCJ ?? 'false'
           ]
         };
       });
@@ -296,25 +296,25 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             inheritedData.parent_code || '',
             name,
             inheritedData['accountType.importId'] || 'AT001',
-            inheritedData.isRegulatoryAccount || 'false',
+            inheritedData.isRegulatoryAccount ?? 'false',
             inheritedData.commonPosition || '0',
             inheritedData.reconcileOk || '',
             inheritedData.compatibleAccounts || '',
-            inheritedData.useForPartnerBalance || '',
-            inheritedData.isTaxAuthorizedOnMoveLine || '',
-            inheritedData.isTaxRequiredOnMoveLine || '',
+            inheritedData.useForPartnerBalance ?? '',
+            inheritedData.isTaxAuthorizedOnMoveLine ?? '',
+            inheritedData.isTaxRequiredOnMoveLine ?? '',
             inheritedData.defaultTaxSet || '',
             inheritedData.vatSystemSelect || '',
-            inheritedData.isRetrievedOnPaymentSession || '',
+            inheritedData.isRetrievedOnPaymentSession ?? '',
             inheritedData['serviceType.code'] || '',
-            inheritedData.manageCutOffPeriod || '',
-            inheritedData.hasAutomaticApplicationAccountingDate || '',
-            inheritedData.analyticDistributionAuthorized || '',
-            inheritedData.analyticDistributionRequiredOnInvoiceLines || '',
-            inheritedData.analyticDistributionRequiredOnMoveLines || '',
+            inheritedData.manageCutOffPeriod ?? '',
+            inheritedData.hasAutomaticApplicationAccountingDate ?? '',
+            inheritedData.analyticDistributionAuthorized ?? '',
+            inheritedData.analyticDistributionRequiredOnInvoiceLines ?? '',
+            inheritedData.analyticDistributionRequiredOnMoveLines ?? '',
             inheritedData['analyticDistributionTemplate.importId'] || '',
             inheritedData.statusSelect || '1',
-            inheritedData.isCNCJ || 'false'
+            inheritedData.isCNCJ ?? 'false'
           ]
         };
       });
@@ -395,6 +395,9 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
           
           if (matchingPcgAccounts.length > 0) {
+            // Algorithme d'héritage par différence numérique minimale
+            // Intentionnel pour les codes comptables qui suivent des hiérarchies numériques
+            // (ex: 411000 hérite des métadonnées du compte PCG le plus proche comme 411100)
             const closestPcgAccount = matchingPcgAccounts.reduce((closest, current) => {
               const currentDiff = Math.abs(codeNum - parseInt(current.number));
               const closestDiff = Math.abs(codeNum - parseInt(closest.number));

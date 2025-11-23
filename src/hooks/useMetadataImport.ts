@@ -81,7 +81,7 @@ export const useMetadataImport = ({
           const metadata: Record<string, any> = {};
           metadataFields.forEach(field => {
             const fieldIndex = headers.indexOf(field.key);
-            if (fieldIndex >= 0 && values[fieldIndex]) {
+            if (fieldIndex >= 0 && values[fieldIndex] !== undefined) {
               metadata[field.key] = values[fieldIndex];
             }
           });
