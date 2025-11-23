@@ -3,13 +3,13 @@ import { Account, FileMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
 
 interface UseMetadataImportProps {
-  accountsNeedingMetadata: Account[];
+  _accountsNeedingMetadata: Account[];
   metadataFields: Array<{ key: string; label: string; type: string; options?: string[] }>;
   onMetadataChange: (accountId: string, metadata: Record<string, any>) => void;
 }
 
 export const useMetadataImport = ({
-  accountsNeedingMetadata,
+  _accountsNeedingMetadata,
   metadataFields,
   onMetadataChange
 }: UseMetadataImportProps) => {
@@ -65,7 +65,7 @@ export const useMetadataImport = ({
         }
 
         // Parser les données
-        const metadataUpdates: { [accountId: string]: Record<string, any> } = {};
+        const metadataUpdates: { [accountId: string]: Record<string, string | number | boolean | null> } = {};
         let processedCount = 0;
         
         for (let i = 1; i < lines.length; i++) {
@@ -76,7 +76,7 @@ export const useMetadataImport = ({
           const accountId = values[headers.indexOf('id')];
           
           // Extraire les métadonnées (colonnes après les 4 premières)
-          const metadata: Record<string, any> = {};
+          const metadata: Record<string, string | number | boolean | null> = {};
           metadataFields.forEach(field => {
             const fieldIndex = headers.indexOf(field.key);
             if (fieldIndex >= 0 && values[fieldIndex] !== undefined) {
@@ -123,7 +123,7 @@ export const useMetadataImport = ({
     };
     
     reader.readAsText(file, 'utf-8');
-  }, [accountsNeedingMetadata, metadataFields, onMetadataChange]);
+  }, [metadataFields, onMetadataChange]);
 
   const handleClearMetadataFile = useCallback(() => {
     setMetadataFileInfo(null);

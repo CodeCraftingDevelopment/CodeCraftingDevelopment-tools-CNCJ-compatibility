@@ -16,7 +16,7 @@ export const useAppNavigation = (
     if (nextStep) {
       dispatch({ type: 'SET_CURRENT_STEP', payload: nextStep.id })
     }
-  }, [state.currentStep])
+  }, [dispatch, state.currentStep])
 
   // Navigation générique vers l'étape précédente
   const handleNavigatePrevious = useCallback(() => {
@@ -24,7 +24,7 @@ export const useAppNavigation = (
     if (previousStep) {
       dispatch({ type: 'SET_CURRENT_STEP', payload: previousStep.id })
     }
-  }, [state.currentStep])
+  }, [dispatch, state.currentStep])
 
   const handleNext = useCallback(() => {
     if (!state.result) {
@@ -32,7 +32,7 @@ export const useAppNavigation = (
       return
     }
     handleNavigateNext()
-  }, [state.result, handleNavigateNext])
+  }, [dispatch, state.result, handleNavigateNext])
 
   const handleMergeNext = useCallback(() => {
     // Détecter les comptes nécessitant une normalisation
@@ -41,7 +41,7 @@ export const useAppNavigation = (
     
     // Naviguer vers l'étape de normalisation
     handleNavigateNext()
-  }, [state.clientAccounts, handleNavigateNext])
+  }, [dispatch, state.clientAccounts, handleNavigateNext])
 
   const handleNormalizationNext = useCallback(() => {
     if (state.accountsNeedingNormalization.length > 0 && !state.isNormalizationApplied) {
@@ -55,7 +55,7 @@ export const useAppNavigation = (
     }
 
     handleNavigateNext()
-  }, [state.clientAccounts, state.accountsNeedingNormalization, state.isNormalizationApplied, state.cncjAccounts, handleNavigateNext, processClientAccounts])
+  }, [dispatch, state.clientAccounts, state.accountsNeedingNormalization, state.isNormalizationApplied, state.cncjAccounts, handleNavigateNext, processClientAccounts])
 
   const handleDuplicatesNext = useCallback(() => {
     if (!state.result) {
@@ -65,7 +65,7 @@ export const useAppNavigation = (
 
     // Naviguer vers l'étape de révision des corrections
     handleNavigateNext()
-  }, [state.result, handleNavigateNext])
+  }, [dispatch, state.result, handleNavigateNext])
 
   const handleReviewNext = useCallback(() => {
     if (!state.result) {
@@ -87,7 +87,7 @@ export const useAppNavigation = (
 
     // Naviguer vers step 6
     handleNavigateNext()
-  }, [state.result, state.cncjAccounts, mergedClientAccounts, processCncjConflicts, autoCorrectCncjConflicts, state.cncjConflictResult, handleNavigateNext])
+  }, [dispatch, state.result, state.cncjAccounts, mergedClientAccounts, state.cncjConflictResult, handleNavigateNext])
 
   const handleCncjNext = useCallback(() => {
     handleNavigateNext()

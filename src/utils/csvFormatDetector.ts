@@ -5,7 +5,7 @@ export interface CSVRowData {
   accountTitle: string;
 }
 
-export const detectCSVFormat = (row: any, headers?: any): CSVFormat => {
+export const detectCSVFormat = (row: Record<string, unknown>, headers?: string[]): CSVFormat => {
   // Détecter le format Axelor (Comptes_PCG.csv)
   if (headers && typeof headers === 'object') {
     const headerKeys = Array.isArray(headers) ? headers : Object.values(headers);
@@ -36,7 +36,7 @@ export const detectCSVFormat = (row: any, headers?: any): CSVFormat => {
   return 'unknown';
 };
 
-export const extractAccountData = (row: any, format: CSVFormat): CSVRowData => {
+export const extractAccountData = (row: Record<string, unknown>, format: CSVFormat): CSVRowData => {
   switch (format) {
     case 'string':
       return {
@@ -77,11 +77,13 @@ export const extractAccountData = (row: any, format: CSVFormat): CSVRowData => {
         };
       }
       // Try first two columns
-      const keys = Object.keys(row);
-      return {
-        accountNumber: row[keys[0]]?.toString().trim() || '',
-        accountTitle: row[keys[1]]?.toString().trim() || ''
-      };
+      {
+        const keys = Object.keys(row);
+        return {
+          accountNumber: row[keys[0]]?.toString().trim() || '',
+          accountTitle: row[keys[1]]?.toString().trim() || ''
+        };
+      }
       
     default:
       return {

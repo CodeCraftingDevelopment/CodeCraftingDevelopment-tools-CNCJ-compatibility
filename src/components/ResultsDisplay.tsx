@@ -73,10 +73,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // Utiliser le hook personnalisé pour les corrections
   const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
     duplicates,
-    uniqueClients,
-    matches,
-    unmatchedClients,
-    replacementCodes: replacementCodes || {},
+    _uniqueClients: uniqueClients,
+    _matches: matches,
+    _unmatchedClients: unmatchedClients,
+    _replacementCodes: replacementCodes || {},
     onReplacementCodeChange
   });
   

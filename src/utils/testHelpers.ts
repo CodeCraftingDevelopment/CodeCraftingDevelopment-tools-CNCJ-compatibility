@@ -3,6 +3,9 @@
  * Ces fonctions sont exposées via window.__TEST_HELPERS__ en mode développement
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Test mocks intentionally use any for flexibility and maintainability
+
 import { Account, FileMetadata } from '../types/accounts';
 import { parseCSVFile } from './accountUtils';
 import { formatFileSize } from './fileUtils';

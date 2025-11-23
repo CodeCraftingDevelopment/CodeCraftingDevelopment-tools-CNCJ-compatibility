@@ -54,7 +54,7 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
 
 export const cleanupFutureSteps = (state: AppState, targetStep: Step): AppState => {
   const config = STEP_CLEANUP_CONFIG[targetStep];
-  let newState = { ...state, currentStep: targetStep };
+  const newState = { ...state, currentStep: targetStep };
   
   // Appliquer le nettoyage selon la configuration
   if (config.replacementCodes) {

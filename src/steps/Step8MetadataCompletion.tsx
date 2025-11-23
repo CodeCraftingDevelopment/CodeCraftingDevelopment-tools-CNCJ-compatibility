@@ -222,7 +222,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         const code = normalizeForDisplay(computeFinalCodeForSummary(row));
         const name = row.title;
         
-        let inheritedData: Record<string, any> = {};
+        let inheritedData: Record<string, string | number | boolean | null> = {};
         
         if (code.length >= 4) {
           const prefix = code.substring(0, 4);
@@ -341,7 +341,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const finalCode = normalizeForDisplay(computeFinalCode(account, result, cncjConflictResult, replacementCodes, cncjReplacementCodes));
       const isInPcg = pcgLookup.has(finalCode);
       
-      let inheritedData: Record<string, any> = {};
+      let inheritedData: Record<string, string | number | boolean | null> = {};
       let isInherited = false;
       let matchingPcgAccounts: Account[] = [];
       let referencePcgCode: string | undefined;
@@ -441,6 +441,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   // Initialize collapsed state when filteredData changes
   const defaultCollapsed = useMemo(() => 
     filteredData.reduce((acc, row) => ({...acc, [row.id]: true}), {}),
+    // Only recompute when array size changes, not when items mutate
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [filteredData.length]
   );
 
@@ -485,7 +487,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
   // Utiliser le hook personnalisé pour l'import des métadonnées
   const { metadataFileInfo, processMetadataFile, handleClearMetadataFile } = useMetadataImport({
-    accountsNeedingMetadata: accountsNeedingMetadata as unknown as Account[],
+    _accountsNeedingMetadata: accountsNeedingMetadata as unknown as Account[],
     metadataFields,
     onMetadataChange
   });

@@ -8,7 +8,7 @@ import { sanitizeCsvValue } from './fileUtils';
 /**
  * Échappe correctement les guillemets et caractères spéciaux dans les cellules CSV
  */
-export const escapeCsvCell = (cell: any): string => {
+export const escapeCsvCell = (cell: string | number | boolean | null): string => {
   if (cell === undefined || cell === null) return '""';
   const cellStr = String(cell);
   const cleaned = cellStr.replace(/[\r\n]+/g, ' ');

@@ -5,6 +5,13 @@ import { normalizeAccountCode } from '../utils/accountUtils';
 
 // Debug logging removed for production - use React DevTools if needed
 
+// Fonction utilitaire pour normaliser les titres de manière plus flexible
+const normalizeTitle = (title: string): string => {
+  return title.toLowerCase()
+    .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
+    .trim();
+};
+
 /**
  * Bug fix for Step 6 CSV import:
  * 1. Case-insensitive title matching via normalizeTitle()
@@ -15,19 +22,19 @@ import { normalizeAccountCode } from '../utils/accountUtils';
 
 interface UseCorrectionsImportProps {
   duplicates: Account[];
-  uniqueClients: Account[];
-  matches: Account[];
-  unmatchedClients: Account[];
-  replacementCodes: { [key: string]: string };
+  _uniqueClients: Account[];
+  _matches: Account[];
+  _unmatchedClients: Account[];
+  _replacementCodes: { [key: string]: string };
   onReplacementCodeChange?: (accountId: string, code: string) => void;
 }
 
 export const useCorrectionsImport = ({
   duplicates,
-  uniqueClients,
-  matches,
-  unmatchedClients,
-  replacementCodes,
+  _uniqueClients,
+  _matches,
+  _unmatchedClients,
+  _replacementCodes,
   onReplacementCodeChange
 }: UseCorrectionsImportProps) => {
   const [correctionsFileInfo, setCorrectionsFileInfo] = useState<FileMetadata | null>(null);
@@ -62,14 +69,8 @@ export const useCorrectionsImport = ({
     return [accountNumber, title, replacementCode];
   };
 
-  // Fonction utilitaire pour normaliser les titres de manière plus flexible
-  const normalizeTitle = (title: string): string => {
-    return title.toLowerCase()
-      .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
-      .trim();
-  };
-
-  const findDuplicateAccount = (accountNumber: string, title: string): Account | undefined => {
+  
+  const findDuplicateAccount = useCallback((accountNumber: string, title: string): Account | undefined => {
     // Normaliser le numéro de compte pour la comparaison
     const normalizedAccountNumber = normalizeAccountCode(accountNumber);
     const normalizedTitle = normalizeTitle(title);
@@ -96,32 +97,7 @@ export const useCorrectionsImport = ({
     }
     
     return account;
-  };
-
-  const isDuplicateCode = (
-    replacementCode: string, 
-    existingCodes: string[], 
-    allOriginalCodes: Set<string>
-  ): boolean => {
-    // Normaliser le code de remplacement pour la comparaison
-    const normalizedReplacementCode = normalizeAccountCode(replacementCode);
-    
-    // Normaliser les codes existants pour la comparaison
-    const normalizedExistingCodes = existingCodes.map(code => normalizeAccountCode(code));
-    
-    // Normaliser les codes originaux pour la comparaison
-    const normalizedOriginalCodes = new Set(Array.from(allOriginalCodes).map(code => normalizeAccountCode(code)));
-    
-    return normalizedExistingCodes.includes(normalizedReplacementCode) || normalizedOriginalCodes.has(normalizedReplacementCode);
-  };
-
-  const getAllOriginalCodes = (): Set<string> => {
-    return new Set([
-      ...uniqueClients.map(acc => acc.number),
-      ...matches.map(acc => acc.number), 
-      ...unmatchedClients.map(acc => acc.number)
-    ]);
-  };
+  }, [duplicates]);
 
   const processCorrectionsFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.csv')) {
@@ -162,8 +138,6 @@ export const useCorrectionsImport = ({
       }
 
       let processedCount = 0;
-      let duplicateCodeCount = 0;
-      const allOriginalCodes = getAllOriginalCodes();
       
       // Debug logging removed for production - use React DevTools if needed
       
@@ -184,17 +158,13 @@ export const useCorrectionsImport = ({
       }
         
         const duplicateAccount = findDuplicateAccount(accountNumber, title);
-        const existingCodes = Object.values(replacementCodes);
-        const conflictsWithOriginal = isDuplicateCode(replacementCode, existingCodes, allOriginalCodes);
         
         if (duplicateAccount) {
           // Utiliser directement le code de remplacement du CSV (colonne 4)
           onReplacementCodeChange?.(duplicateAccount.id, replacementCode);
           processedCount++;
           
-          if (conflictsWithOriginal) {
-            duplicateCodeCount++;
-          }
+          // Conflicts with original code handled by validation
         }
       }
       
@@ -218,7 +188,7 @@ export const useCorrectionsImport = ({
     };
     
     reader.readAsText(file);
-  }, [duplicates, replacementCodes, onReplacementCodeChange, uniqueClients, matches, unmatchedClients]);
+  }, [onReplacementCodeChange, findDuplicateAccount]);
 
   const handleClearCorrectionsFile = useCallback(() => {
     setCorrectionsFileInfo(null);

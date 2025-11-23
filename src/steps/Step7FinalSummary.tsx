@@ -29,8 +29,8 @@ interface Step7FinalSummaryProps {
   generalAccounts: Account[];
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
   onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate') => void;
-  pcgManualOverrides?: { [accountCode: string]: Partial<Record<string, any>> };
-  onPcgManualOverrideChange?: (accountCode: string, overrides: Partial<Record<string, any>>) => void;
+  pcgManualOverrides?: { [accountCode: string]: Partial<Record<string, string | number | boolean | null>> };
+  onPcgManualOverrideChange?: (accountCode: string, overrides: Partial<Record<string, string | number | boolean | null>>) => void;
 }
 
 export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({

@@ -55,11 +55,11 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
           // Logique pour les fichiers standards
           // Détecter le format une seule fois avec les headers
           if (!detectedFormat) {
-            detectedFormat = detectCSVFormat(cells, headers);
+            detectedFormat = detectCSVFormat(cells as any, headers as any);
           }
           
           const format = detectedFormat;
-          const { accountNumber, accountTitle } = extractAccountData(cells, format);
+          const { accountNumber, accountTitle } = extractAccountData(cells as any, format);
           const trimmedAccountNumber = accountNumber?.trim();
 
           const recordInvalid = (reason: string) => {
@@ -93,7 +93,7 @@ export const parseCSVFile = (file: File, allowAlphanumeric: boolean = false): Pr
                 alignedCells.push(''); // Ajouter des cellules vides si nécessaire
               }
               
-              headers.forEach((header: any, index: number) => {
+              headers.forEach((header: string | number, index: number) => {
                 if (typeof header === 'string' && index < alignedCells.length && rawData) {
                   rawData[header.trim()] = alignedCells[index] || '';
                 }

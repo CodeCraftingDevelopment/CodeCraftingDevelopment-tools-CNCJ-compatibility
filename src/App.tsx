@@ -326,7 +326,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_REPLACEMENT_CODE', payload: { accountId, code } });
   }, []);
 
-  const handleMetadataChange = useCallback((accountId: string, metadata: Record<string, any>) => {
+  const handleMetadataChange = useCallback((accountId: string, metadata: Record<string, string | number | boolean | null>) => {
     dispatch({ type: 'SET_MISSING_METADATA', payload: { [accountId]: metadata } });
   }, []);
 

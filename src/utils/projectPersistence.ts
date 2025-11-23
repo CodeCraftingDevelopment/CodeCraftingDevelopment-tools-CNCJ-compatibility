@@ -28,7 +28,7 @@ export interface ProjectFile {
     finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
     accountsNeedingNormalization: NormalizationAccount[];
     isNormalizationApplied: boolean;
-    missingMetadata: { [accountId: string]: Record<string, any> };
+    missingMetadata: { [accountId: string]: Record<string, string | number | boolean | null> };
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
   };
 }
@@ -50,10 +50,10 @@ const calculateSHA256 = async (str: string): Promise<string> => {
 /**
  * Sérialisation déterministe pour garantir des checksums cohérents
  */
-const deterministicStringify = (obj: any): string => {
+const deterministicStringify = (obj: Record<string, unknown>): string => {
   return JSON.stringify(obj, (_, value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return Object.keys(value).sort().reduce((sorted: any, k) => {
+      return Object.keys(value).sort().reduce((sorted: Record<string, unknown>, k) => {
         sorted[k] = value[k];
         return sorted;
       }, {});
@@ -135,7 +135,7 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     const defaultFilename = filename || generateDefaultFilename();
     
     // Options pour la boîte de dialogue de sauvegarde
-    const options: any = {
+    const options: { suggestedName: string; types: Array<{ description: string; accept: Record<string, string[]> }> } = {
       suggestedName: defaultFilename,
       types: [{
         description: 'Fichiers de projet Compte Processor',
@@ -146,6 +146,7 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     };
 
     // Ouvrir la boîte de dialogue native (cast vers any pour TypeScript)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fileHandle = await (window as any).showSaveFilePicker(options);
     
     // Écrire le contenu dans le fichier choisi

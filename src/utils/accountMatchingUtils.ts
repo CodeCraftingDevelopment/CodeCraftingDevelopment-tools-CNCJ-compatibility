@@ -76,7 +76,7 @@ export const findClosestPcgMatch = (
  */
 export const inheritPcgMetadata = (
   closestPcgAccount: Account | null
-): { inheritedData: Record<string, any>; referencePcgCode?: string } => {
+): { inheritedData: Record<string, string | number | boolean | null>; referencePcgCode?: string } => {
   if (!closestPcgAccount) {
     return { inheritedData: {} };
   }
