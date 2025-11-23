@@ -537,7 +537,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
   // Utiliser le hook personnalisé pour l'import des métadonnées
   const { metadataFileInfo, processMetadataFile, handleClearMetadataFile } = useMetadataImport({
-    accountsNeedingMetadata,
+    accountsNeedingMetadata: accountsNeedingMetadata as unknown as Account[],
     metadataFields,
     onMetadataChange
   });
@@ -598,7 +598,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       <StepStatsGrid columns={5}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={accountsWithClosestMatch.length} label="Avec correspondance proche" color="green" />
-        <StepStat value={`<- ${accountsWithClosestMatch.length + accountsWithoutClosestMatch.length} ->`} label="" color="orange" />
+        <StepStat value={accountsWithClosestMatch.length + accountsWithoutClosestMatch.length} label="" color="orange" />
         <StepStat value={accountsWithoutClosestMatch.length} label="Sans correspondance" color="red" />
         <StepStat value={accountsInPcg.length} label="Comptes dans PCG" color="purple" />
       </StepStatsGrid>

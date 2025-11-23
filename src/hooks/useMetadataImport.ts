@@ -20,8 +20,7 @@ export const useMetadataImport = ({
     const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
     return normalizedHeaders.includes('id') && 
            normalizedHeaders.includes('title') && 
-           normalizedHeaders.includes('finalcode') && 
-           normalizedHeaders.includes('hasclosestmatch');
+           normalizedHeaders.includes('finalcode');
   };
 
   const processMetadataFile = useCallback(async (file: File) => {
@@ -75,7 +74,6 @@ export const useMetadataImport = ({
           if (values.length < 4) continue;
           
           const accountId = values[headers.indexOf('id')];
-          const hasClosestMatch = values[headers.indexOf('hasclosestmatch')] === 'true';
           
           // Extraire les métadonnées (colonnes après les 4 premières)
           const metadata: Record<string, any> = {};
