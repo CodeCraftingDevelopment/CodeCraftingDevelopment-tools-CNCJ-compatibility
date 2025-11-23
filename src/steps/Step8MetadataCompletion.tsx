@@ -67,6 +67,15 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('withoutMatch');
+  const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({});
+  
+  // Toggle individual card
+  const toggleCard = (accountId: string) => {
+    setCollapsedCards(prev => ({
+      ...prev,
+      [accountId]: !prev[accountId]
+    }));
+  };
 
   // Normaliser un code à 7 chiffres pour l'affichage
   const normalizeForDisplay = (code: string): string => {
@@ -477,6 +486,16 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     });
   }, [selectedAccountId, filterType, accountsNeedingMetadata, accountsWithClosestMatch, accountsWithoutClosestMatch]);
 
+  // Initialize collapsed state when filteredData changes
+  const defaultCollapsed = useMemo(() => 
+    filteredData.reduce((acc, row) => ({...acc, [row.id]: true}), {}),
+    [filteredData.length]
+  );
+
+  React.useEffect(() => {
+    setCollapsedCards(defaultCollapsed);
+  }, [defaultCollapsed]);
+
   // Champs de métadonnées importants à afficher/éditer
   const metadataFields = [
     { key: 'parent_code', label: 'Code parent', type: 'text' },
@@ -649,58 +668,81 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="max-h-[28rem] overflow-y-auto pr-1">
             <div className="space-y-4">
-              {filteredData.map((row) => (
-                <div
-                  key={row.id}
-                  className={`border rounded-lg p-4 shadow-sm ${
-                    row.hasClosestMatch 
-                      ? 'border-green-200 bg-green-50' 
-                      : 'border-red-200 bg-red-50'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 mb-2">{row.title}</h3>
-                      
-                      {/* Historique des codes */}
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2 text-xs">
-                          <span className="text-gray-500">Original:</span>
-                          <span className="font-mono text-gray-600">{row.codeHistory.originalCode}</span>
-                          <span className="text-gray-400">→</span>
-                          <span className="text-gray-500">Normalisé:</span>
-                          <span className="font-mono text-gray-600">{row.codeHistory.normalizedCode}</span>
-                          {row.codeHistory.step4Code && (
-                            <>
+              {filteredData.map((row) => {
+                const isCollapsed = collapsedCards[row.id] ?? true;
+                
+                return (
+                  <div
+                    key={row.id}
+                    className={`border rounded-lg shadow-sm transition-all duration-200 ${
+                      row.hasClosestMatch 
+                        ? 'border-green-200 bg-green-50' 
+                        : 'border-red-200 bg-red-50'
+                    }`}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            {/* Individual toggle button */}
+                            <button
+                              onClick={() => toggleCard(row.id)}
+                              className={`p-1 rounded-md hover:bg-gray-200 transition-colors ${
+                                isCollapsed ? 'hover:bg-gray-300' : ''
+                              }`}
+                              title={isCollapsed ? "Développer" : "Réduire"}
+                            >
+                              <span className={`transform transition-transform duration-200 inline-block ${
+                                isCollapsed ? 'rotate-0' : 'rotate-90'
+                              }`}>
+                                ▶
+                              </span>
+                            </button>
+                            
+                            <h3 className="text-base font-semibold text-gray-900">{row.title}</h3>
+                          </div>
+                          
+                          {/* Historique des codes */}
+                          <div className="space-y-1 ml-6">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <span className="text-gray-500">Original:</span>
+                              <span className="font-mono text-gray-600">{row.codeHistory.originalCode}</span>
                               <span className="text-gray-400">→</span>
-                              <span className="text-gray-500">Step4:</span>
-                              <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
-                            </>
-                          )}
-                          {row.codeHistory.step6Code && (
-                            <>
+                              <span className="text-gray-500">Normalisé:</span>
+                              <span className="font-mono text-gray-600">{row.codeHistory.normalizedCode}</span>
+                              {row.codeHistory.step4Code && (
+                                <>
+                                  <span className="text-gray-400">→</span>
+                                  <span className="text-gray-500">Step4:</span>
+                                  <span className="font-mono text-blue-600">{row.codeHistory.step4Code}</span>
+                                </>
+                              )}
+                              {row.codeHistory.step6Code && (
+                                <>
+                                  <span className="text-gray-400">→</span>
+                                  <span className="text-gray-500">Step6:</span>
+                                  <span className="font-mono text-orange-600">{row.codeHistory.step6Code}</span>
+                                </>
+                              )}
                               <span className="text-gray-400">→</span>
-                              <span className="text-gray-500">Step6:</span>
-                              <span className="font-mono text-orange-600">{row.codeHistory.step6Code}</span>
-                            </>
-                          )}
-                          <span className="text-gray-400">→</span>
-                          <span className="text-gray-500">Final:</span>
-                          <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
+                              <span className="text-gray-500">Final:</span>
+                              <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
+                            </div>
+                          </div>
                         </div>
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          row.hasClosestMatch
+                            ? 'bg-green-600 text-white'
+                            : 'bg-red-600 text-white'
+                        }`}>
+                          {row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance'}
+                        </span>
                       </div>
-                    </div>
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      row.hasClosestMatch
-                        ? 'bg-green-600 text-white'
-                        : 'bg-red-600 text-white'
-                    }`}>
-                      {row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance'}
-                    </span>
-                  </div>
 
-                  {/* Grille de métadonnées */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {/* Metadata grid - only show when expanded */}
+                      {!isCollapsed && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {metadataFields.map((field) => {
                       const value = row.inheritedData[field.key] || '';
                       
@@ -742,8 +784,12 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                       );
                     })}
                   </div>
-                </div>
-              ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
