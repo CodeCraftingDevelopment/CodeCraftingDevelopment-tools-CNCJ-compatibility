@@ -37,6 +37,7 @@ interface MetadataRow {
     step4Code?: string; // Code après étape 4 (si doublon)
     step6Code?: string; // Code après étape 6 (si conflit CNCJ)
     finalCode: string; // Code final
+    referencePcgCode?: string; // Code PCG utilisé comme référence pour l'héritage
   };
 }
 
@@ -395,6 +396,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       let inheritedData: Record<string, any> = {};
       let isInherited = false;
       let matchingPcgAccounts: Account[] = [];
+      let referencePcgCode: string | undefined;
 
       if (!isInPcg && finalCode.length >= 4) {
         const prefix = finalCode.substring(0, 4);
@@ -418,6 +420,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             delete inheritedData.code;
             delete inheritedData.name;
             isInherited = true;
+            referencePcgCode = closestPcgAccount.number;
           }
         }
       }
@@ -444,7 +447,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         normalizedCode,
         step4Code,
         step6Code,
-        finalCode: finalCodeValue
+        finalCode: finalCodeValue,
+        referencePcgCode
       };
 
       return {
@@ -549,7 +553,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   const handleExportAccountsToCreate = () => {
     try {
       const csvHeaders = [
-        'id', 'title', 'finalCode', 'hasClosestMatch',
+        'id', 'title', 'finalCode', 'hasClosestMatch', 'referencePcgCode',
         ...metadataFields.map(field => field.key)
       ];
       
@@ -562,6 +566,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           row.title,
           row.finalCode,
           row.hasClosestMatch ? 'true' : 'false',
+          row.codeHistory.referencePcgCode || '',
           ...metadataValues
         ];
       });
@@ -727,6 +732,13 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                               <span className="text-gray-400">→</span>
                               <span className="text-gray-500">Final:</span>
                               <span className="font-mono font-bold text-gray-900">{row.codeHistory.finalCode}</span>
+                              {row.codeHistory.referencePcgCode && (
+                                <>
+                                  <span className="text-gray-400">→</span>
+                                  <span className="text-gray-500">PCG référence:</span>
+                                  <span className="font-mono text-purple-600">{row.codeHistory.referencePcgCode}</span>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
