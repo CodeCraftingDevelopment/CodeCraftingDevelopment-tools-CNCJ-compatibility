@@ -1,0 +1,29 @@
+{
+  "types": [
+    {"type": "feat", "section": "Added"},
+    {"type": "fix", "section": "Fixed"},
+    {"type": "perf", "section": "Performance"},
+    {"type": "revert", "section": "Reverted"},
+    {"type": "chore", "hidden": true},
+    {"type": "docs", "hidden": true},
+    {"type": "style", "hidden": true},
+    {"type": "refactor", "section": "Refactored"},
+    {"type": "test", "hidden": true},
+    {"type": "build", "hidden": true},
+    {"type": "ci", "hidden": true}
+  ],
+  "commitUrlFormat": "https://github.com/CodeCraftingDevelopment/CodeCraftingDevelopment-tools-CNCJ-compatibility/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/CodeCraftingDevelopment/CodeCraftingDevelopment-tools-CNCJ-compatibility/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/CodeCraftingDevelopment/CodeCraftingDevelopment-tools-CNCJ-compatibility/issues/{{id}}",
+  "userUrlFormat": "https://github.com/{{user}}",
+  "bumpFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    },
+    {
+      "filename": "package-lock.json",
+      "type": "json"
+    }
+  ]
+}
