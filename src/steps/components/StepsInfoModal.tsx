@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { STEPS_CONFIG } from '../../config/stepsConfig';
 import { APP_VERSION, formatVersion } from '../../utils/version';
 
@@ -7,6 +7,17 @@ interface StepsInfoModalProps {
 }
 
 export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
+  const [expandedSteps, setExpandedSteps] = useState<string[]>([]);
+  
+  const toggleStep = (stepId: string) => {
+    setExpandedSteps(prev => 
+      prev.includes(stepId) 
+        ? prev.filter(id => id !== stepId)
+        : [...prev, stepId]
+    );
+  };
+  
+  const isExpanded = (stepId: string) => expandedSteps.includes(stepId);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -35,24 +46,39 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-6">
-          {STEPS_CONFIG.filter(step => step.id !== 'stepFinal').map(step => (
-            <div key={step.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+          {STEPS_CONFIG.filter(step => step.id !== 'stepFinal').map(step => {
+            const expanded = isExpanded(step.id);
+            return (
+            <div key={step.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggleStep(step.id)}
+                className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                aria-expanded={expanded}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl" aria-hidden="true">{step.icon}</span>
                   <h3 className="text-base font-semibold text-gray-900">
                     {step.order}. {step.title}
                   </h3>
                 </div>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">
-                  {step.badge}
-                </span>
-              </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">
+                    {step.badge}
+                  </span>
+                  <span 
+                    className={`text-gray-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  >
+                    ▼
+                  </span>
+                </div>
+              </button>
               
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
+              {expanded && (
+                <div className="p-4 space-y-3">
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {step.description}
+                  </p>
                 
                 <div className="bg-gray-50 rounded-lg p-3">
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">📋 Règles de traitement :</h4>
@@ -97,7 +123,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                       <>
                         <li>• <strong>Calcul:</strong> Application des corrections de l'étape 4</li>
                         <li>• <strong>Validation:</strong> Vérification de l'intégrité des modifications</li>
-                        <li>• <strong>Tracking:</strong> Historique des codes originaux → corrigés</li>
+                        <li>• <strong>Suivi:</strong> Historique des codes originaux → corrigés</li>
                         <li>• <strong>Contrôle:</strong> Possibilité de retour en arrière si erreur</li>
                         <li>• <strong>Statistiques:</strong> Comptage des corrections appliquées</li>
                       </>
@@ -107,43 +133,58 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                         <li>• <strong>Algorithme:</strong> Incrémentation contrainte (max 9 tentatives)</li>
                         <li>• <strong>Contrainte:</strong> <code>incremented % 10 === 0 ? null : continue</code> (jamais de dizaine supérieure)</li>
                         <li>• <strong>Calcul:</strong> <code>codeNum + 1</code> avec validation croisée CNCJ + clients</li>
-                        <li>• <strong>Validation:</strong> Vérification against codes CNCJ homologués</li>
+                        <li>• <strong>Validation:</strong> Vérification des codes CNCJ homologués</li>
                         <li>• <strong>Résolution:</strong> Auto-correction ou erreur si contrainte violée</li>
                       </>
                     )}
                     {step.id === 'step7' && (
                       <>
                         <li>• <strong>Calcul:</strong> Agrégation des statistiques finales (étapes 4 + 6)</li>
-                        <li>• <strong>Algorithme:</strong> Construction de l'historique complet des codes</li>
-                        <li>• <strong>Métadonnées:</strong> Tracking source modifications (step4/step6)</li>
+                        <li>• <strong>Suivi:</strong> Construction de l'historique complet des codes</li>
+                        <li>• <strong>Métadonnées:</strong> Suivi des sources de modifications (étape 4/étape 6)</li>
                         <li>• <strong>Validation:</strong> Cohérence finale de toutes les corrections</li>
-                        <li>• <strong>Export:</strong> Préparation des données pour traitement final</li>
+                        <li>• <strong>Exportation:</strong> Préparation des données pour traitement final</li>
                       </>
                     )}
                   </ul>
                 </div>
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
 
           {/* Étape finale - Correspondances manquantes */}
-          <div className="border border-purple-200 bg-purple-50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
+          <div className="border border-purple-200 bg-purple-50 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleStep('stepFinal')}
+              className="w-full px-4 py-3 bg-purple-100 hover:bg-purple-200 transition-colors flex items-center justify-between"
+              aria-expanded={isExpanded('stepFinal')}
+            >
               <div className="flex items-center gap-3">
                 <span className="text-2xl" aria-hidden="true">🔧</span>
                 <h3 className="text-base font-semibold text-purple-900">
                   8. Correspondances manquantes
                 </h3>
               </div>
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
-                Étape Finale
-              </span>
-            </div>
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                  Étape Finale
+                </span>
+                <span 
+                  className={`text-purple-600 transition-transform duration-200 ${isExpanded('stepFinal') ? 'rotate-180' : ''}`}
+                  aria-hidden="true"
+                >
+                  ▼
+                </span>
+              </div>
+            </button>
             
-            <div className="space-y-3">
-              <p className="text-sm text-purple-800 leading-relaxed">
-                Traitement des lignes sans correspondances PCG pour remplir les colonnes manquantes et compléter les métadonnées.
-              </p>
+            {isExpanded('stepFinal') && (
+              <div className="p-4 space-y-3">
+                <p className="text-sm text-purple-800 leading-relaxed">
+                  Traitement des lignes sans correspondances PCG pour remplir les colonnes manquantes et compléter les métadonnées.
+                </p>
               
               <div className="bg-purple-100 rounded-lg p-3">
                 <h4 className="text-sm font-semibold text-purple-700 mb-2">📋 Règles de traitement :</h4>
@@ -152,10 +193,11 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   <li>• <strong>Calcul:</strong> Différence numérique minimale pour trouver le compte PCG le plus proche</li>
                   <li>• <strong>Logique:</strong> <code>code.substring(0, 4)</code> pour regrouper les comptes PCG</li>
                   <li>• <strong>Métadonnées:</strong> Héritage automatique des données du compte PCG correspondant</li>
-                  <li>• <strong>Export:</strong> Finalisation des données complètes et corrigées</li>
+                  <li>• <strong>Exportation:</strong> Finalisation des données complètes et corrigées</li>
                 </ul>
               </div>
             </div>
+            )}
           </div>
         </div>
 
