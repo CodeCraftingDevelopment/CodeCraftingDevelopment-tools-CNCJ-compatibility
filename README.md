@@ -5,9 +5,11 @@ Outil de traitement et comparaison de comptes comptables clients et CNCJ avec in
 ## 📋 Vue d'ensemble
 
 Compte Processor est une application web React/TypeScript qui permet de :
-- Importer des fichiers CSV de comptes clients et CNCJ
+- Importer des fichiers CSV de comptes clients, CNCJ et généraux
 - Détecter automatiquement les doublons dans les comptes clients
+- **Générer des suggestions intelligentes** de codes de remplacement pour les doublons
 - Comparer les comptes clients avec les références CNCJ
+- **Forcer la validation** des comptes en conflit CNCJ sans modification
 - Importer et gérer des corrections avec aperçu avant application
 - Exporter les résultats de traitement au format JSON
 - Afficher les comptes avec numéros et titres descriptifs
@@ -17,7 +19,9 @@ Compte Processor est une application web React/TypeScript qui permet de :
 
 - **Import CSV** : Support de plusieurs formats de fichiers CSV
 - **Détection de doublons** : Identification automatique des comptes en double
+- **Suggestions automatiques** : Génération intelligente de codes de remplacement pour les doublons
 - **Comparaison CNCJ** : Matching des comptes clients avec les références CNCJ
+- **Validation forcée CNCJ** : Option pour valider les comptes en conflit CNCJ sans modification
 - **Import de corrections** : Glisser-déposer de fichiers CSV avec aperçu avant application
 - **Recherche combinée** : Matching des corrections par numéro de compte ET titre
 - **Vérification de doublons** : Détection visuelle des codes de remplacement en double
@@ -105,15 +109,21 @@ Numéro compte,Titre,Code remplacement
 
 1. **Charger le fichier clients** : Cliquez sur "📋 Fichier des comptes clients" et sélectionnez votre CSV
 2. **Charger le fichier CNCJ** : Cliquez sur "🏛️ Fichier des comptes CNCJ" et sélectionnez votre CSV
-3. **Voir les résultats** : L'application traite automatiquement les données et affiche :
-    - ✅ Comptes avec correspondance CNCJ
-    - ⚠️ Doublons détectés
-    - ❌ Comptes sans correspondance CNCJ
-4. **Importer des corrections** : Glissez-déposez un fichier CSV de corrections dans la zone prévue
-5. **Vérifier les doublons** : Consultez l'aperçu coloré (vert/rouge/gris) des codes
-6. **Appliquer les corrections** : Cliquez sur "Appliquer les codes uniques" pour valider
-7. **Exporter les résultats** : Utilisez les boutons d'export selon vos besoins
-8. **Sauvegarder le projet** : Cliquez sur "💾 Sauvegarder le projet" pour conserver votre travail
+3. **Charger le fichier général** : Cliquez sur "📊 Fichier des comptes généraux" et sélectionnez votre CSV
+4. **Résoudre les doublons (Étape 4)** :
+    - Visualisez les doublons détectés automatiquement
+    - Utilisez les suggestions automatiques (bouton 💡) pour chaque doublon
+    - Ou cliquez sur "Valider les suggestions" pour appliquer toutes les suggestions en masse
+    - Saisissez manuellement un code de remplacement si nécessaire
+5. **Gérer les conflits CNCJ (Étape 6)** :
+    - Consultez les comptes en conflit avec la référence CNCJ
+    - Saisissez un code de remplacement conforme, ou
+    - Cochez "Forcer la validation" pour accepter le compte tel quel
+6. **Importer des corrections** : Glissez-déposez un fichier CSV de corrections dans la zone prévue
+7. **Vérifier les doublons** : Consultez l'aperçu coloré (vert/rouge/gris) des codes
+8. **Appliquer les corrections** : Cliquez sur "Appliquer les codes uniques" pour valider
+9. **Exporter les résultats** : Utilisez les boutons d'export selon vos besoins
+10. **Sauvegarder le projet** : Cliquez sur "💾 Sauvegarder le projet" pour conserver votre travail
 
 ### 💾 Sauvegarde et chargement de projets
 
@@ -168,6 +178,51 @@ Les projets sont sauvegardés au format `.ccp` (Compte Processor Project) :
 - **Vérifiez l'intégrité** : En cas de doute sur un fichier transféré
 - **Travaillez à plusieurs** : Plusieurs utilisateurs peuvent collaborer sur le même projet
 
+### Suggestions automatiques de codes (Étape 4)
+
+L'application propose automatiquement des codes de remplacement intelligents pour les doublons détectés :
+
+#### Règles de suggestion
+- **Premier doublon conservé** : Le premier compte garde son code original (ex: 20000 → 20000)
+- **Incrémentation intelligente** : Les doublons suivants sont incrémentés de +1 (ex: 20000 → 20001, 20002)
+- **Limite de dizaine** : L'incrémentation ne dépasse jamais la dizaine supérieure (ex: 140 max 149)
+- **Détection d'erreur** : Les codes finissant par 9 affichent un badge ⚠️ Erreur
+- **Évitement de doublons** : Vérification automatique contre tous les codes existants
+
+#### Utilisation
+1. **Suggestions individuelles** : Bouton 💡 avec le code suggéré pour chaque doublon
+2. **Application en masse** : Bouton "Valider les suggestions" pour appliquer toutes les suggestions d'un coup
+3. **Affichage conditionnel** : Les suggestions n'apparaissent que pour les champs vides
+
+#### Exemples
+```
+Compte 20000 (1er doublon) → Suggestion: 20000 (conservé)
+Compte 20000 (2e doublon) → Suggestion: 20001
+Compte 20000 (3e doublon) → Suggestion: 20002
+
+Compte 149 (doublon) → ⚠️ Erreur (impossible d'incrémenter)
+```
+
+### Validation forcée des comptes CNCJ (Étape 6)
+
+Lorsqu'un compte client présente un conflit avec la référence CNCJ, vous pouvez choisir de forcer sa validation sans modifier son code :
+
+#### Fonctionnement
+1. **Détection du conflit** : Message "⚠️ Erreur de correspondance CNCJ" affiché
+2. **Option de forçage** : Case à cocher "Forcer la validation" disponible
+3. **Validation sans modification** : Le compte est accepté tel quel sans changement de code
+4. **Persistance** : L'état de validation forcée est conservé dans la sauvegarde du projet
+
+#### Cas d'usage
+- Comptes clients valides mais avec format différent de la référence CNCJ
+- Comptes en cours de normalisation nécessitant une validation temporaire
+- Situations exceptionnelles nécessitant une validation manuelle
+
+#### Nettoyage automatique
+- Rechargement de nouveaux fichiers : Les validations forcées sont réinitialisées
+- Navigation arrière depuis l'étape 6 : Les validations forcées sont effacées
+- Chargement de projet : Les validations forcées sont restaurées depuis la sauvegarde
+
 ### Import et gestion des corrections
 
 L'import des corrections suit un workflow en trois étapes :
@@ -209,7 +264,10 @@ Numéro compte,Titre,Code remplacement
 
 - **Comptes clients uniques** : Nombre de comptes valides après déduplication
 - **Doublons détectés** : Comptes apparaissant plusieurs fois dans le fichier client
+- **Suggestions automatiques** : Codes de remplacement proposés intelligemment pour les doublons
 - **Correspondances CNCJ** : Comptes clients trouvés dans la référence CNCJ
+- **Conflits CNCJ** : Comptes avec divergence par rapport à la référence CNCJ
+- **Validations forcées** : Comptes en conflit acceptés sans modification de code
 - **Sans correspondance** : Comptes clients non présents dans CNCJ
 - **Codes uniques applicables** : Corrections qui peuvent être appliquées sans conflit
 - **Codes en doublon** : Corrections qui existent déjà dans le système
@@ -230,19 +288,37 @@ Numéro compte,Titre,Code remplacement
 ```
 src/
 ├── components/          # Composants React
-│   ├── FileUploader.tsx    # Composant d'upload de fichiers
-│   ├── ResultsDisplay.tsx  # Affichage des résultats
-│   └── DropZone.tsx        # Composant de glisser-déposer
-├── hooks/              # Hooks React personnalisés
-│   └── useDragAndDrop.ts   # Hook de gestion du glisser-déposer
-├── types/              # Définitions TypeScript
-│   └── accounts.ts         # Interfaces Account, ProcessingResult
-├── utils/              # Utilitaires et logique métier
-│   ├── accountUtils.ts     # Parsing CSV, traitement des comptes
-│   └── fileUtils.ts        # Utilitaires de formatage de fichiers
-├── App.tsx             # Composant principal
-├── main.tsx            # Point d'entrée
-└── index.css           # Styles globaux
+│   ├── FileUploader.tsx        # Composant d'upload de fichiers
+│   ├── ResultsDisplay.tsx      # Affichage des résultats
+│   ├── DuplicateRow.tsx        # Affichage d'un doublon avec suggestions
+│   ├── DropZone.tsx            # Composant de glisser-déposer
+│   └── ProjectPersistence.tsx  # Sauvegarde/chargement de projets
+├── config/              # Configuration de l'application
+│   └── stepsConfig.ts          # Configuration des étapes du workflow
+├── steps/               # Composants d'étapes
+│   ├── components/             # Composants partagés des étapes
+│   │   ├── StepRenderer.tsx    # Rendu d'une étape
+│   │   ├── StepNavigation.tsx  # Navigation entre étapes
+│   │   └── ProgressBar.tsx     # Barre de progression
+│   ├── Step1FileUpload.tsx     # Étape 1: Chargement fichiers
+│   ├── Step4DuplicatesResolution.tsx  # Étape 4: Résolution doublons
+│   ├── Step6CNCJConflicts.tsx  # Étape 6: Conflits CNCJ
+│   └── StepFinalSummary.tsx    # Étape finale: Résumé
+├── hooks/               # Hooks React personnalisés
+│   ├── useDragAndDrop.ts       # Hook de gestion du glisser-déposer
+│   ├── useStepValidation.ts    # Hook de validation des étapes
+│   └── useCorrectionsImport.ts # Hook d'import des corrections
+├── types/               # Définitions TypeScript
+│   └── accounts.ts             # Interfaces Account, AppState, Actions
+├── utils/               # Utilitaires et logique métier
+│   ├── accountUtils.ts         # Parsing CSV, traitement des comptes
+│   ├── codeSuggestions.ts      # Génération de suggestions de codes
+│   ├── projectPersistence.ts   # Sauvegarde/chargement de projets
+│   ├── stepCleanup.ts          # Nettoyage de l'état par étape
+│   └── fileUtils.ts            # Utilitaires de formatage de fichiers
+├── App.tsx              # Composant principal avec gestion d'état
+├── main.tsx             # Point d'entrée
+└── index.css            # Styles globaux
 ```
 
 ### Flux de données
@@ -265,6 +341,22 @@ interface Account {
   source: 'client' | 'cncj' | 'general';
 }
 
+interface AppState {
+  clientAccounts: Account[];
+  cncjAccounts: Account[];
+  generalAccounts: Account[];
+  result: ProcessingResult | null;
+  cncjConflictResult: ProcessingResult | null;
+  replacementCodes: { [key: string]: string };
+  cncjReplacementCodes: { [key: string]: string };
+  cncjConflictCorrections: { [key: string]: string | 'error' };
+  cncjForcedValidations: Set<string>;  // IDs des comptes validés de force
+  currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
+  loading: boolean;
+  errors: string[];
+  // ... autres propriétés
+}
+
 interface ProcessingResult {
   duplicates: Account[];
   uniqueClients: Account[];
@@ -279,6 +371,12 @@ interface ImportResult {
   replacementCode: string;
   isDuplicate: boolean;
   found: boolean;
+}
+
+interface CodeSuggestion {
+  accountId: string;
+  suggestedCode: string;
+  isError: boolean;       // true si le code ne peut pas être incrémenté
 }
 ```
 
@@ -329,7 +427,15 @@ L'application utilise le pattern **Reducer** pour gérer l'état :
 type AppAction = 
   | { type: 'SET_CLIENT_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_CNCJ_ACCOUNTS'; payload: Account[] }
+  | { type: 'SET_GENERAL_ACCOUNTS'; payload: Account[] }
   | { type: 'SET_RESULT'; payload: ProcessingResult | null }
+  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
+  | { type: 'SET_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
+  | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
+  | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
+  | { type: 'SET_CNCJ_FORCED_VALIDATION'; payload: { accountId: string; forced: boolean } }
+  | { type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' }
+  | { type: 'SET_CURRENT_STEP'; payload: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal' }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }
   | { type: 'CLEAR_ERRORS' };
@@ -380,6 +486,38 @@ Hook pour gérer le glisser-déposer de fichiers.
 - `options` : Configuration du glisser-déposer (types acceptés, callbacks)
 
 **Retour** : `DragDropResult` avec état et gestionnaires d'événements.
+
+### calculateCodeSuggestions(duplicates, existingCodes, replacementCodes): CodeSuggestion[]
+
+Génère automatiquement des suggestions de codes de remplacement pour les doublons.
+
+**Paramètres**
+- `duplicates` : Tableau des comptes en doublon
+- `existingCodes` : Ensemble des codes déjà utilisés dans le système
+- `replacementCodes` : Codes de remplacement déjà saisis manuellement
+
+**Retour** : `CodeSuggestion[]` avec les suggestions et indicateurs d'erreur
+
+**Logique**
+- Premier doublon garde son code original
+- Incrémentation de +1 pour les suivants sans dépasser la dizaine
+- Vérification des doublons existants
+- Détection des codes impossibles à incrémenter (se terminant par 9)
+
+### useStepValidation(props): ValidationResult
+
+Hook pour valider les étapes du workflow.
+
+**Paramètres**
+- `result` : Résultat du traitement des doublons
+- `cncjConflictResult` : Résultat du traitement des conflits CNCJ
+- `replacementCodes` : Codes de remplacement pour les doublons
+- `cncjReplacementCodes` : Codes de remplacement pour les conflits CNCJ
+- `cncjForcedValidations` : Set des comptes validés de force
+- `cncjAccounts` : Comptes CNCJ de référence
+- `mergedClientAccounts` : Comptes clients fusionnés
+
+**Retour** : `{ allDuplicatesResolved: boolean, allCncjConflictsResolved: boolean }`
 
 ## 🔧 Dépannage
 
@@ -436,6 +574,26 @@ Hook pour gérer le glisser-déposer de fichiers.
 - **Solution** : Utilisez uniquement les fichiers générés par Compte Processor
 - **Conseil** : Vérifiez que le fichier a l'extension `.ccp` et contient du JSON valide
 
+#### Les suggestions automatiques ne s'affichent pas
+- **Cause** : Un code de remplacement a déjà été saisi manuellement
+- **Solution** : Les suggestions apparaissent uniquement pour les champs vides
+- **Conseil** : Effacez le code manuel pour voir la suggestion automatique
+
+#### Suggestion avec badge ⚠️ Erreur
+- **Cause** : Le compte se termine par 9, impossible d'incrémenter dans la même dizaine
+- **Solution** : Saisissez manuellement un code de remplacement approprié
+- **Conseil** : Utilisez un code dans une dizaine différente (ex: 150 au lieu de 149)
+
+#### La case "Forcer la validation" ne fonctionne pas
+- **Cause** : La validation forcée ne s'applique qu'aux conflits CNCJ à l'étape 6
+- **Solution** : Vérifiez que vous êtes bien à l'étape 6 avec des conflits CNCJ détectés
+- **Conseil** : Le message "⚠️ Erreur de correspondance CNCJ" doit être affiché
+
+#### Les validations forcées disparaissent
+- **Cause** : Comportement normal lors du rechargement de fichiers ou navigation arrière
+- **Solution** : Les validations forcées sont nettoyées automatiquement pour éviter les incohérences
+- **Conseil** : Sauvegardez votre projet pour conserver les validations forcées
+
 ### Performance
 
 - Pour les gros fichiers (>10 000 lignes), l'application peut prendre quelques secondes
@@ -479,6 +637,19 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - HTTPS recommandé pour la production
 
 ## 📝 Notes de version
+
+### v2.0.1 (2023-11-23)
+- ✅ **Validation forcée CNCJ** : Nouvelle option pour valider les comptes en conflit CNCJ sans modification
+  - Case à cocher "Forcer la validation" à côté des erreurs de correspondance CNCJ
+  - Conservation de l'état lors de la navigation entre les étapes
+  - Persistance dans les sauvegardes de projet avec compatibilité ascendante
+  - Nettoyage automatique lors du rechargement ou navigation arrière
+- 💡 **Suggestions automatiques** : Génération intelligente de codes de remplacement pour les doublons
+  - Premier doublon conserve son code original
+  - Incrémentation limitée à la dizaine (+1 max jusqu'à 9)
+  - Détection automatique des codes impossibles à incrémenter
+  - Boutons individuels et application en masse
+- 🐛 **Corrections** : Amélioration de la gestion des validations forcées et compatibilité avec anciennes sauvegardes
 
 ### v1.3.0
 - 💾 **Système de persistance** : Sauvegarde et chargement complets des projets au format `.ccp`
