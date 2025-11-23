@@ -75,7 +75,14 @@ export const useCorrectionsImport = ({
     const normalizedAccountNumber = normalizeAccountCode(accountNumber);
     const normalizedTitle = normalizeTitle(title);
     
-    // Debug logging removed for production - use React DevTools if needed
+    // DEBUG: Log search parameters
+    console.log('DEBUG: Searching for account:', {
+      accountNumber,
+      title,
+      normalizedAccountNumber,
+      normalizedTitle,
+      duplicatesCount: duplicates.length
+    });
     
     // Essayer d'abord le matching direct par code original 8 chiffres + titre normalisé
     let account = duplicates.find(d => 
@@ -83,17 +90,30 @@ export const useCorrectionsImport = ({
       d.title && normalizeTitle(d.title) === normalizedTitle
     );
     
-    // Debug logging removed for production - use React DevTools if needed
+    if (account) {
+      console.log('DEBUG: Found account by originalNumber + title:', account.id);
+    }
     
     // Si pas trouvé, essayer le matching par numéro normalisé + titre normalisé
     if (!account) {
-      // Debug logging removed for production - use React DevTools if needed
+      console.log('DEBUG: Trying normalized number + title match');
       account = duplicates.find(d => 
         d.number === normalizedAccountNumber && 
         d.title && normalizeTitle(d.title) === normalizedTitle
       );
       
-      // Debug logging removed for production - use React DevTools if needed
+      if (account) {
+        console.log('DEBUG: Found account by normalized number + title:', account.id);
+      } else {
+        console.log('DEBUG: No match found for:', { accountNumber, title });
+        // Log first few duplicates for comparison
+        console.log('DEBUG: Sample duplicates:', duplicates.slice(0, 3).map(d => ({
+          id: d.id,
+          originalNumber: d.originalNumber,
+          number: d.number,
+          title: d.title
+        })));
+      }
     }
     
     return account;
@@ -152,7 +172,7 @@ export const useCorrectionsImport = ({
         
         // Debug logging removed for production - use React DevTools if needed
       
-      if (!accountNumber || !title || !replacementCode) {
+      if (!accountNumber || !title) {
         // Debug logging removed for production - use React DevTools if needed
         continue;
       }
