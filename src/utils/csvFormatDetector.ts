@@ -84,10 +84,6 @@ export const extractAccountData = (row: unknown, format: CSVFormat): CSVRowData 
           accountTitle: rowObj['name']?.toString().trim() || ''
         };
       }
-      return {
-        accountNumber: '',
-        accountTitle: ''
-      };
       
     case 'object':
       if (rowObj.account) {
