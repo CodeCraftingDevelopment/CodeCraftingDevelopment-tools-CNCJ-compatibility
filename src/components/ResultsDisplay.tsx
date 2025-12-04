@@ -696,7 +696,43 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 </tbody>
               </table>
             </div>
-            <div className="p-4 border-t bg-gray-50 flex justify-end">
+            <div className="p-4 border-t bg-gray-50 flex justify-between">
+              <button
+                onClick={() => {
+                  // Export CSV des détails de suggestions
+                  const csvHeaders = ['code original', 'code 7 chiffres', 'titre', 'suggestion', 'détail calcul', 'source blocage'];
+                  const csvRows = duplicates.map(d => {
+                    const suggestionResult = conflictType === 'cncj-conflicts' 
+                      ? initialCncjSuggestions.get(d.id) 
+                      : initialSuggestions.get(d.id);
+                    
+                    return [
+                      getDisplayCode(d),
+                      d.number,
+                      d.title || '',
+                      suggestionResult?.code || '',
+                      suggestionResult?.reason || '',
+                      suggestionResult?.blockedBy || ''
+                    ];
+                  });
+                  
+                  const csvContent = [
+                    csvHeaders.join(';'),
+                    ...csvRows.map(row => row.map(cell => `"${sanitizeCsvValue(cell).replace(/"/g, '""')}"`).join(';'))
+                  ].join('\n');
+                  
+                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = conflictType === 'cncj-conflicts' ? 'details_suggestions_cncj.csv' : 'details_suggestions_doublons.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                📥 Exporter CSV
+              </button>
               <button
                 onClick={() => setShowSuggestionDetails(false)}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
