@@ -46,7 +46,9 @@ const initialState: AppState = {
   finalFilter: 'all',
   accountsNeedingNormalization: [],
   isNormalizationApplied: false,
-  missingMetadata: {}
+  missingMetadata: {},
+  initialSuggestions: {},
+  initialCncjSuggestions: {}
 };
 
 
@@ -148,6 +150,12 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_MISSING_METADATA':
       return { ...state, missingMetadata: {} };
+    case 'SET_INITIAL_SUGGESTIONS':
+      return { ...state, initialSuggestions: action.payload };
+    case 'SET_INITIAL_CNCJ_SUGGESTIONS':
+      return { ...state, initialCncjSuggestions: action.payload };
+    case 'CLEAR_INITIAL_SUGGESTIONS':
+      return { ...state, initialSuggestions: {}, initialCncjSuggestions: {} };
     default:
       return state;
   }

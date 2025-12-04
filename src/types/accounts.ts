@@ -1,4 +1,5 @@
 import React from 'react';
+import { SuggestionResult } from '../utils/codeSuggestions';
 
 // Interface for account metadata fields
 export interface AccountMetadata {
@@ -79,6 +80,9 @@ export interface AppState {
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
   missingMetadata: { [accountId: string]: AccountMetadata };
+  // Suggestions initiales pour conserver les détails des calculs
+  initialSuggestions: { [accountId: string]: SuggestionResult };
+  initialCncjSuggestions: { [accountId: string]: SuggestionResult };
 }
 
 export type AppAction = 
@@ -107,6 +111,9 @@ export type AppAction =
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
   | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: AccountMetadata } }
   | { type: 'SET_MISSING_METADATA_FIELD'; payload: { accountId: string; field: string; value: string } }
-  | { type: 'CLEAR_MISSING_METADATA' };
+  | { type: 'CLEAR_MISSING_METADATA' }
+  | { type: 'SET_INITIAL_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
+  | { type: 'SET_INITIAL_CNCJ_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
+  | { type: 'CLEAR_INITIAL_SUGGESTIONS' };
 
 export type AppDispatch = React.Dispatch<AppAction>;

@@ -31,6 +31,8 @@ export interface ProjectFile {
     isNormalizationApplied: boolean;
     missingMetadata: { [accountId: string]: AccountMetadata };
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
+    initialSuggestions: { [accountId: string]: any };
+    initialCncjSuggestions: { [accountId: string]: any };
   };
 }
 
@@ -86,6 +88,8 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       isNormalizationApplied: state.isNormalizationApplied,
       missingMetadata: state.missingMetadata,
       currentStep: state.currentStep,
+      initialSuggestions: state.initialSuggestions || {},
+      initialCncjSuggestions: state.initialCncjSuggestions || {},
     };
 
     // Calculer le checksum des données
@@ -375,6 +379,8 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     accountsNeedingNormalization: data.accountsNeedingNormalization,
     isNormalizationApplied: data.isNormalizationApplied,
     missingMetadata: data.missingMetadata,
+    initialSuggestions: data.initialSuggestions || {},
+    initialCncjSuggestions: data.initialCncjSuggestions || {},
   };
 };
 
