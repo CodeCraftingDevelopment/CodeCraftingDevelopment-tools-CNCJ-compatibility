@@ -18,10 +18,7 @@ export const ClientNameInput: React.FC<ClientNameInputProps> = ({
         id="clientName"
         type="text"
         value={clientName}
-        onChange={(e) => {
-          console.log('ClientNameInput - onChange:', e.target.value);
-          onClientNameChange(e.target.value);
-        }}
+        onChange={(e) => onClientNameChange(e.target.value)}
         placeholder="Entrez le nom du client..."
         maxLength={100}
         className="w-48 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"

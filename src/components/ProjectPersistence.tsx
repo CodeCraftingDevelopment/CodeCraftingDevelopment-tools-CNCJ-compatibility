@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename, CANCELLED_ERROR_MESSAGE } from '../utils/projectPersistence';
+import { saveProject, loadProject, projectFileToAppState, isProjectFile, sanitizeFilename, isValidFilename, CANCELLED_ERROR_MESSAGE } from '../utils/projectPersistence';
 import { generateSmartFileName, getBaseFileName } from '../utils/fileNameGenerator';
 import { AppState, AppDispatch } from '../types/accounts';
 import { APP_VERSION, isNewerVersion } from '../utils/version';
@@ -36,13 +36,8 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
     const smartFileName = generateSmartFileName(state.clientName);
     const baseFileName = getBaseFileName(smartFileName);
     
-    console.log('ClientName:', state.clientName);
-    console.log('Generated:', baseFileName);
-    console.log('Current:', state.fileName);
-    
     // Ne mettre à jour que si le nom est différent de l'actuel
     if (baseFileName !== state.fileName) {
-      console.log('Updating fileName to:', baseFileName);
       dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
     }
   }, [state.clientName, dispatch, isManuallyEdited]);
@@ -69,8 +64,6 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       // Mettre à jour l'état avec le nom de fichier réellement utilisé
       const baseFileName = getBaseFileName(actualFileName);
       dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
-      
-      console.log('Projet sauvegardé avec le nom de fichier:', actualFileName);
     } catch (error) {
       if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
         // Ne rien afficher si l'utilisateur a annulé
@@ -230,7 +223,6 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
             type="text"
             value={state.fileName}
             onChange={(e) => {
-              console.log('Filename input - onChange:', e.target.value);
               setIsManuallyEdited(true); // Marquer comme modifié manuellement
               dispatch({ type: 'SET_FILE_NAME', payload: e.target.value });
             }}
