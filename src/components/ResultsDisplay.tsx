@@ -382,6 +382,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   // À l'étape 6, c'est une erreur bloquante
                   const isCncjCode = !!(currentCode && cncjCodes?.has(normalizedCurrentCode));
                   
+                  // Récupérer la suggestion initiale pour comparer avec le code saisi
+                  const initialSuggestion = conflictType === 'cncj-conflicts' 
+                    ? initialCncjSuggestions.get(account.id) 
+                    : initialSuggestions.get(account.id);
+                  
                   return (
                     <DuplicateRow
                       key={account.id}
@@ -393,6 +398,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       conflictType={conflictType}
                       corrections={corrections}
                       suggestion={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
+                      initialSuggestion={initialSuggestion}
                       cncjForcedValidations={cncjForcedValidations}
                       onCncjForcedValidationChange={onCncjForcedValidationChange}
                     />

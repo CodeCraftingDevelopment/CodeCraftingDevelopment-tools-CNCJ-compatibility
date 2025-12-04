@@ -12,6 +12,7 @@ interface DuplicateRowProps {
   conflictType?: 'duplicates' | 'cncj-conflicts';
   corrections?: { [key: string]: string | 'error' };
   suggestion?: SuggestionResult;
+  initialSuggestion?: SuggestionResult;
   cncjForcedValidations?: Set<string>;
   onCncjForcedValidationChange?: (accountId: string, forced: boolean) => void;
 }
@@ -25,11 +26,16 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   conflictType = 'duplicates',
   corrections = {},
   suggestion,
+  initialSuggestion,
   cncjForcedValidations = new Set(),
   onCncjForcedValidationChange
 }) => {
   const suggestedCode = suggestion?.code;
   const isEmpty = !replacementCode?.trim();
+  
+  // Déterminer si le code a été appliqué par suggestion ou saisi manuellement
+  const isFromSuggestion = !isEmpty && initialSuggestion?.code && replacementCode.trim() === initialSuggestion.code;
+  const isManualEntry = !isEmpty && !isFromSuggestion;
   
   const getRowStyles = () => {
     if (isEmpty) {
@@ -136,6 +142,23 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
           {isCncjCode && conflictType === 'duplicates' && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 border border-amber-300 rounded whitespace-nowrap" title="Ce code de remplacement est un code CNCJ réservé. Vérifiez à l'étape 6.">
               ⚠️ Code CNCJ
+            </span>
+          )}
+          {/* Indicateur d'origine du code : suggestion ou saisie manuelle */}
+          {isFromSuggestion && (
+            <span 
+              className="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 border border-blue-300 rounded whitespace-nowrap" 
+              title={`Code appliqué depuis la suggestion\n\nDétail: ${initialSuggestion?.reason || 'N/A'}`}
+            >
+              💡 Suggestion
+            </span>
+          )}
+          {isManualEntry && (
+            <span 
+              className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 border border-purple-300 rounded whitespace-nowrap" 
+              title="Code saisi manuellement"
+            >
+              ✏️ Manuel
             </span>
           )}
         </div>
