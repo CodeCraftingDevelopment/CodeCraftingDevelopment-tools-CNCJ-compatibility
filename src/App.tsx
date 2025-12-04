@@ -463,6 +463,14 @@ const App: React.FC = () => {
                       }
                     }
                   }
+                  
+                  // Afficher le flux d'import si le projet a des données ou n'est pas à l'étape initiale
+                  if (newState.currentStep !== 'step1' || 
+                      newState.clientAccounts.length > 0 || 
+                      newState.cncjAccounts.length > 0 || 
+                      newState.generalAccounts.length > 0) {
+                    setShowImportFlow(true);
+                  }
                 }}
               />
             </div>
@@ -553,6 +561,14 @@ const App: React.FC = () => {
                           dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
                         }
                       }
+                    }
+                    
+                    // Afficher le flux d'import si le projet a des données ou n'est pas à l'étape initiale
+                    if (newState.currentStep !== 'step1' || 
+                        newState.clientAccounts.length > 0 || 
+                        newState.cncjAccounts.length > 0 || 
+                        newState.generalAccounts.length > 0) {
+                      setShowImportFlow(true);
                     }
                   }}
                 />

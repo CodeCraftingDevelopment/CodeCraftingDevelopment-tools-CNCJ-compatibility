@@ -125,6 +125,15 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
         onProjectLoaded(newAppState);
       }
 
+      // Si le projet chargé n'est pas à l'étape initiale, afficher le flux d'import
+      if (newAppState.currentStep !== 'step1' || 
+          newAppState.clientAccounts.length > 0 || 
+          newAppState.cncjAccounts.length > 0 || 
+          newAppState.generalAccounts.length > 0) {
+        // Notifier l'application qu'elle doit afficher le flux d'import
+        // Cette information sera gérée par le composant parent via onProjectLoaded
+      }
+
       // Projet chargé et appliqué avec succès
     } catch (error) {
       console.error('Erreur de chargement:', error);
