@@ -34,6 +34,8 @@ export interface ProjectFile {
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
     initialSuggestions: { [accountId: string]: SuggestionResult };
     initialCncjSuggestions: { [accountId: string]: SuggestionResult };
+    clientName: string;
+    fileName: string;
   };
 }
 
@@ -69,7 +71,7 @@ const deterministicStringify = (obj: Record<string, unknown>): string => {
 /**
  * Sauvegarde l'état complet du projet dans un fichier JSON
  */
-export const saveProject = async (state: AppState, filename?: string, description?: string): Promise<void> => {
+export const saveProject = async (state: AppState, filename?: string, description?: string): Promise<string> => {
   try {
     // Ne sauvegarder que les données brutes, pas les données dérivées
     const dataSection = {
@@ -91,6 +93,8 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       currentStep: state.currentStep,
       initialSuggestions: state.initialSuggestions || {},
       initialCncjSuggestions: state.initialCncjSuggestions || {},
+      clientName: state.clientName,
+      fileName: state.fileName,
     };
 
     // Calculer le checksum des données
@@ -117,13 +121,15 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
     const jsonString = JSON.stringify(projectFile, null, 2);
     
     // Utiliser File System Access API si disponible, sinon fallback classique
+    let actualFileName: string;
     if ('showSaveFilePicker' in window) {
-      await saveWithFileSystemAccess(jsonString, filename);
+      actualFileName = await saveWithFileSystemAccess(jsonString, filename);
     } else {
-      await saveWithDownload(jsonString, filename);
+      actualFileName = await saveWithDownload(jsonString, filename);
     }
     
-    // Projet sauvegardé avec succès
+    // Retourner le nom de fichier réellement utilisé
+    return actualFileName;
   } catch (error) {
     // Laisser l'erreur d'annulation se propager sans la modifier
     if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
@@ -137,7 +143,7 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
 /**
  * Sauvegarde avec File System Access API (explorateur natif)
  */
-const saveWithFileSystemAccess = async (jsonString: string, filename?: string): Promise<void> => {
+const saveWithFileSystemAccess = async (jsonString: string, filename?: string): Promise<string> => {
   try {
     const defaultFilename = filename || generateDefaultFilename();
     
@@ -161,6 +167,9 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     await writable.write(jsonString);
     await writable.close();
     
+    // Retourner le nom de fichier utilisé
+    return fileHandle.name;
+    
     // Projet sauvegardé avec File System Access API
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'AbortError') {
@@ -172,7 +181,7 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
       console.warn('⚠️ File System Access API échoué, fallback vers download classique:', error instanceof Error ? error.message : 'Unknown error');
       // Attendre un peu pour que l'utilisateur voie le message avant de continuer
       await new Promise(resolve => setTimeout(resolve, 100));
-      await saveWithDownload(jsonString, filename);
+      return await saveWithDownload(jsonString, filename);
     }
   }
 };
@@ -180,13 +189,14 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
 /**
  * Sauvegarde classique avec download (fallback)
  */
-const saveWithDownload = async (jsonString: string, filename?: string): Promise<void> => {
+const saveWithDownload = async (jsonString: string, filename?: string): Promise<string> => {
   const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename || generateDefaultFilename();
+  const finalFilename = filename || generateDefaultFilename();
+  link.download = finalFilename;
   
   document.body.appendChild(link);
   link.click();
@@ -194,7 +204,8 @@ const saveWithDownload = async (jsonString: string, filename?: string): Promise<
   
   URL.revokeObjectURL(url);
   
-  // Projet sauvegardé avec download classique
+  // Retourner le nom de fichier utilisé
+  return finalFilename;
 };
 
 /**
@@ -390,6 +401,8 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     missingMetadata: data.missingMetadata,
     initialSuggestions: data.initialSuggestions || {},
     initialCncjSuggestions: data.initialCncjSuggestions || {},
+    clientName: data.clientName || '',
+    fileName: data.fileName || '',
   };
 };
 

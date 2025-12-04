@@ -21,6 +21,7 @@ import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
 import { ProjectPersistence } from './components/ProjectPersistence';
+import { ClientNameInput } from './components/ClientNameInput';
 import { AppAction } from './types/accounts';
 import { APP_VERSION, formatVersion } from './utils/version';
 import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConflictUtils';
@@ -48,7 +49,9 @@ const initialState: AppState = {
   isNormalizationApplied: false,
   missingMetadata: {},
   initialSuggestions: {},
-  initialCncjSuggestions: {}
+  initialCncjSuggestions: {},
+  clientName: '',
+  fileName: ''
 };
 
 
@@ -156,6 +159,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, initialCncjSuggestions: action.payload };
     case 'CLEAR_INITIAL_SUGGESTIONS':
       return { ...state, initialSuggestions: {}, initialCncjSuggestions: {} };
+    case 'SET_CLIENT_NAME':
+      return { ...state, clientName: action.payload };
+    case 'SET_FILE_NAME':
+      return { ...state, fileName: action.payload };
     default:
       return state;
   }
@@ -475,6 +482,14 @@ const App: React.FC = () => {
               />
             </div>
             
+            {/* Client Name Input */}
+            <div className="flex justify-center mt-2">
+              <ClientNameInput
+                clientName={state.clientName}
+                onClientNameChange={(name) => dispatch({ type: 'SET_CLIENT_NAME', payload: name })}
+              />
+            </div>
+            
             {/* New Choice Buttons */}
             <div className="flex flex-col items-center gap-4 mt-8">
               <button
@@ -576,6 +591,14 @@ const App: React.FC = () => {
                       setShowImportFlow(true);
                     }
                   }}
+                />
+              </div>
+              
+              {/* Client Name Input */}
+              <div className="flex justify-center mt-2">
+                <ClientNameInput
+                  clientName={state.clientName}
+                  onClientNameChange={(name) => dispatch({ type: 'SET_CLIENT_NAME', payload: name })}
                 />
               </div>
               

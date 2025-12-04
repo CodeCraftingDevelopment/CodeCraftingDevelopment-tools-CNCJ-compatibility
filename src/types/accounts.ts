@@ -83,6 +83,10 @@ export interface AppState {
   // Suggestions initiales pour conserver les détails des calculs
   initialSuggestions: { [accountId: string]: SuggestionResult };
   initialCncjSuggestions: { [accountId: string]: SuggestionResult };
+  // Nom du client pour le projet
+  clientName: string;
+  // Nom du fichier de sauvegarde persistant
+  fileName: string;
 }
 
 export type AppAction = 
@@ -114,6 +118,8 @@ export type AppAction =
   | { type: 'CLEAR_MISSING_METADATA' }
   | { type: 'SET_INITIAL_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
   | { type: 'SET_INITIAL_CNCJ_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
-  | { type: 'CLEAR_INITIAL_SUGGESTIONS' };
+  | { type: 'CLEAR_INITIAL_SUGGESTIONS' }
+  | { type: 'SET_CLIENT_NAME'; payload: string }
+  | { type: 'SET_FILE_NAME'; payload: string };
 
 export type AppDispatch = React.Dispatch<AppAction>;

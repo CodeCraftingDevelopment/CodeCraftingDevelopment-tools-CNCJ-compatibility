@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { saveProject, loadProject, projectFileToAppState, isProjectFile, generateDefaultFilename, sanitizeFilename, isValidFilename, CANCELLED_ERROR_MESSAGE } from '../utils/projectPersistence';
+import { generateSmartFileName, getBaseFileName } from '../utils/fileNameGenerator';
 import { AppState, AppDispatch } from '../types/accounts';
 import { APP_VERSION, isNewerVersion } from '../utils/version';
 
@@ -15,32 +16,61 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
   onProjectLoaded
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [filename, setFilename] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [hasFileSystemAccess, setHasFileSystemAccess] = useState<boolean>(false);
+  const [isManuallyEdited, setIsManuallyEdited] = useState<boolean>(false);
 
-  // Détecter le support du File System Access API et générer le nom par défaut
+  // Détecter le support du File System Access API
   useEffect(() => {
     setHasFileSystemAccess('showSaveFilePicker' in window);
-    setFilename(generateDefaultFilename());
   }, []);
+
+  // Mettre à jour le nom de fichier quand le nom du client change (seulement si pas modifié manuellement)
+  useEffect(() => {
+    // Ne pas mettre à jour automatiquement si l'utilisateur a modifié le nom manuellement
+    if (isManuallyEdited) {
+      return;
+    }
+    
+    // Toujours générer un nouveau nom intelligent quand le nom du client change
+    const smartFileName = generateSmartFileName(state.clientName);
+    const baseFileName = getBaseFileName(smartFileName);
+    
+    console.log('ClientName:', state.clientName);
+    console.log('Generated:', baseFileName);
+    console.log('Current:', state.fileName);
+    
+    // Ne mettre à jour que si le nom est différent de l'actuel
+    if (baseFileName !== state.fileName) {
+      console.log('Updating fileName to:', baseFileName);
+      dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
+    }
+  }, [state.clientName, dispatch, isManuallyEdited]);
 
   const handleSaveProject = async () => {
     try {
+      // Utiliser le nom de fichier actuel de l'état (déjà à jour avec les modifications manuelles)
+      const fileNameToUse = state.fileName;
+      
       // Avec File System Access API, le nom est suggéré dans la boîte de dialogue
       // mais on valide quand même pour le fallback
-      const sanitizedFilename = sanitizeFilename(filename);
+      const sanitizedFilename = sanitizeFilename(fileNameToUse);
       if (!hasFileSystemAccess && !sanitizedFilename) {
         alert('Veuillez entrer un nom de fichier valide (minimum 3 caractères)');
         return;
       }
       
       setIsSaving(true);
-      const description = `Projet avec ${state.clientAccounts.length} comptes clients, ${state.cncjAccounts.length} comptes CNCJ, ${state.generalAccounts.length} comptes généraux`;
-      await saveProject(state, sanitizedFilename, description);
+      const description = `Projet ${state.clientName ? `de ${state.clientName}` : ''} avec ${state.clientAccounts.length} comptes clients, ${state.cncjAccounts.length} comptes CNCJ, ${state.generalAccounts.length} comptes généraux`;
       
-      // Réinitialiser le nom de fichier avec une nouvelle date après sauvegarde réussie
-      setFilename(generateDefaultFilename());
+      // Sauvegarder et récupérer le nom de fichier réellement utilisé
+      const actualFileName = await saveProject(state, sanitizedFilename, description);
+      
+      // Mettre à jour l'état avec le nom de fichier réellement utilisé
+      const baseFileName = getBaseFileName(actualFileName);
+      dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
+      
+      console.log('Projet sauvegardé avec le nom de fichier:', actualFileName);
     } catch (error) {
       if (error instanceof Error && error.message === CANCELLED_ERROR_MESSAGE) {
         // Ne rien afficher si l'utilisateur a annulé
@@ -98,6 +128,11 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: newAppState.cncjFileInfo });
       dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: newAppState.generalFileInfo });
       dispatch({ type: 'SET_CURRENT_STEP', payload: newAppState.currentStep });
+      dispatch({ type: 'SET_CLIENT_NAME', payload: newAppState.clientName });
+      dispatch({ type: 'SET_FILE_NAME', payload: newAppState.fileName });
+      
+      // Réinitialiser le flag de modification manuelle pour permettre la génération automatique
+      setIsManuallyEdited(false);
       
       // Utiliser les actions de clear pour réinitialiser proprement
       dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
@@ -148,9 +183,10 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
 
   const hasDataToSave = state.clientAccounts.length > 0 || 
                        state.cncjAccounts.length > 0 || 
-                       state.generalAccounts.length > 0;
+                       state.generalAccounts.length > 0 ||
+                       state.clientName.trim().length > 0;
 
-  const canSave = hasDataToSave && (hasFileSystemAccess || isValidFilename(filename)) && !isSaving;
+  const canSave = hasDataToSave && (hasFileSystemAccess || isValidFilename(state.fileName)) && !isSaving;
 
   return (
     <div className="flex flex-col gap-4 mb-4">
@@ -159,7 +195,7 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
           onClick={handleSaveProject}
           disabled={!canSave}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          title={canSave ? (hasFileSystemAccess ? 'Choisir l\'emplacement et le nom du fichier' : 'Sauvegarder le projet complet') : isSaving ? 'Sauvegarde en cours...' : hasDataToSave ? (hasFileSystemAccess ? 'Sélectionnez un emplacement pour sauvegarder' : 'Nom de fichier invalide (minimum 3 caractères, maximum 200)') : 'Aucune donnée à sauvegarder'}
+          title={canSave ? (hasFileSystemAccess ? 'Choisir l\'emplacement et le nom du fichier' : 'Sauvegarder le projet complet') : isSaving ? 'Sauvegarde en cours...' : hasDataToSave ? (hasFileSystemAccess ? 'Sélectionnez un emplacement pour sauvegarder' : 'Nom de fichier invalide (minimum 3 caractères, maximum 200)') : 'Aucune donnée à sauvegarder (ajoutez un nom de client ou des comptes)'}
         >
           <span>{isSaving ? '⏳' : '💾'}</span>
           <span>{isSaving ? 'Sauvegarde...' : (hasFileSystemAccess ? 'Sauvegarder le projet...' : 'Sauvegarder le projet')}</span>
@@ -192,8 +228,12 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
           <input
             id="filename"
             type="text"
-            value={filename}
-            onChange={(e) => setFilename(e.target.value)}
+            value={state.fileName}
+            onChange={(e) => {
+              console.log('Filename input - onChange:', e.target.value);
+              setIsManuallyEdited(true); // Marquer comme modifié manuellement
+              dispatch({ type: 'SET_FILE_NAME', payload: e.target.value });
+            }}
             placeholder="Entrez le nom du fichier..."
             maxLength={200}
             className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
