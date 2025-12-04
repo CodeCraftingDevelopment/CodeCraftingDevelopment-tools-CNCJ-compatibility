@@ -46,6 +46,29 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto px-6 py-4 space-y-6">
+          {/* Section sur les suggestions automatiques */}
+          <div className="border border-blue-200 bg-blue-50 rounded-lg overflow-hidden">
+            <div className="p-4 space-y-3">
+              <h3 className="text-base font-semibold text-blue-900 flex items-center gap-2">
+                💡 Suggestions automatiques de codes
+              </h3>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                Le système génère automatiquement des codes de remplacement pour résoudre les conflits.
+              </p>
+              <div className="bg-blue-100 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-blue-700 mb-2">📋 Fonctionnalités disponibles :</h4>
+                <ul className="text-xs text-blue-600 space-y-1">
+                  <li>• <strong>Calcul intelligent:</strong> +1 par défaut sans jamais dépasser la dizaine</li>
+                  <li>• <strong>Boutons individuels:</strong> "💡 [code]" pour appliquer une suggestion</li>
+                  <li>• <strong>Validation globale:</strong> "✨ Valider les suggestions" pour tout appliquer</li>
+                  <li>• <strong>Modal de détails:</strong> "Voir les détails" pour consulter les calculs</li>
+                  <li>• <strong>Export combiné:</strong> CSV avec suggestions étapes 4 + 6 (case à cocher)</li>
+                  <li>• <strong>Badges visuels:</strong> 🟡 Doublon / 🔴 CNCJ pour différencier les types</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {STEPS_CONFIG.filter(step => step.id !== 'stepFinal').map(step => {
             const expanded = isExpanded(step.id);
             return (
@@ -114,9 +137,10 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                       <>
                         <li>• <strong>Algorithme:</strong> Détection par numéro exact identique</li>
                         <li>• <strong>Calcul:</strong> Comptage des occurrences par numéro de compte</li>
-                        <li>• <strong>Logique:</strong> Résolution manuelle requise pour chaque doublon</li>
-                        <li>• <strong>Suggestion:</strong> Génération automatique de codes uniques disponibles</li>
+                        <li>• <strong>Suggestions automatiques:</strong> Génération de codes uniques (+1 sans dépasser la dizaine)</li>
+                        <li>• <strong>Boutons:</strong> "💡 [code]" individuel et "✨ Valider les suggestions" global</li>
                         <li>• <strong>Validation:</strong> Vérification croisée pour éviter nouveaux conflits</li>
+                        <li>• <strong>Modal:</strong> "Voir les détails" pour consulter tous les calculs de suggestions</li>
                       </>
                     )}
                     {step.id === 'step5' && (
@@ -130,11 +154,13 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                     )}
                     {step.id === 'step6' && (
                       <>
-                        <li>• <strong>Algorithme:</strong> Incrémentation contrainte (max 9 tentatives)</li>
+                        <li>• <strong>Algorithme:</strong> Détection des conflits avec les comptes CNCJ homologués</li>
+                        <li>• <strong>Suggestions automatiques:</strong> Génération de codes alternatifs (+1 sans dépasser la dizaine)</li>
                         <li>• <strong>Contrainte:</strong> <code>incremented % 10 === 0 ? null : continue</code> (jamais de dizaine supérieure)</li>
                         <li>• <strong>Calcul:</strong> <code>codeNum + 1</code> avec validation croisée CNCJ + clients</li>
                         <li>• <strong>Validation:</strong> Vérification des codes CNCJ homologués</li>
-                        <li>• <strong>Résolution:</strong> Auto-correction ou erreur si contrainte violée</li>
+                        <li>• <strong>Modal:</strong> "Voir les détails" avec export combiné (étapes 4 + 6)</li>
+                        <li>• <strong>Export:</strong> Case à cocher pour inclure les suggestions de l'étape 4</li>
                       </>
                     )}
                     {step.id === 'step7' && (
