@@ -1,5 +1,29 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.1.1] - 2025-12-04
+
+### Persistance complète des suggestions (fix critique)
+
+#### Problème résolu
+- Les détails des calculs de suggestions n'étaient pas sauvegardés
+- Après chargement, le modal perdait les informations de calcul originales
+- L'export CSV ne pouvait pas restaurer les détails des suggestions
+
+#### Solution implémentée
+- **Sauvegarde complète** : ajout des champs `initialSuggestions` et `initialCncjSuggestions`
+- **Restauration fidèle** : utilisation prioritaire des suggestions sauvegardées
+- **Compatibilité ascendante** : fichiers anciens toujours chargeables
+- **Validation robuste** : vérification des nouveaux champs avec fallback
+
+#### Fichiers modifiés
+- `src/utils/projectPersistence.ts` - Structure de sauvegarde étendue
+- `src/types/accounts.ts` - Nouveaux champs dans AppState
+- `src/components/ResultsDisplay.tsx` - Priorité aux données sauvegardées
+- `src/App.tsx` - Transmission complète des données
+- `src/steps/Step6CNCJConflicts.tsx` - Chaîne de props étendue
+
+---
+
 ## [2.1.0] - 2025-12-04
 
 ### Export combiné des suggestions (Étapes 4 + 6)

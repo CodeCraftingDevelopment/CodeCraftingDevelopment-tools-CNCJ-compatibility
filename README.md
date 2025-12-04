@@ -19,7 +19,9 @@ Compte Processor est une application web React/TypeScript qui permet de :
 
 - **Import CSV** : Support de plusieurs formats de fichiers CSV
 - **Détection de doublons** : Identification automatique des comptes en double
-- **Suggestions automatiques** : Génération intelligente de codes de remplacement pour les doublons
+- **Suggestions automatiques** : Génération intelligente de codes de remplacement (+1 sans dépasser la dizaine)
+- **Modal de détails** : Vue complète des calculs de suggestions avec export CSV combiné
+- **Export combiné** : CSV unifié avec suggestions étapes 4 + 6 et légende visuelle
 - **Comparaison CNCJ** : Matching des comptes clients avec les références CNCJ
 - **Validation forcée CNCJ** : Option pour valider les comptes en conflit CNCJ sans modification
 - **Import de corrections** : Glisser-déposer de fichiers CSV avec aperçu avant application
@@ -637,6 +639,17 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - HTTPS recommandé pour la production
 
 ## 📝 Notes de version
+
+### v2.1.1 (2025-12-04)
+- 🔧 **Persistance des suggestions** : Sauvegarde et restauration complètes des calculs de suggestions
+- 📁 **Compatibilité ascendante** : Fichiers projets anciens toujours chargeables
+- ✅ **Modal fidèle** : Conservation des détails originaux après chargement
+
+### v2.1.0 (2025-12-04)
+- 🎯 **Export combiné** : CSV unifié avec suggestions étapes 4 + 6
+- 📊 **Modal enrichi** : Légende visuelle et colonnes séparées (Doublon/CNCJ)
+- 🔄 **Tri amélioré** : Code 7 chiffres + code original secondaire
+- 💡 **Suggestions automatiques** : Calcul intelligent (+1 sans dépasser la dizaine)
 
 ### v2.0.1 (2023-11-23)
 - ✅ **Validation forcée CNCJ** : Nouvelle option pour valider les comptes en conflit CNCJ sans modification

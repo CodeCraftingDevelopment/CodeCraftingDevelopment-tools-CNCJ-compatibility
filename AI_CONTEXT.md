@@ -5,6 +5,15 @@
 
 ---
 
+## 🚀 Version Actuelle : **v2.1.1** (2025-12-04)
+
+### Dernières améliorations critiques
+- **Persistance complète** : Sauvegarde/restauration des suggestions initiales avec calculs détaillés
+- **Modal fidèle** : Conservation des détails originaux après chargement de projet
+- **Compatibilité ascendante** : Fichiers projets v2.0.x toujours chargeables
+
+---
+
 ## 📋 Vue d'ensemble
 
 ### Objectif du projet
