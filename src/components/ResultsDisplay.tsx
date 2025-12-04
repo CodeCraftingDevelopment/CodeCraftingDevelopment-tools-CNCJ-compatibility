@@ -43,13 +43,30 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
   
-  // Calculer les suggestions avec détails pour les doublons (étape 4)
+  // Suggestions INITIALES (calculées une seule fois, sans tenir compte des replacementCodes)
+  // Ces suggestions sont utilisées pour le modal de détails et l'export CSV
+  const initialSuggestions = useMemo(() => {
+    if (conflictType !== 'duplicates' || duplicates.length === 0) {
+      return new Map<string, SuggestionResult>();
+    }
+    
+    const existingCodes = new Set([
+      ...uniqueClients.map(acc => acc.number),
+      ...matches.map(acc => acc.number),
+      ...unmatchedClients.map(acc => acc.number)
+    ]);
+    
+    // Calculer sans les replacementCodes pour garder les détails originaux
+    return calculateSuggestionsWithDetails(duplicates, existingCodes, {}, cncjCodes);
+  }, [duplicates, uniqueClients, matches, unmatchedClients, conflictType, cncjCodes]);
+
+  // Suggestions DYNAMIQUES (mises à jour avec les replacementCodes)
+  // Ces suggestions sont utilisées pour les boutons d'action
   const suggestions = useMemo(() => {
     if (conflictType !== 'duplicates' || duplicates.length === 0) {
       return new Map<string, SuggestionResult>();
     }
     
-    // Obtenir tous les codes originaux (sauf les doublons)
     const existingCodes = new Set([
       ...uniqueClients.map(acc => acc.number),
       ...matches.map(acc => acc.number),
@@ -59,7 +76,32 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     return calculateSuggestionsWithDetails(duplicates, existingCodes, replacementCodes, cncjCodes);
   }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType, cncjCodes]);
 
-  // Calculer les suggestions avec détails pour les conflits CNCJ (étape 6)
+  // Suggestions INITIALES pour les conflits CNCJ (étape 6)
+  const initialCncjSuggestions = useMemo(() => {
+    if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
+      return new Map<string, SuggestionResult>();
+    }
+    
+    const suggestionsMap = new Map<string, SuggestionResult>();
+    const usedCodes = new Set([...cncjCodes]);
+    
+    if (mergedClientAccounts) {
+      mergedClientAccounts.forEach(acc => usedCodes.add(acc.number));
+    }
+    
+    duplicates.forEach(duplicate => {
+      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes);
+      suggestionsMap.set(duplicate.id, result);
+      
+      if (result.code) {
+        usedCodes.add(result.code);
+      }
+    });
+    
+    return suggestionsMap;
+  }, [duplicates, cncjCodes, conflictType, mergedClientAccounts]);
+
+  // Suggestions DYNAMIQUES pour les conflits CNCJ (étape 6)
   const cncjSuggestions = useMemo(() => {
     if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
       return new Map<string, SuggestionResult>();
@@ -68,12 +110,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const suggestionsMap = new Map<string, SuggestionResult>();
     const usedCodes = new Set([...cncjCodes]);
     
-    // Ajouter les codes des comptes clients fusionnés (incluant les corrections de l'étape 4)
     if (mergedClientAccounts) {
       mergedClientAccounts.forEach(acc => usedCodes.add(acc.number));
     }
     
-    // Ajouter les codes de remplacement déjà saisis
     Object.values(replacementCodes).forEach(code => {
       if (code?.trim()) {
         usedCodes.add(code.trim());
@@ -81,18 +121,15 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     });
     
     duplicates.forEach(duplicate => {
-      // Si un code de remplacement est déjà saisi, ne pas suggérer
       const currentReplacement = replacementCodes[duplicate.id]?.trim();
       if (currentReplacement) {
         suggestionsMap.set(duplicate.id, { code: null, reason: 'Code de remplacement déjà saisi' });
         return;
       }
       
-      // Utiliser la logique +1 avec détails en vérifiant les codes CNCJ
       const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes);
       suggestionsMap.set(duplicate.id, result);
       
-      // Si une suggestion est trouvée, l'ajouter aux codes utilisés
       if (result.code) {
         usedCodes.add(result.code);
       }
@@ -208,9 +245,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 const code7Chiffres = d.number.padStart(7, '0');
                 const titre = d.title || '';
                 const codeRemplacement = replacementCodes[d.id] || '';
+                // Utiliser les suggestions INITIALES pour conserver les détails du calcul original
                 const suggestionResult = conflictType === 'cncj-conflicts' 
-                  ? cncjSuggestions.get(d.id) 
-                  : suggestions.get(d.id);
+                  ? initialCncjSuggestions.get(d.id) 
+                  : initialSuggestions.get(d.id);
                 const suggestionCode = suggestionResult?.code || '';
                 const suggestionDetail = suggestionResult?.reason || '';
                 
@@ -611,9 +649,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 </thead>
                 <tbody>
                   {duplicates.map((d, index) => {
+                    // Utiliser les suggestions INITIALES pour conserver les détails du calcul original
                     const suggestionResult = conflictType === 'cncj-conflicts' 
-                      ? cncjSuggestions.get(d.id) 
-                      : suggestions.get(d.id);
+                      ? initialCncjSuggestions.get(d.id) 
+                      : initialSuggestions.get(d.id);
                     const hasSuggestion = !!suggestionResult?.code;
                     
                     return (
