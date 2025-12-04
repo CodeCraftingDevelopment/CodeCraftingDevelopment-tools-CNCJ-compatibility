@@ -479,9 +479,14 @@ const App: React.FC = () => {
             <div className="flex flex-col items-center gap-4 mt-8">
               <button
                 onClick={() => {
-                  // Show the import flow and navigate to step1
+                  // Show the import flow without resetting data
                   setShowImportFlow(true);
-                  dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
+                  // Only set step to step1 if we have no data or are in a clean state
+                  if (state.clientAccounts.length === 0 && 
+                      state.cncjAccounts.length === 0 && 
+                      state.generalAccounts.length === 0) {
+                    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
+                  }
                 }}
                 className="group relative px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-80 flex items-center justify-between"
               >
