@@ -5,9 +5,16 @@
 
 ---
 
-## 🚀 Version Actuelle : **v2.1.1** (2025-12-04)
+## 🚀 Version Actuelle : **v2.2.0** (2025-12-04)
 
-### Dernières améliorations critiques
+### Dernières fonctionnalités majeures
+- **🎯 Système de nommage intelligent** : Génération automatique `compte-processor-[client]-[date].ccp`
+- **💾 Persistance complète** : Sauvegarde/restauration des noms de fichiers personnalisés
+- **🔄 Modification manuelle** : Possibilité de modifier le nom avec sauvegarde automatique
+- **✅ Compatibilité étendue** : File System Access API + fallback classique
+- **🔧 Corrections critiques** : Noms de fichiers boîte de dialogue maintenant sauvegardés
+
+### Améliorations précédentes (v2.1.1)
 - **Persistance complète** : Sauvegarde/restauration des suggestions initiales avec calculs détaillés
 - **Modal fidèle** : Conservation des détails originaux après chargement de projet
 - **Compatibilité ascendante** : Fichiers projets v2.0.x toujours chargeables
@@ -701,6 +708,160 @@ console.log('Navigation vers l\'étape suivante');
   ]
 }
 ```
+
+---
+
+## 🎯 Système de Nommage Intelligent (v2.2.0)
+
+### Vue d'ensemble
+Le système de nommage intelligent génère automatiquement des noms de fichiers basés sur le nom du client et la date, avec persistance complète et possibilité de modification manuelle.
+
+### Architecture technique
+
+#### `src/utils/fileNameGenerator.ts`
+```typescript
+// Génération du nom intelligent
+export const generateSmartFileName = (clientName: string): string => {
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  const cleanClientName = clientName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Nettoyage caractères spéciaux
+    .replace(/\s+/g, '-') // Espaces → tirets
+    .replace(/-+/g, '-') // Éviter tirets multiples
+    .replace(/^-|-$/g, ''); // Éviter tirets début/fin
+  
+  const clientPart = cleanClientName ? `-${cleanClientName}` : '';
+  return `compte-processor${clientPart}-${dateStr}.ccp`;
+};
+
+// Extraction du nom de base sans extension
+export const getBaseFileName = (fileName: string): string => {
+  return fileName.replace(/\.[^/.]+$/, '');
+};
+```
+
+#### État de l'application (AppState)
+```typescript
+export interface AppState {
+  // ... champs existants ...
+  clientName: string;        // Nom du client pour le projet
+  fileName: string;          // Nom du fichier de sauvegarde persistant
+}
+
+export type AppAction = 
+  | { type: 'SET_CLIENT_NAME'; payload: string }
+  | { type: 'SET_FILE_NAME'; payload: string }
+  | // ... autres actions ...
+```
+
+### Workflow de fonctionnement
+
+#### 1. **Génération automatique**
+```typescript
+// Dans ProjectPersistence.tsx
+useEffect(() => {
+  if (isManuallyEdited) return; // Ne pas écraser si modifié manuellement
+  
+  const smartFileName = generateSmartFileName(state.clientName);
+  const baseFileName = getBaseFileName(smartFileName);
+  
+  if (baseFileName !== state.fileName) {
+    dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
+  }
+}, [state.clientName, dispatch, isManuallyEdited]);
+```
+
+#### 2. **Modification manuelle**
+```typescript
+// Champ de saisie pour fallback sans File System Access API
+<input
+  value={state.fileName}
+  onChange={(e) => {
+    setIsManuallyEdited(true); // Marquer comme modifié manuellement
+    dispatch({ type: 'SET_FILE_NAME', payload: e.target.value });
+  }}
+/>
+```
+
+#### 3. **Persistance dans les fichiers projet**
+```typescript
+// Dans ProjectFile.data
+data: {
+  // ... autres champs ...
+  clientName: string;
+  fileName: string;  // Sauvegardé et restauré
+}
+```
+
+### Compatibilité et sauvegarde
+
+#### File System Access API
+```typescript
+// saveWithFileSystemAccess retourne le nom choisi
+const saveWithFileSystemAccess = async (jsonString: string, filename?: string): Promise<string> => {
+  const fileHandle = await window.showSaveFilePicker({
+    suggestedName: filename ? `${filename}.ccp` : 'compte-processor.ccp',
+    // ...
+  });
+  // ...
+  return fileHandle.name; // Nom réellement utilisé
+};
+```
+
+#### Mise à jour de l'état après sauvegarde
+```typescript
+const actualFileName = await saveProject(state, sanitizedFilename, description);
+const baseFileName = getBaseFileName(actualFileName);
+dispatch({ type: 'SET_FILE_NAME', payload: baseFileName });
+```
+
+### Cas d'usage et exemples
+
+#### Scénario 1 : Nouveau projet
+```
+Input client : "Dupont & Cie"
+→ Nom généré : "compte-processor-dupont-cie-2025-12-04.ccp"
+→ Sauvegarde → Nom enregistré dans le projet
+```
+
+#### Scénario 2 : Modification manuelle
+```
+Nom suggéré : "compte-processor-dupont-2025-12-04.ccp"
+Utilisateur modifie : "projet-dupont-final.ccp"
+→ Sauvegarde → "projet-dupont-final" sauvegardé dans l'état
+→ Rechargement → "projet-dupont-final" restauré
+```
+
+#### Scénario 3 : Migration projet existant
+```
+Chargement projet v2.1.1 (sans fileName)
+→ Détection fileName vide
+→ Génération automatique avec clientName existant
+→ Prêt pour sauvegardes futures
+```
+
+### Points d'attention pour l'IA
+
+#### 🔧 **Gestion de l'état**
+- `isManuallyEdited` empêche la génération automatique d'écraser les modifications
+- Deux instances de ProjectPersistence (page d'accueil + flux d'import)
+- Synchronisation via l'état global Redux-like
+
+#### 🔄 **Cycle de vie**
+1. Montage → Détection File System Access API
+2. Saisie client → Génération automatique du nom
+3. Modification manuelle → Flag `isManuallyEdited` activé
+4. Sauvegarde → Nom réel récupéré et sauvegardé
+5. Chargement → Flag réinitialisé, nom restauré
+
+#### ⚠️ **Edge cases**
+- ClientName vide → `compte-processor-2025-12-04.ccp`
+- Caractères spéciaux → Nettoyage automatique
+- Projets anciens → Génération rétroactive
+- Deux instances → Effets dupliqués (géré par état partagé)
 
 ---
 

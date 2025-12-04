@@ -1,5 +1,47 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.2.0] - 2025-12-04
+
+### 🎯 **Système de nommage intelligent et persistant**
+
+#### ✨ **Génération automatique des noms de fichiers**
+- **Format intelligent** : `compte-processor-[nom-client]-[date].ccp`
+- **Exemples** : `compte-processor-dupont-2025-12-04.ccp`
+- **Nettoyage automatique** : Caractères spéciaux remplacés par des tirets
+
+#### 💾 **Persistance complète des noms de fichiers**
+- Le nom de fichier est **sauvegardé dans le projet**
+- Au chargement, le nom est **restauré automatiquement**
+- L'utilisateur peut **modifier manuellement** le nom
+- Le nouveau nom est **resauvegardé** à chaque modification
+
+#### 🔄 **Workflow intelligent**
+1. **Première saisie** : Nom généré automatiquement avec le client
+2. **Modification manuelle** : Nom personnalisé sauvegardé
+3. **Chargement** : Nom personnalisé restauré
+
+#### 🔧 **Améliorations techniques**
+- 🆕 `src/utils/fileNameGenerator.ts` : Utilitaires de génération de nom
+- 🆕 Champ `fileName` dans `AppState` et `ProjectFile`
+- 🆕 Action `SET_FILE_NAME` dans le reducer
+- ✅ **File System Access API** : Nom choisi dans boîte de dialogue sauvegardé
+- ✅ **Fallback classique** : Nom saisi dans l'input sauvegardé
+- ✅ **Projets existants** : Migration automatique
+
+#### 🐛 **Corrections de bugs**
+- **Corrigé** : Le nom de fichier choisi dans la boîte de dialogue Windows n'était pas sauvegardé
+- **Corrigé** : Le nom de fichier modifié manuellement n'était pas persisté dans le projet
+
+#### 📋 **Fichiers modifiés**
+- `src/types/accounts.ts` : Ajout de `fileName` dans `AppState` et `AppAction`
+- `src/App.tsx` : Gestion de `SET_FILE_NAME` dans le reducer
+- `src/components/ProjectPersistence.tsx` : Logique de nommage intelligent
+- `src/components/ClientNameInput.tsx` : Composant de saisie du nom du client
+- `src/utils/projectPersistence.ts` : Sauvegarde/chargement du nom de fichier
+- `src/utils/fileNameGenerator.ts` : Utilitaires de génération (nouveau)
+
+---
+
 ## [2.1.1] - 2025-12-04
 
 ### Persistance complète des suggestions (fix critique)

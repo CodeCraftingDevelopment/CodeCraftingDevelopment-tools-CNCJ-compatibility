@@ -30,6 +30,9 @@ Compte Processor est une application web React/TypeScript qui permet de :
 - **Coloration des résultats** : Vert (codes uniques), Rouge (doublons), Gris (non trouvés)
 - **Export des doublons** : Export CSV des doublons avec codes de remplacement
 - **Export des résultats** : Téléchargement des résultats au format JSON
+- **🆕 Nommage intelligent** : Génération automatique des noms de fichiers avec format `compte-processor-[client]-[date].ccp`
+- **🆕 Persistance des noms** : Sauvegarde et restauration des noms de fichiers personnalisés
+- **🆕 Modification manuelle** : Possibilité de modifier le nom de fichier avec sauvegarde automatique
 - **Sauvegarde de projet** : Export complet de l'état du travail au format `.ccp`
 - **Chargement de projet** : Restauration complète d'un projet précédemment sauvegardé
 - **Intégrité des données** : Vérification par checksum SHA256 pour les transferts
@@ -72,6 +75,52 @@ npm run lint
 ```
 
 L'application sera disponible sur `http://localhost:5173`
+
+## 🎯 Système de nommage intelligent (v2.2.0)
+
+### Génération automatique des noms de fichiers
+
+Le système génère automatiquement des noms de fichiers intelligents basés sur le nom du client et la date :
+
+**Format** : `compte-processor-[nom-client]-[date].ccp`
+
+**Exemples** :
+- `compte-processor-dupont-2025-12-04.ccp`
+- `compte-processor-entreprise-abc-2025-12-04.ccp`
+- `compte-processor-2025-12-04.ccp` (si pas de nom client)
+
+### Workflow de nommage
+
+#### 1. **Première saisie**
+1. Saisissez le nom du client dans le champ prévu à cet effet
+2. Le nom de fichier se met à jour automatiquement
+3. Exemple : Client "Dupont Entreprise" → `compte-processor-dupont-entreprise-2025-12-04.ccp`
+
+#### 2. **Modification manuelle**
+1. Dans la boîte de dialogue de sauvegarde, modifiez le nom du fichier
+2. Exemple : `mon-projet-dupont-final.ccp`
+3. Le nouveau nom est sauvegardé dans le projet
+
+#### 3. **Restauration**
+1. Au chargement d'un projet, le nom de fichier personnalisé est restauré
+2. Le nom modifié manuellement est préservé
+3. La génération automatique est désactivée pour ne pas écraser les personnalisations
+
+### Persistance et compatibilité
+
+- **✅ Persistance complète** : Le nom de fichier est sauvegardé dans le projet
+- **✅ Restauration automatique** : Le nom est restauré au chargement
+- **✅ Modification manuelle** : Possibilité de personnaliser le nom
+- **✅ Compatibilité** : Fonctionne avec File System Access API et fallback classique
+- **✅ Migration** : Projets existants automatiquement compatibles
+
+### Nettoyage intelligent
+
+Les caractères spéciaux dans les noms de clients sont automatiquement nettoyés :
+- Espaces → Tirets
+- Caractères spéciaux → Supprimés
+- Plusieurs tirets → Un seul tiret
+- Exemple : "Dupont & Cie" → `compte-processor-dupont-cie-2025-12-04.ccp`
 
 ## 📖 Guide utilisateur
 
