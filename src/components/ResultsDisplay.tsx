@@ -71,8 +71,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       // unmatchedClients:
     }
     
-    return calculateSuggestions(duplicates, existingCodes, replacementCodes);
-  }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType]);
+    return calculateSuggestions(duplicates, existingCodes, replacementCodes, cncjCodes);
+  }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType, cncjCodes]);
 
   // Calculer les suggestions pour les conflits CNCJ (étape 6)
   const cncjSuggestions = useMemo(() => {
@@ -82,6 +82,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     const suggestionsMap = new Map<string, string | null>();
     const usedCodes = new Set([...cncjCodes]);
+    
+    // Ajouter les codes des comptes clients fusionnés (incluant les corrections de l'étape 4)
+    if (mergedClientAccounts) {
+      mergedClientAccounts.forEach(acc => usedCodes.add(acc.number));
+    }
     
     // Ajouter les codes de remplacement déjà saisis
     Object.values(replacementCodes).forEach(code => {
@@ -109,7 +114,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     });
     
     return suggestionsMap;
-  }, [duplicates, cncjCodes, replacementCodes, conflictType]);
+  }, [duplicates, cncjCodes, replacementCodes, conflictType, mergedClientAccounts]);
   
   // Utiliser le hook personnalisé pour les corrections
   const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
@@ -297,6 +302,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <h3 className="text-lg font-semibold text-red-900 mb-3">
             ⚠️ {conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'} ({duplicates.length})
           </h3>
+          {conflictType === 'duplicates' && (
+            <div className="mb-3 p-3 bg-amber-50 border border-amber-300 rounded-lg">
+              <p className="text-amber-800 text-sm">
+                <span className="font-semibold">⚠️ Important :</span> Allez jusqu'à l'étape 6 pour vérifier les conflits CNCJ avant de transmettre les corrections de doublons au client.
+              </p>
+            </div>
+          )}
           <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
             <div className="space-y-3">
               {(() => {
@@ -314,10 +326,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 });
                 
                 // Obtenir tous les codes clients originaux (sauf les doublons)
+                // Pour l'étape 6 (cncj-conflicts), inclure aussi les codes des comptes clients fusionnés
                 const allOriginalCodes = new Set([
                   ...uniqueClients.map(acc => acc.number),
                   ...matches.map(acc => acc.number), 
-                  ...unmatchedClients.map(acc => acc.number)
+                  ...unmatchedClients.map(acc => acc.number),
+                  ...(conflictType === 'cncj-conflicts' && mergedClientAccounts ? mergedClientAccounts.map(acc => acc.number) : [])
                 ]);
                 
                 return duplicates.map((account) => {
@@ -328,7 +342,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
                   
                   // Validation CNCJ : vérifier si le code existe dans les codes CNCJ (normaliser à 7 chiffres)
-                  const isCncjCode = !!(conflictType === 'cncj-conflicts' && currentCode && cncjCodes?.has(normalizedCurrentCode));
+                  // À l'étape 4, on affiche un warning si le code est CNCJ (mais pas bloquant)
+                  // À l'étape 6, c'est une erreur bloquante
+                  const isCncjCode = !!(currentCode && cncjCodes?.has(normalizedCurrentCode));
                   
                   return (
                     <DuplicateRow

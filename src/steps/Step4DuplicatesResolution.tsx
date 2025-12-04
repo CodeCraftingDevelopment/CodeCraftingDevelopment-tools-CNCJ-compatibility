@@ -7,13 +7,15 @@ interface Step4DuplicatesResolutionProps {
   loading: boolean;
   replacementCodes: { [key: string]: string };
   onReplacementCodeChange: (accountId: string, code: string) => void;
+  cncjCodes: Set<string>;
 }
 
 export const Step4DuplicatesResolution: React.FC<Step4DuplicatesResolutionProps> = ({
   result,
   loading,
   replacementCodes,
-  onReplacementCodeChange
+  onReplacementCodeChange,
+  cncjCodes
 }) => {
   return (
     <ResultsDisplay
@@ -23,6 +25,7 @@ export const Step4DuplicatesResolution: React.FC<Step4DuplicatesResolutionProps>
       showOnly="duplicates"
       replacementCodes={replacementCodes}
       onReplacementCodeChange={onReplacementCodeChange}
+      cncjCodes={cncjCodes}
     />
   );
 };

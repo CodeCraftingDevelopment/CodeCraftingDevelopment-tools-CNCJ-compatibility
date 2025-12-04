@@ -42,15 +42,22 @@ export function suggestNextCode(originalCode: string, usedCodes: Set<string>): s
  * @param duplicates - Liste des comptes en doublon
  * @param existingCodes - Codes déjà utilisés (comptes uniques, matches, etc.)
  * @param replacementCodes - Codes de remplacement déjà saisis
+ * @param excludedCodes - Codes à exclure des suggestions (ex: codes CNCJ)
  * @returns Map des suggestions par ID de compte
  */
 export function calculateSuggestions(
   duplicates: Array<{ id: string; number: string }>,
   existingCodes: Set<string>,
-  replacementCodes: { [key: string]: string }
+  replacementCodes: { [key: string]: string },
+  excludedCodes?: Set<string>
 ): Map<string, string | null> {
   const suggestions = new Map<string, string | null>();
   const allUsedCodes = new Set([...existingCodes]);
+  
+  // Ajouter les codes exclus (ex: codes CNCJ) pour éviter de les suggérer
+  if (excludedCodes) {
+    excludedCodes.forEach(code => allUsedCodes.add(code));
+  }
 
   // Ajouter tous les codes de remplacement déjà saisis
   Object.values(replacementCodes).forEach(code => {

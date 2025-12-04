@@ -39,6 +39,17 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
         focusRingClass: 'focus:ring-gray-400'
       };
     } else if (isCncjCode) {
+      // À l'étape 4 (duplicates), le code CNCJ est un warning (orange)
+      // À l'étape 6 (cncj-conflicts), c'est une erreur bloquante (rouge)
+      if (conflictType === 'duplicates') {
+        return {
+          rowColorClass: 'bg-amber-50 border-amber-400',
+          numberColorClass: 'bg-amber-100',
+          titleColorClass: 'bg-amber-50',
+          inputColorClass: 'border-amber-400 bg-amber-50',
+          focusRingClass: 'focus:ring-amber-400'
+        };
+      }
       return {
         rowColorClass: 'bg-red-100 border-red-500',
         numberColorClass: 'bg-red-200',
@@ -113,12 +124,17 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               </svg>
             </div>
           )}
-          {isCncjCode && (
+          {isCncjCode && conflictType === 'cncj-conflicts' && (
             <div className="absolute left-36 top-1/2 transform -translate-y-1/2 text-red-600">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
+          )}
+          {isCncjCode && conflictType === 'duplicates' && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 border border-amber-300 rounded whitespace-nowrap" title="Ce code de remplacement est un code CNCJ réservé. Vérifiez à l'étape 6.">
+              ⚠️ Code CNCJ
+            </span>
           )}
         </div>
         {/* Bouton de suggestion - pour l'étape 4 (duplicates) et l'étape 6 (cncj-conflicts) */}

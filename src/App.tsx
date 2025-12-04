@@ -528,6 +528,7 @@ const App: React.FC = () => {
               loading={state.loading}
               replacementCodes={state.replacementCodes}
               onReplacementCodeChange={handleReplacementCodeChange}
+              cncjCodes={cncjCodes}
             />
             <StepNavigation
               currentStep={currentStepConfig}
@@ -573,6 +574,7 @@ const App: React.FC = () => {
               cncjConflictCorrections={state.cncjConflictCorrections}
               cncjForcedValidations={state.cncjForcedValidations}
               cncjCodes={cncjCodes}
+              mergedClientAccounts={mergedClientAccounts}
               onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
               onCncjForcedValidationChange={handleCncjForcedValidationChange}
             />

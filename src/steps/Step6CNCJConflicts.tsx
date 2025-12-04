@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProcessingResult } from '../types/accounts';
+import { ProcessingResult, Account } from '../types/accounts';
 import { ResultsDisplay } from '../components/ResultsDisplay';
 
 interface Step6CNCJConflictsProps {
@@ -9,6 +9,7 @@ interface Step6CNCJConflictsProps {
   cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjForcedValidations: Set<string>;
   cncjCodes: Set<string>;
+  mergedClientAccounts: Account[];
   onCncjReplacementCodeChange: (accountId: string, code: string) => void;
   onCncjForcedValidationChange: (accountId: string, forced: boolean) => void;
 }
@@ -20,6 +21,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   cncjConflictCorrections,
   cncjForcedValidations,
   cncjCodes,
+  mergedClientAccounts,
   onCncjReplacementCodeChange,
   onCncjForcedValidationChange
 }) => {
@@ -36,6 +38,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       cncjCodes={cncjCodes}
       cncjForcedValidations={cncjForcedValidations}
       onCncjForcedValidationChange={onCncjForcedValidationChange}
+      mergedClientAccounts={mergedClientAccounts}
     />
   );
 };
