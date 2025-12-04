@@ -610,6 +610,8 @@ const App: React.FC = () => {
               step4Duplicates={state.result?.duplicates}
               step4Suggestions={step4Suggestions}
               step4ReplacementCodes={state.replacementCodes}
+              initialSuggestions={state.initialSuggestions}
+              initialCncjSuggestions={state.initialCncjSuggestions}
             />
             <StepNavigation
               currentStep={currentStepConfig}

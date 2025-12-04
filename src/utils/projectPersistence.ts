@@ -1,4 +1,5 @@
 import { AppState, Account, FileMetadata, MergeInfo, NormalizationAccount, AccountMetadata } from '../types/accounts';
+import { SuggestionResult } from './codeSuggestions';
 import { APP_VERSION, isNewerVersion } from './version';
 
 export interface ProjectFile {
@@ -31,8 +32,8 @@ export interface ProjectFile {
     isNormalizationApplied: boolean;
     missingMetadata: { [accountId: string]: AccountMetadata };
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
-    initialSuggestions: { [accountId: string]: any };
-    initialCncjSuggestions: { [accountId: string]: any };
+    initialSuggestions: { [accountId: string]: SuggestionResult };
+    initialCncjSuggestions: { [accountId: string]: SuggestionResult };
   };
 }
 
@@ -282,6 +283,14 @@ export const validateProjectFile = (projectFile: unknown): projectFile is Projec
 
     // Vérifier l'étape actuelle (permettre step8 pour compatibilité avec d'anciens fichiers)
     if (typeof data.currentStep !== 'string' || !['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'step8', 'stepFinal'].includes(data.currentStep as string)) {
+      return false;
+    }
+
+    // Vérifier les suggestions initiales (champs optionnels pour compatibilité ascendante)
+    if (data.initialSuggestions !== undefined && typeof data.initialSuggestions !== 'object') {
+      return false;
+    }
+    if (data.initialCncjSuggestions !== undefined && typeof data.initialCncjSuggestions !== 'object') {
       return false;
     }
 

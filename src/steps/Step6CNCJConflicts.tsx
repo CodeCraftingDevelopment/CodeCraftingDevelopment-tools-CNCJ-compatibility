@@ -17,6 +17,9 @@ interface Step6CNCJConflictsProps {
   step4Duplicates?: Account[];
   step4Suggestions?: Map<string, SuggestionResult>;
   step4ReplacementCodes?: { [key: string]: string };
+  // Suggestions initiales sauvegardées
+  initialSuggestions?: { [accountId: string]: SuggestionResult };
+  initialCncjSuggestions?: { [accountId: string]: SuggestionResult };
 }
 
 export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
@@ -31,7 +34,9 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   onCncjForcedValidationChange,
   step4Duplicates,
   step4Suggestions,
-  step4ReplacementCodes
+  step4ReplacementCodes,
+  initialSuggestions,
+  initialCncjSuggestions
 }) => {
   return (
     <ResultsDisplay
@@ -50,6 +55,8 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       step4Duplicates={step4Duplicates}
       step4Suggestions={step4Suggestions}
       step4ReplacementCodes={step4ReplacementCodes}
+      savedInitialSuggestions={initialSuggestions}
+      savedInitialCncjSuggestions={initialCncjSuggestions}
     />
   );
 };

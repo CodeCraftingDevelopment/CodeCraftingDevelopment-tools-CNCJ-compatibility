@@ -27,6 +27,9 @@ interface ResultsDisplayProps {
   step4Duplicates?: Account[];
   step4Suggestions?: Map<string, SuggestionResult>;
   step4ReplacementCodes?: { [key: string]: string };
+  // Suggestions initiales sauvegardées (prioritaires sur le calcul)
+  savedInitialSuggestions?: { [accountId: string]: SuggestionResult };
+  savedInitialCncjSuggestions?: { [accountId: string]: SuggestionResult };
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -45,7 +48,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   duplicateIdsFromStep4,
   step4Duplicates,
   step4Suggestions,
-  step4ReplacementCodes
+  step4ReplacementCodes,
+  savedInitialSuggestions,
+  savedInitialCncjSuggestions
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
@@ -57,6 +62,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       return new Map<string, SuggestionResult>();
     }
     
+    // Utiliser les suggestions sauvegardées si disponibles
+    if (savedInitialSuggestions && Object.keys(savedInitialSuggestions).length > 0) {
+      return new Map(Object.entries(savedInitialSuggestions));
+    }
+    
     const existingCodes = new Set([
       ...uniqueClients.map(acc => acc.number),
       ...matches.map(acc => acc.number),
@@ -65,7 +75,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     // Calculer sans les replacementCodes pour garder les détails originaux
     return calculateSuggestionsWithDetails(duplicates, existingCodes, {}, cncjCodes);
-  }, [duplicates, uniqueClients, matches, unmatchedClients, conflictType, cncjCodes]);
+  }, [duplicates, uniqueClients, matches, unmatchedClients, conflictType, cncjCodes, savedInitialSuggestions]);
 
   // Suggestions DYNAMIQUES (mises à jour avec les replacementCodes)
   // Ces suggestions sont utilisées pour les boutons d'action
@@ -87,6 +97,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const initialCncjSuggestions = useMemo(() => {
     if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
       return new Map<string, SuggestionResult>();
+    }
+    
+    // Utiliser les suggestions sauvegardées si disponibles
+    if (savedInitialCncjSuggestions && Object.keys(savedInitialCncjSuggestions).length > 0) {
+      return new Map(Object.entries(savedInitialCncjSuggestions));
     }
     
     const suggestionsMap = new Map<string, SuggestionResult>();
@@ -111,7 +126,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     });
     
     return suggestionsMap;
-  }, [duplicates, cncjCodes, conflictType, mergedClientAccounts]);
+  }, [duplicates, cncjCodes, conflictType, mergedClientAccounts, savedInitialCncjSuggestions]);
 
   // Suggestions DYNAMIQUES pour les conflits CNCJ (étape 6)
   const cncjSuggestions = useMemo(() => {
