@@ -121,8 +121,8 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
             </div>
           )}
         </div>
-        {/* Bouton de suggestion - uniquement pour l'étape 4 (conflictType === 'duplicates') */}
-        {conflictType === 'duplicates' && !replacementCode?.trim() && (
+        {/* Bouton de suggestion - pour l'étape 4 (duplicates) et l'étape 6 (cncj-conflicts) */}
+        {!replacementCode?.trim() && (
           <div className="ml-2">
             {suggestedCode ? (
               <button
@@ -132,36 +132,91 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               >
                 💡 {suggestedCode}
               </button>
-            ) : getDisplayCode(account).endsWith('9') ? (
-              <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title="Aucune suggestion disponible (code finit par 9)">
-                ⚠️ Erreur
-              </span>
-            ) : null}
+            ) : (() => {
+              const codeToCheck = conflictType === 'duplicates' ? getDisplayCode(account) : account.number;
+              const endsWithNine = codeToCheck.endsWith('9');
+              const base = Math.floor(parseInt(codeToCheck) / 10) * 10;
+              const rangeStart = base;
+              const rangeEnd = base + 9;
+              
+              if (endsWithNine) {
+                return (
+                  <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title="Aucune suggestion disponible (code finit par 9)">
+                    ⚠️ Code finit par 9
+                  </span>
+                );
+              } else {
+                return (
+                  <span 
+                    className="px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded whitespace-nowrap" 
+                    title={`Tous les codes de ${rangeStart} à ${rangeEnd} sont déjà utilisés. Saisissez manuellement un code hors de cette plage.`}
+                  >
+                    ⚠️ Plage {rangeStart}-{rangeEnd} saturée
+                  </span>
+                );
+              }
+            })()}
           </div>
         )}
       </div>
       
-      {/* Afficher une erreur pour les conflits CNCJ */}
-      {conflictType === 'cncj-conflicts' && corrections[account.id] && (
+      {/* Afficher le statut pour les conflits CNCJ */}
+      {conflictType === 'cncj-conflicts' && (
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-xs text-gray-600">Statut:</span>
-            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
-              ⚠️ Erreur de correspondance CNCJ
-            </span>
+            {(() => {
+              const hasValidCode = replacementCode?.trim() && !isDuplicateCode && !isCncjCode;
+              const isForced = cncjForcedValidations.has(account.id);
+              
+              if (hasValidCode) {
+                return (
+                  <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                    ✅ Code de remplacement valide
+                  </span>
+                );
+              } else if (isForced) {
+                return (
+                  <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">
+                    🔒 Validation forcée
+                  </span>
+                );
+              } else if (isCncjCode) {
+                return (
+                  <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+                    ⚠️ Code saisi existe dans CNCJ
+                  </span>
+                );
+              } else if (isDuplicateCode) {
+                return (
+                  <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+                    ⚠️ Code saisi en doublon
+                  </span>
+                );
+              } else {
+                return (
+                  <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium">
+                    ⏳ En attente de correction
+                  </span>
+                );
+              }
+            })()}
           </div>
-          <div className="flex items-center space-x-2">
-            <label className="text-xs text-gray-600 whitespace-nowrap">
-              Forcer la validation:
-            </label>
-            <input
-              type="checkbox"
-              checked={cncjForcedValidations.has(account.id)}
-              onChange={(e) => onCncjForcedValidationChange?.(account.id, e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              title="Cocher pour valider cette ligne sans changer le code de compte"
-            />
-          </div>
+          {/* Afficher la case à cocher seulement si pas de code valide */}
+          {!replacementCode?.trim() && (
+            <div className="flex items-center space-x-2">
+              <label className="text-xs text-gray-600 whitespace-nowrap">
+                Forcer la validation:
+              </label>
+              <input
+                type="checkbox"
+                checked={cncjForcedValidations.has(account.id)}
+                onChange={(e) => onCncjForcedValidationChange?.(account.id, e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                title="Cocher pour valider cette ligne sans changer le code de compte"
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

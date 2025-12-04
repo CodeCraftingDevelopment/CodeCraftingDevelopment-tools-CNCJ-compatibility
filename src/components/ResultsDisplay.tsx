@@ -5,7 +5,7 @@ import { useCorrectionsImport } from '../hooks/useCorrectionsImport';
 import { DropZone } from './DropZone';
 import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
-import { calculateSuggestions } from '../utils/codeSuggestions';
+import { calculateSuggestions, suggestNextCode } from '../utils/codeSuggestions';
 import { getDisplayCode, normalizeAccountCode } from '../utils/accountUtils';
 import { sanitizeCsvValue } from '../utils/fileUtils';
 
@@ -73,6 +73,43 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     return calculateSuggestions(duplicates, existingCodes, replacementCodes);
   }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType]);
+
+  // Calculer les suggestions pour les conflits CNCJ (étape 6)
+  const cncjSuggestions = useMemo(() => {
+    if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
+      return new Map<string, string | null>();
+    }
+    
+    const suggestionsMap = new Map<string, string | null>();
+    const usedCodes = new Set([...cncjCodes]);
+    
+    // Ajouter les codes de remplacement déjà saisis
+    Object.values(replacementCodes).forEach(code => {
+      if (code?.trim()) {
+        usedCodes.add(code.trim());
+      }
+    });
+    
+    duplicates.forEach(duplicate => {
+      // Si un code de remplacement est déjà saisi, ne pas suggérer
+      const currentReplacement = replacementCodes[duplicate.id]?.trim();
+      if (currentReplacement) {
+        suggestionsMap.set(duplicate.id, null);
+        return;
+      }
+      
+      // Utiliser la même logique +1 en vérifiant les codes PCG/CNCJ
+      const suggestion = suggestNextCode(duplicate.number, usedCodes);
+      suggestionsMap.set(duplicate.id, suggestion);
+      
+      // Si une suggestion est trouvée, l'ajouter aux codes utilisés
+      if (suggestion) {
+        usedCodes.add(suggestion);
+      }
+    });
+    
+    return suggestionsMap;
+  }, [duplicates, cncjCodes, replacementCodes, conflictType]);
   
   // Utiliser le hook personnalisé pour les corrections
   const { correctionsFileInfo, processCorrectionsFile, handleClearCorrectionsFile } = useCorrectionsImport({
@@ -200,42 +237,47 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             📥 {conflictType === 'cncj-conflicts' ? 'Exporter les conflits' : 'Exporter les doublons'}
           </button>
           
-          {/* Bouton pour valider toutes les suggestions - uniquement pour l'étape 4 */}
-          {conflictType === 'duplicates' && (
-            <button
-              onClick={() => {
-                if (!onReplacementCodeChange) return;
-                
-                // Appliquer toutes les suggestions disponibles
-                suggestions.forEach((suggestedCode, accountId) => {
-                  // Appliquer uniquement si :
-                  // 1. Il y a une suggestion (pas null)
-                  // 2. Le champ est vide (pas déjà rempli)
-                  if (suggestedCode && !replacementCodes[accountId]?.trim()) {
-                    onReplacementCodeChange(accountId, suggestedCode);
-                  }
-                });
-              }}
-              disabled={(() => {
-                // Désactiver si aucune suggestion disponible
-                const availableSuggestions = Array.from(suggestions.entries()).filter(
-                  ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
-                );
-                return availableSuggestions.length === 0;
-              })()}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              title={(() => {
-                const availableSuggestions = Array.from(suggestions.entries()).filter(
-                  ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
-                );
-                return availableSuggestions.length > 0 
-                  ? `Appliquer ${availableSuggestions.length} suggestion(s) automatique(s)`
-                  : 'Aucune suggestion disponible';
-              })()}
-            >
-              ✨ Valider les suggestions
-            </button>
-          )}
+          {/* Bouton pour valider toutes les suggestions - étape 4 et étape 6 */}
+          <button
+            onClick={() => {
+              if (!onReplacementCodeChange) return;
+              
+              // Utiliser les bonnes suggestions selon le type de conflit
+              const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
+              
+              // Appliquer toutes les suggestions disponibles
+              currentSuggestions.forEach((suggestedCode, accountId) => {
+                // Appliquer uniquement si :
+                // 1. Il y a une suggestion (pas null)
+                // 2. Le champ est vide (pas déjà rempli)
+                if (suggestedCode && !replacementCodes[accountId]?.trim()) {
+                  onReplacementCodeChange(accountId, suggestedCode);
+                }
+              });
+            }}
+            disabled={(() => {
+              // Utiliser les bonnes suggestions selon le type de conflit
+              const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
+              // Désactiver si aucune suggestion disponible
+              const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
+                ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+              );
+              return availableSuggestions.length === 0;
+            })()}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            title={(() => {
+              // Utiliser les bonnes suggestions selon le type de conflit
+              const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
+              const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
+                ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+              );
+              return availableSuggestions.length > 0 
+                ? `Appliquer ${availableSuggestions.length} suggestion(s) automatique(s)`
+                : 'Aucune suggestion disponible';
+            })()}
+          >
+            ✨ Valider les suggestions
+          </button>
         </div>
       )}
 
@@ -298,7 +340,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isCncjCode={isCncjCode}
                       conflictType={conflictType}
                       corrections={corrections}
-                      suggestedCode={suggestions.get(account.id)}
+                      suggestedCode={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
                       cncjForcedValidations={cncjForcedValidations}
                       onCncjForcedValidationChange={onCncjForcedValidationChange}
                     />

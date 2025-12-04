@@ -1,22 +1,32 @@
-# 💡 Documentation Technique - Suggestions Automatiques de Codes (Étape 4)
+# 💡 Documentation Technique - Suggestions Automatiques de Codes (Étapes 4 & 6)
 
-> **Nouvelle fonctionnalité ajoutée le 20/11/2025**  
-> Système intelligent de suggestion pour résoudre automatiquement les doublons de comptes clients
+> **Fonctionnalité initiale ajoutée le 20/11/2025**  
+> **Extension à l'étape 6 ajoutée le 04/12/2025**  
+> Système intelligent de suggestion pour résoudre automatiquement les doublons et conflits CNCJ
 
 ---
 
 ## 📋 Vue d'ensemble
 
 ### Objectif
-Faciliter la résolution des doublons à l'étape 4 en proposant automatiquement des codes de remplacement valides, sans intervention manuelle fastidieuse.
+Faciliter la résolution des doublons (étape 4) et des conflits CNCJ (étape 6) en proposant automatiquement des codes de remplacement valides, sans intervention manuelle fastidieuse.
 
 ### Fonctionnement
+
+#### Étape 4 - Doublons
 1. L'utilisateur charge un fichier avec des doublons
 2. À l'étape 4, chaque doublon affiche une suggestion automatique
 3. L'utilisateur peut :
    - Cliquer sur un bouton "💡 [code]" pour appliquer une suggestion individuelle
    - Cliquer sur "✨ Valider les suggestions" pour tout appliquer d'un coup
    - Saisir manuellement un code personnalisé
+
+#### Étape 6 - Conflits CNCJ
+1. Les comptes clients normalisés sont comparés aux codes CNCJ/PCG
+2. Pour chaque conflit, une suggestion de code +1 est proposée
+3. Le système vérifie que le code suggéré n'existe pas dans les codes PCG/CNCJ
+4. Si le code existe, il essaie +1 jusqu'à trouver un code libre
+5. Si tous les codes de la dizaine sont utilisés → avertissement "Plage saturée"
 
 ---
 
@@ -50,33 +60,42 @@ export function calculateSuggestions(
 
 #### `src/components/DuplicateRow.tsx`
 - **Ajout du prop** : `suggestedCode?: string | null`
-- **Bouton de suggestion** : "💡 [code]" pour appliquer la suggestion
-- **Badge d'erreur** : "⚠️ Erreur" pour codes finissant par 9
-- **Affichage conditionnel** : visible uniquement si `conflictType === 'duplicates'` et champ vide
+- **Bouton de suggestion** : "💡 [code]" pour appliquer la suggestion (étapes 4 ET 6)
+- **Badge d'erreur** : "⚠️ Code finit par 9" pour codes impossibles
+- **Badge d'avertissement** : "⚠️ Plage saturée" pour dizaines pleines
+- **Statuts dynamiques** : affichage contextuel selon l'état de la correction (étape 6)
 
 ```tsx
-{conflictType === 'duplicates' && !replacementCode?.trim() && (
+{/* Bouton de suggestion - étapes 4 ET 6 */}
+{!replacementCode?.trim() && (
   <div className="ml-2">
     {suggestedCode ? (
       <button onClick={() => onReplacementCodeChange(account.id, suggestedCode)}>
         💡 {suggestedCode}
       </button>
-    ) : account.number.endsWith('9') ? (
-      <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded">
-        ⚠️ Erreur
-      </span>
-    ) : null}
+    ) : (() => {
+      const codeToCheck = conflictType === 'duplicates' ? getDisplayCode(account) : account.number;
+      const endsWithNine = codeToCheck.endsWith('9');
+      const base = Math.floor(parseInt(codeToCheck) / 10) * 10;
+      
+      if (endsWithNine) {
+        return <span className="bg-red-100 text-red-700">⚠️ Code finit par 9</span>;
+      } else {
+        return <span className="bg-orange-100 text-orange-700">⚠️ Plage {base}-{base+9} saturée</span>;
+      }
+    })()}
   </div>
 )}
 ```
 
 #### `src/components/ResultsDisplay.tsx`
-- **Import** : `calculateSuggestions` et `useMemo`
-- **Calcul des suggestions** : via `useMemo` pour optimisation
-- **Bouton global** : "✨ Valider les suggestions"
+- **Import** : `calculateSuggestions`, `suggestNextCode` et `useMemo`
+- **Calcul des suggestions étape 4** : via `useMemo` pour optimisation
+- **Calcul des suggestions étape 6** : `cncjSuggestions` vérifiant les codes PCG/CNCJ
+- **Bouton global** : "✨ Valider les suggestions" (étapes 4 ET 6)
 
 ```tsx
-// Calcul des suggestions (memoized)
+// Calcul des suggestions pour l'étape 4 (memoized)
 const suggestions = useMemo(() => {
   if (conflictType !== 'duplicates' || duplicates.length === 0) {
     return new Map<string, string | null>();
@@ -91,12 +110,42 @@ const suggestions = useMemo(() => {
   return calculateSuggestions(duplicates, existingCodes, replacementCodes);
 }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType]);
 
-// Bouton "Valider les suggestions"
+// Calcul des suggestions pour l'étape 6 - Conflits CNCJ
+const cncjSuggestions = useMemo(() => {
+  if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
+    return new Map<string, string | null>();
+  }
+  
+  const suggestionsMap = new Map<string, string | null>();
+  const usedCodes = new Set([...cncjCodes]);
+  
+  // Ajouter les codes de remplacement déjà saisis
+  Object.values(replacementCodes).forEach(code => {
+    if (code?.trim()) usedCodes.add(code.trim());
+  });
+  
+  duplicates.forEach(duplicate => {
+    if (replacementCodes[duplicate.id]?.trim()) {
+      suggestionsMap.set(duplicate.id, null);
+      return;
+    }
+    
+    // Logique +1 en vérifiant les codes PCG/CNCJ
+    const suggestion = suggestNextCode(duplicate.number, usedCodes);
+    suggestionsMap.set(duplicate.id, suggestion);
+    
+    if (suggestion) usedCodes.add(suggestion);
+  });
+  
+  return suggestionsMap;
+}, [duplicates, cncjCodes, replacementCodes, conflictType]);
+
+// Bouton "Valider les suggestions" - fonctionne pour les deux étapes
 <button
   onClick={() => {
-    if (!onReplacementCodeChange) return;
+    const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
     
-    suggestions.forEach((suggestedCode, accountId) => {
+    currentSuggestions.forEach((suggestedCode, accountId) => {
       if (suggestedCode && !replacementCodes[accountId]?.trim()) {
         onReplacementCodeChange(accountId, suggestedCode);
       }
@@ -289,14 +338,74 @@ className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700
            transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
 ```
 
-### Badge d'erreur
-Pour les codes se terminant par 9.
+### Badges d'erreur et d'avertissement
 
-**Affichage** : "⚠️ Erreur" (rouge, non cliquable)
+#### Badge "Code finit par 9" (rouge)
+Pour les codes se terminant par 9, aucune suggestion possible.
 
-**Styles** :
 ```tsx
 className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded"
+```
+
+#### Badge "Plage saturée" (orange)
+Quand tous les codes de la dizaine sont déjà utilisés (par CNCJ ou autres suggestions).
+
+```tsx
+className="px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded"
+// Exemple : "⚠️ Plage 4457110-4457119 saturée"
+```
+
+**Tooltip** : "Tous les codes de X à Y sont déjà utilisés. Saisissez manuellement un code hors de cette plage."
+
+---
+
+## 🏷️ Statuts Dynamiques (Étape 6)
+
+À l'étape 6 (conflits CNCJ), chaque ligne affiche un statut contextuel qui change selon l'état de la correction.
+
+### États possibles
+
+| État | Badge | Couleur | Condition |
+|------|-------|---------|-----------|
+| Code valide | ✅ Code de remplacement valide | Vert | Code saisi, pas dans CNCJ, pas de doublon |
+| Validation forcée | 🔒 Validation forcée | Bleu | Case "Forcer" cochée |
+| Erreur CNCJ | ⚠️ Code saisi existe dans CNCJ | Rouge | Code saisi existe dans les codes CNCJ |
+| Doublon | ⚠️ Code saisi en doublon | Rouge | Code saisi déjà utilisé ailleurs |
+| En attente | ⏳ En attente de correction | Orange | Aucun code saisi |
+
+### Code d'implémentation
+
+```tsx
+{conflictType === 'cncj-conflicts' && (
+  <div className="mt-2 flex items-center justify-between">
+    <div className="flex items-center space-x-2">
+      <span className="text-xs text-gray-600">Statut:</span>
+      {(() => {
+        const hasValidCode = replacementCode?.trim() && !isDuplicateCode && !isCncjCode;
+        const isForced = cncjForcedValidations.has(account.id);
+        
+        if (hasValidCode) {
+          return <span className="bg-green-100 text-green-700">✅ Code de remplacement valide</span>;
+        } else if (isForced) {
+          return <span className="bg-blue-100 text-blue-700">🔒 Validation forcée</span>;
+        } else if (isCncjCode) {
+          return <span className="bg-red-100 text-red-700">⚠️ Code saisi existe dans CNCJ</span>;
+        } else if (isDuplicateCode) {
+          return <span className="bg-red-100 text-red-700">⚠️ Code saisi en doublon</span>;
+        } else {
+          return <span className="bg-orange-100 text-orange-700">⏳ En attente de correction</span>;
+        }
+      })()}
+    </div>
+    {/* Case "Forcer" visible uniquement si pas de code valide */}
+    {!replacementCode?.trim() && (
+      <div className="flex items-center space-x-2">
+        <label>Forcer la validation:</label>
+        <input type="checkbox" checked={cncjForcedValidations.has(account.id)} ... />
+      </div>
+    )}
+  </div>
+)}
 ```
 
 ---
@@ -351,4 +460,5 @@ Cette logique peut être étendue pour :
 
 ---
 
-*Document créé le 20/11/2025*
+*Document créé le 20/11/2025*  
+*Dernière mise à jour : 04/12/2025 (extension étape 6)*

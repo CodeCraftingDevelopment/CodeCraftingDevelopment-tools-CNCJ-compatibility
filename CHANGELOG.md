@@ -1,5 +1,41 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## 2025-12-04
+
+### Ajouts du 2025-12-04 (Suggestions automatiques - Étape 6)
+
+#### Fonctionnalité : Suggestions automatiques pour les conflits CNCJ (Étape 6)
+- **Extension des suggestions à l'étape 6** : même logique que l'étape 4
+  - Propose un code +1 en vérifiant qu'il n'existe pas dans les codes PCG/CNCJ
+  - Si le code existe, essaie +1 jusqu'à trouver un code libre
+  - Ne dépasse jamais la dizaine (ex: 4457115 → 4457116, 4457117... max 4457119)
+- **Bouton "💡 [code]"** : suggestion individuelle pour chaque conflit CNCJ
+- **Bouton "✨ Valider les suggestions"** : applique toutes les suggestions en un clic (à droite de "Exporter les conflits")
+
+#### Avertissements précis pour les erreurs
+- **"⚠️ Code finit par 9"** (rouge) : quand le code original se termine par 9, aucune suggestion possible
+- **"⚠️ Plage XXXXXXX-XXXXXXX saturée"** (orange) : quand tous les codes de la dizaine sont déjà utilisés
+  - Tooltip explicatif : "Tous les codes de X à Y sont déjà utilisés. Saisissez manuellement un code hors de cette plage."
+
+#### Statuts dynamiques pour les conflits CNCJ
+Remplacement du statut fixe "Erreur de correspondance CNCJ" par des statuts contextuels :
+| État | Badge | Couleur |
+|------|-------|---------|
+| Code valide saisi | ✅ Code de remplacement valide | Vert |
+| Validation forcée | 🔒 Validation forcée | Bleu |
+| Code saisi existe dans CNCJ | ⚠️ Code saisi existe dans CNCJ | Rouge |
+| Code saisi en doublon | ⚠️ Code saisi en doublon | Rouge |
+| Aucun code saisi | ⏳ En attente de correction | Orange |
+
+#### Amélioration UX
+- La case "Forcer la validation" n'apparaît plus si un code valide est saisi
+
+#### Fichiers modifiés
+- `src/components/DuplicateRow.tsx` - Ajout des suggestions, avertissements et statuts dynamiques
+- `src/components/ResultsDisplay.tsx` - Calcul des suggestions CNCJ et bouton global
+
+---
+
 ## 2025-11-20
 
 ### Ajouts du 2025-11-20 (Suggestions automatiques - Étape 4)
