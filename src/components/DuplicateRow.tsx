@@ -1,6 +1,7 @@
 import React from 'react';
 import { Account } from '../types/accounts';
 import { getDisplayCode } from '../utils/accountUtils';
+import { SuggestionResult } from '../utils/codeSuggestions';
 
 interface DuplicateRowProps {
   account: Account;
@@ -10,7 +11,7 @@ interface DuplicateRowProps {
   isCncjCode?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
   corrections?: { [key: string]: string | 'error' };
-  suggestedCode?: string | null;
+  suggestion?: SuggestionResult;
   cncjForcedValidations?: Set<string>;
   onCncjForcedValidationChange?: (accountId: string, forced: boolean) => void;
 }
@@ -23,10 +24,11 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isCncjCode = false,
   conflictType = 'duplicates',
   corrections = {},
-  suggestedCode,
+  suggestion,
   cncjForcedValidations = new Set(),
   onCncjForcedValidationChange
 }) => {
+  const suggestedCode = suggestion?.code;
   const isEmpty = !replacementCode?.trim();
   
   const getRowStyles = () => {
@@ -144,7 +146,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               <button
                 onClick={() => onReplacementCodeChange(account.id, suggestedCode)}
                 className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors whitespace-nowrap"
-                title={`Utiliser le code suggéré: ${suggestedCode}`}
+                title={`Suggestion: ${suggestedCode}\n\nDétail: ${suggestion?.reason || 'N/A'}`}
               >
                 💡 {suggestedCode}
               </button>
@@ -155,9 +157,15 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               const rangeStart = base;
               const rangeEnd = base + 9;
               
+              // Utiliser la raison du calcul si disponible
+              const reason = suggestion?.reason || `Plage ${rangeStart}-${rangeEnd} saturée`;
+              const blockedInfo = suggestion?.blockedBy === 'cncj' ? ' (codes CNCJ)' : 
+                                  suggestion?.blockedBy === 'client' ? ' (codes client)' : 
+                                  suggestion?.blockedBy === 'both' ? ' (CNCJ + client)' : '';
+              
               if (endsWithNine) {
                 return (
-                  <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title="Aucune suggestion disponible (code finit par 9)">
+                  <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded whitespace-nowrap" title={reason}>
                     ⚠️ Code finit par 9
                   </span>
                 );
@@ -165,9 +173,9 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
                 return (
                   <span 
                     className="px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded whitespace-nowrap" 
-                    title={`Tous les codes de ${rangeStart} à ${rangeEnd} sont déjà utilisés. Saisissez manuellement un code hors de cette plage.`}
+                    title={reason}
                   >
-                    ⚠️ Plage {rangeStart}-{rangeEnd} saturée
+                    ⚠️ Plage {rangeStart}-{rangeEnd} saturée{blockedInfo}
                   </span>
                 );
               }

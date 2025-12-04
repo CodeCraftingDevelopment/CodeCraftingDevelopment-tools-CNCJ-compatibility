@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ProcessingResult, Account } from '../types/accounts';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useCorrectionsImport } from '../hooks/useCorrectionsImport';
 import { DropZone } from './DropZone';
 import { DuplicateRow } from './DuplicateRow';
 import { ReviewView } from './ReviewView';
-import { calculateSuggestions, suggestNextCode } from '../utils/codeSuggestions';
+import { calculateSuggestionsWithDetails, suggestNextCodeWithDetails, SuggestionResult } from '../utils/codeSuggestions';
 import { getDisplayCode, normalizeAccountCode } from '../utils/accountUtils';
 import { sanitizeCsvValue } from '../utils/fileUtils';
 
@@ -43,10 +43,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
   
-  // Calculer les suggestions pour les doublons (seulement pour l'étape 4)
+  // Calculer les suggestions avec détails pour les doublons (étape 4)
   const suggestions = useMemo(() => {
     if (conflictType !== 'duplicates' || duplicates.length === 0) {
-      return new Map<string, string | null>();
+      return new Map<string, SuggestionResult>();
     }
     
     // Obtenir tous les codes originaux (sauf les doublons)
@@ -56,31 +56,16 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       ...unmatchedClients.map(acc => acc.number)
     ]);
     
-    // DEBUG: Logger la source des codes 467001*
-    const filter467001 = (accounts: Account[]) => 
-      accounts.filter(a => a.number.startsWith('467001')).map(a => a.number);
-    
-    const unique467001 = filter467001(uniqueClients);
-    const matches467001 = filter467001(matches);
-    const unmatched467001 = filter467001(unmatchedClients);
-    
-    if (unique467001.length > 0 || matches467001.length > 0 || unmatched467001.length > 0) {
-      // Source des codes 467001*:
-      // uniqueClients:
-      // matches:
-      // unmatchedClients:
-    }
-    
-    return calculateSuggestions(duplicates, existingCodes, replacementCodes, cncjCodes);
+    return calculateSuggestionsWithDetails(duplicates, existingCodes, replacementCodes, cncjCodes);
   }, [duplicates, uniqueClients, matches, unmatchedClients, replacementCodes, conflictType, cncjCodes]);
 
-  // Calculer les suggestions pour les conflits CNCJ (étape 6)
+  // Calculer les suggestions avec détails pour les conflits CNCJ (étape 6)
   const cncjSuggestions = useMemo(() => {
     if (conflictType !== 'cncj-conflicts' || duplicates.length === 0 || !cncjCodes) {
-      return new Map<string, string | null>();
+      return new Map<string, SuggestionResult>();
     }
     
-    const suggestionsMap = new Map<string, string | null>();
+    const suggestionsMap = new Map<string, SuggestionResult>();
     const usedCodes = new Set([...cncjCodes]);
     
     // Ajouter les codes des comptes clients fusionnés (incluant les corrections de l'étape 4)
@@ -99,17 +84,17 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       // Si un code de remplacement est déjà saisi, ne pas suggérer
       const currentReplacement = replacementCodes[duplicate.id]?.trim();
       if (currentReplacement) {
-        suggestionsMap.set(duplicate.id, null);
+        suggestionsMap.set(duplicate.id, { code: null, reason: 'Code de remplacement déjà saisi' });
         return;
       }
       
-      // Utiliser la même logique +1 en vérifiant les codes PCG/CNCJ
-      const suggestion = suggestNextCode(duplicate.number, usedCodes);
-      suggestionsMap.set(duplicate.id, suggestion);
+      // Utiliser la logique +1 avec détails en vérifiant les codes CNCJ
+      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes);
+      suggestionsMap.set(duplicate.id, result);
       
       // Si une suggestion est trouvée, l'ajouter aux codes utilisés
-      if (suggestion) {
-        usedCodes.add(suggestion);
+      if (result.code) {
+        usedCodes.add(result.code);
       }
     });
     
@@ -138,8 +123,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     acceptedTypes: ['.csv']
   });
 
-
-  
+  // State pour afficher le modal de détails des suggestions
+  const [showSuggestionDetails, setShowSuggestionDetails] = useState(false);
 
   if (loading) {
     return (
@@ -202,23 +187,36 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Export des doublons - entre résumé et détails */}
       {showOnly === 'duplicates' && duplicates.length > 0 && (
-        <div className="flex justify-center mb-6 gap-4">
+        <div className="flex justify-center mb-6 gap-4 flex-wrap">
+          {/* Bouton pour voir les détails des suggestions */}
+          <button
+            onClick={() => setShowSuggestionDetails(true)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            title="Afficher le détail du calcul des suggestions"
+          >
+            🔍 Détails des suggestions
+          </button>
+          
           <button
             onClick={() => {
               // Export CSV pour les doublons (step 4) ou conflits CNCJ (step 6)
               const csvHeaders = conflictType === 'cncj-conflicts' 
                 ? ['code client', 'code 7 chiffres', 'titre', 'code remplacement']
-                : ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion'];
+                : ['code client', 'code 7 chiffres', 'titre', 'code remplacement', 'suggestion', 'détail calcul'];
               const csvRows = duplicates.map(d => {
                 const codeClient = getDisplayCode(d); // Code 8 chiffres original ou fallback
                 const code7Chiffres = d.number.padStart(7, '0');
                 const titre = d.title || '';
                 const codeRemplacement = replacementCodes[d.id] || '';
-                const suggestion = suggestions.get(d.id) || '';
+                const suggestionResult = conflictType === 'cncj-conflicts' 
+                  ? cncjSuggestions.get(d.id) 
+                  : suggestions.get(d.id);
+                const suggestionCode = suggestionResult?.code || '';
+                const suggestionDetail = suggestionResult?.reason || '';
                 
                 const rowData = [codeClient, code7Chiffres, titre, codeRemplacement];
                 if (conflictType !== 'cncj-conflicts') {
-                  rowData.push(suggestion);
+                  rowData.push(suggestionCode, suggestionDetail);
                 }
                 
                 return rowData;
@@ -251,12 +249,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
               
               // Appliquer toutes les suggestions disponibles
-              currentSuggestions.forEach((suggestedCode, accountId) => {
+              currentSuggestions.forEach((suggestionResult, accountId) => {
                 // Appliquer uniquement si :
-                // 1. Il y a une suggestion (pas null)
+                // 1. Il y a une suggestion (code pas null)
                 // 2. Le champ est vide (pas déjà rempli)
-                if (suggestedCode && !replacementCodes[accountId]?.trim()) {
-                  onReplacementCodeChange(accountId, suggestedCode);
+                if (suggestionResult?.code && !replacementCodes[accountId]?.trim()) {
+                  onReplacementCodeChange(accountId, suggestionResult.code);
                 }
               });
             }}
@@ -265,7 +263,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
               // Désactiver si aucune suggestion disponible
               const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
-                ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim()
               );
               return availableSuggestions.length === 0;
             })()}
@@ -274,7 +272,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               // Utiliser les bonnes suggestions selon le type de conflit
               const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
               const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
-                ([accountId, suggestedCode]) => suggestedCode && !replacementCodes[accountId]?.trim()
+                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim()
               );
               return availableSuggestions.length > 0 
                 ? `Appliquer ${availableSuggestions.length} suggestion(s) automatique(s)`
@@ -356,7 +354,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isCncjCode={isCncjCode}
                       conflictType={conflictType}
                       corrections={corrections}
-                      suggestedCode={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
+                      suggestion={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
                       cncjForcedValidations={cncjForcedValidations}
                       onCncjForcedValidationChange={onCncjForcedValidationChange}
                     />
@@ -581,6 +579,88 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             )}
             
                     </div>
+      )}
+
+      {/* Modal de détails des suggestions */}
+      {showSuggestionDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center bg-purple-50">
+              <h3 className="text-lg font-semibold text-purple-900">
+                🔍 Détails des suggestions ({duplicates.length} {conflictType === 'cncj-conflicts' ? 'conflits' : 'doublons'})
+              </h3>
+              <button
+                onClick={() => setShowSuggestionDetails(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Code original</th>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Code 7 chiffres</th>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Titre</th>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Suggestion</th>
+                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Détail du calcul</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {duplicates.map((d, index) => {
+                    const suggestionResult = conflictType === 'cncj-conflicts' 
+                      ? cncjSuggestions.get(d.id) 
+                      : suggestions.get(d.id);
+                    const hasSuggestion = !!suggestionResult?.code;
+                    
+                    return (
+                      <tr key={d.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-3 py-2 font-mono text-xs">{getDisplayCode(d)}</td>
+                        <td className="px-3 py-2 font-mono text-xs">{d.number}</td>
+                        <td className="px-3 py-2 text-xs truncate max-w-[200px]" title={d.title}>{d.title || '-'}</td>
+                        <td className="px-3 py-2">
+                          {hasSuggestion ? (
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono">
+                              {suggestionResult?.code}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs">
+                              Aucune
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-600">
+                          {suggestionResult?.reason || '-'}
+                          {suggestionResult?.blockedBy && (
+                            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
+                              suggestionResult.blockedBy === 'cncj' ? 'bg-red-100 text-red-700' :
+                              suggestionResult.blockedBy === 'client' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-purple-100 text-purple-700'
+                            }`}>
+                              {suggestionResult.blockedBy === 'cncj' ? 'CNCJ' :
+                               suggestionResult.blockedBy === 'client' ? 'Client' : 'CNCJ+Client'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setShowSuggestionDetails(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
