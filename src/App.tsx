@@ -164,6 +164,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
+  const [showImportFlow, setShowImportFlow] = useState(false);
 
   const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[], generalAccounts: Account[] = []) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -408,272 +409,383 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              🏦 Compte Processor
-            </h1>
-            <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-              {formatVersion(APP_VERSION)}
-            </span>
-          </div>
-          <p className="text-gray-600">
-            Import des comptes comptables client vers le plan comptable général et CNCJ
-          </p>
-          
-          {/* Project Persistence Controls */}
-          <div className="flex justify-center mt-4">
-            <ProjectPersistence
-              state={state}
-              dispatch={dispatch}
-              onProjectLoaded={(newState) => {
-                // Recalculate processing results synchronously if we have all the data
-                if (newState.clientAccounts.length > 0 && 
-                    newState.cncjAccounts.length > 0 && 
-                    newState.generalAccounts.length > 0) {
-                  
-                  // Calculate result synchronously
-                  const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
-                  dispatch({ type: 'SET_RESULT', payload: result });
-                  
-                  // If user was at step 6 or beyond, recalculate CNCJ conflicts
-                  if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
-                    // Calculate merged accounts with step 4 replacement codes
-                    const mergedAccounts = newState.clientAccounts.map(account => {
-                      const replacementCode = newState.replacementCodes[account.id];
-                      if (replacementCode?.trim()) {
-                        return { ...account, number: replacementCode.trim() };
+        
+        {/* Header - Only show when not in import flow */}
+        {!showImportFlow && (
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900">
+                🏦 Compte Processor
+              </h1>
+              <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                {formatVersion(APP_VERSION)}
+              </span>
+            </div>
+            <p className="text-gray-600">
+              Import des comptes comptables client vers le plan comptable général et CNCJ
+            </p>
+            
+            {/* Project Persistence Controls */}
+            <div className="flex justify-center mt-4">
+              <ProjectPersistence
+                state={state}
+                dispatch={dispatch}
+                onProjectLoaded={(newState) => {
+                  // Recalculate processing results synchronously if we have all the data
+                  if (newState.clientAccounts.length > 0 && 
+                      newState.cncjAccounts.length > 0 && 
+                      newState.generalAccounts.length > 0) {
+                    
+                    // Calculate result synchronously
+                    const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
+                    dispatch({ type: 'SET_RESULT', payload: result });
+                    
+                    // If user was at step 6 or beyond, recalculate CNCJ conflicts
+                    if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
+                      // Calculate merged accounts with step 4 replacement codes
+                      const mergedAccounts = newState.clientAccounts.map(account => {
+                        const replacementCode = newState.replacementCodes[account.id];
+                        if (replacementCode?.trim()) {
+                          return { ...account, number: replacementCode.trim() };
+                        }
+                        return account;
+                      });
+                      
+                      // Calculate CNCJ conflicts
+                      const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
+                      dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+                      
+                      // Only recalculate corrections if user hasn't made manual changes
+                      const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
+                      if (!hasManualCorrections) {
+                        const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
+                        dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
                       }
-                      return account;
-                    });
-                    
-                    // Calculate CNCJ conflicts
-                    const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
-                    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
-                    
-                    // Only recalculate corrections if user hasn't made manual changes
-                    const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
-                    if (!hasManualCorrections) {
-                      const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
-                      dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
                     }
                   }
-                }
-              }}
-            />
+                }}
+              />
+            </div>
+            
+            {/* New Choice Buttons */}
+            <div className="flex flex-col items-center gap-4 mt-8">
+              <button
+                onClick={() => {
+                  // Show the import flow and navigate to step1
+                  setShowImportFlow(true);
+                  dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
+                }}
+                className="group relative px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-80 flex items-center justify-between"
+              >
+                <span>Pour import FEC</span>
+                <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+              <button
+                onClick={() => {
+                  // Placeholder for new functionality (to be specified later)
+                  // TODO: Implement new production functionality
+                  console.log('Nouvelle fonctionnalité de production à implémenter');
+                }}
+                className="group relative px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-80 flex items-center justify-between"
+              >
+                <span>Pour mise en production</span>
+                <svg className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Upload Errors */}
-        {state.errors.length > 0 && (
-          <div className="mb-6 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg p-4" role="alert">
-            <h3 className="text-sm font-semibold mb-2">Lignes ignorées lors de l'import</h3>
-            <ul className="space-y-1 text-sm">
-              {state.errors.map((error, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-orange-500">•</span>
-                  <span>{error}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
-        {/* Progress Bar */}
-        <ProgressBar
-          currentStepId={state.currentStep}
-          onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
-          allowNavigation={true}
-          onShowInfo={() => setIsStepsInfoOpen(true)}
-        />
+        {/* Import Flow Content - Only show when "Pour import FEC" is clicked */}
+        {showImportFlow && (
+          <>
+            {/* Header in Import Flow */}
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  🏦 Compte Processor
+                </h1>
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                  {formatVersion(APP_VERSION)}
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Import des comptes comptables client vers le plan comptable général et CNCJ
+              </p>
+              
+              {/* Project Persistence Controls */}
+              <div className="flex justify-center mt-4">
+                <ProjectPersistence
+                  state={state}
+                  dispatch={dispatch}
+                  onProjectLoaded={(newState) => {
+                    // Recalculate processing results synchronously if we have all the data
+                    if (newState.clientAccounts.length > 0 && 
+                        newState.cncjAccounts.length > 0 && 
+                        newState.generalAccounts.length > 0) {
+                      
+                      // Calculate result synchronously
+                      const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
+                      dispatch({ type: 'SET_RESULT', payload: result });
+                      
+                      // If user was at step 6 or beyond, recalculate CNCJ conflicts
+                      if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
+                        // Calculate merged accounts with step 4 replacement codes
+                        const mergedAccounts = newState.clientAccounts.map(account => {
+                          const replacementCode = newState.replacementCodes[account.id];
+                          if (replacementCode?.trim()) {
+                            return { ...account, number: replacementCode.trim() };
+                          }
+                          return account;
+                        });
+                        
+                        // Calculate CNCJ conflicts
+                        const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
+                        dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+                        
+                        // Only recalculate corrections if user hasn't made manual changes
+                        const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
+                        if (!hasManualCorrections) {
+                          const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
+                          dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* Import Title */}
+              <div className="mt-6 flex items-center justify-center">
+                <div className="px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium text-lg border-2 border-gray-300">
+                  📁 Pour import FEC
+                </div>
+              </div>
+            </div>
+            
+            {/* Back Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowImportFlow(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              >
+                ← Retour au choix
+              </button>
+            </div>
+            {/* Upload Errors */}
+            {state.errors.length > 0 && (
+              <div className="mb-6 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg p-4" role="alert">
+                <h3 className="text-sm font-semibold mb-2">Lignes ignorées lors de l'import</h3>
+                <ul className="space-y-1 text-sm">
+                  {state.errors.map((error, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="mt-0.5 text-orange-500">•</span>
+                      <span>{error}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-        {isStepsInfoOpen && (
-          <StepsInfoModal onClose={() => setIsStepsInfoOpen(false)} />
-        )}
+            {/* Progress Bar */}
+            <ProgressBar
+              currentStepId={state.currentStep}
+              onStepClick={(stepId) => dispatch({ type: 'SET_CURRENT_STEP', payload: stepId })}
+              allowNavigation={true}
+              onShowInfo={() => setIsStepsInfoOpen(true)}
+            />
 
-        {/* Step 1: File Upload */}
-        {currentStepConfig && currentStepConfig.id === 'step1' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step1FileUpload
-              clientFileInfo={state.clientFileInfo}
-              generalFileInfo={state.generalFileInfo}
-              cncjFileInfo={state.cncjFileInfo}
-              loading={state.loading}
-              onFileLoaded={handleFileLoaded}
-              onFileCleared={handleFileCleared}
-              onError={handleError}
-              clientAccounts={state.clientAccounts}
-              generalAccounts={state.generalAccounts}
-              cncjAccounts={state.cncjAccounts}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={canProceedToNext}
-              onNext={handleNext}
-              customPreviousButton={
-                <button
-                  onClick={resetData}
-                  disabled={state.loading}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  🔄 Réinitialiser
-                </button>
-              }
-            />
-          </StepRenderer>
-        )}
+            {isStepsInfoOpen && (
+              <StepsInfoModal onClose={() => setIsStepsInfoOpen(false)} />
+            )}
 
-        {/* Step 2: Merge Visualization */}
-        {currentStepConfig && currentStepConfig.id === 'step2' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step2MergeVisualization mergeInfo={state.mergeInfo} />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={true}
-              onNext={handleMergeNext}
-              onPrevious={handleNavigatePrevious}
-            />
-          </StepRenderer>
-        )}
+            {/* Step 1: File Upload */}
+            {currentStepConfig && currentStepConfig.id === 'step1' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step1FileUpload
+                  clientFileInfo={state.clientFileInfo}
+                  generalFileInfo={state.generalFileInfo}
+                  cncjFileInfo={state.cncjFileInfo}
+                  loading={state.loading}
+                  onFileLoaded={handleFileLoaded}
+                  onFileCleared={handleFileCleared}
+                  onError={handleError}
+                  clientAccounts={state.clientAccounts}
+                  generalAccounts={state.generalAccounts}
+                  cncjAccounts={state.cncjAccounts}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={canProceedToNext}
+                  onNext={handleNext}
+                  customPreviousButton={
+                    <button
+                      onClick={resetData}
+                      disabled={state.loading}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      🔄 Réinitialiser
+                    </button>
+                  }
+                />
+              </StepRenderer>
+            )}
 
-        {/* Normalization Step - Step 3 */}
-        {state.currentStep === 'step3' && (
-          <NormalizationStep
-            accountsNeedingNormalization={state.accountsNeedingNormalization}
-            isNormalizationApplied={state.isNormalizationApplied}
-            onApplyNormalization={handleNormalizationNext}
-            onBack={handleNavigatePrevious}
-          />
-        )}
+            {/* Step 2: Merge Visualization */}
+            {currentStepConfig && currentStepConfig.id === 'step2' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step2MergeVisualization mergeInfo={state.mergeInfo} />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={true}
+                  onNext={handleMergeNext}
+                  onPrevious={handleNavigatePrevious}
+                />
+              </StepRenderer>
+            )}
 
-        {/* Step 4: Duplicates Resolution */}
-        {currentStepConfig && currentStepConfig.id === 'step4' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step4DuplicatesResolution
-              result={state.result}
-              loading={state.loading}
-              replacementCodes={state.replacementCodes}
-              onReplacementCodeChange={handleReplacementCodeChange}
-              cncjCodes={cncjCodes}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={allDuplicatesResolved}
-              onNext={handleDuplicatesNext}
-              onPrevious={handleNavigatePrevious}
-            />
-          </StepRenderer>
-        )}
+            {/* Normalization Step - Step 3 */}
+            {state.currentStep === 'step3' && (
+              <NormalizationStep
+                accountsNeedingNormalization={state.accountsNeedingNormalization}
+                isNormalizationApplied={state.isNormalizationApplied}
+                onApplyNormalization={handleNormalizationNext}
+                onBack={handleNavigatePrevious}
+              />
+            )}
 
-        {/* Step 5: Review Corrections */}
-        {currentStepConfig && currentStepConfig.id === 'step5' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step5ReviewCorrections
-              result={state.result}
-              loading={state.loading}
-              replacementCodes={state.replacementCodes}
-              mergedClientAccounts={mergedClientAccounts}
-              originalClientAccounts={state.clientAccounts}
-              duplicateIdsFromStep4={duplicateIdsFromStep4}
-              duplicateCorrectionsCount={duplicateCorrectionsCount}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={true}
-              onNext={handleReviewNext}
-              onPrevious={handleNavigatePrevious}
-            />
-          </StepRenderer>
-        )}
+            {/* Step 4: Duplicates Resolution */}
+            {currentStepConfig && currentStepConfig.id === 'step4' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step4DuplicatesResolution
+                  result={state.result}
+                  loading={state.loading}
+                  replacementCodes={state.replacementCodes}
+                  onReplacementCodeChange={handleReplacementCodeChange}
+                  cncjCodes={cncjCodes}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={allDuplicatesResolved}
+                  onNext={handleDuplicatesNext}
+                  onPrevious={handleNavigatePrevious}
+                />
+              </StepRenderer>
+            )}
 
-        {/* Step 6: CNCJ Conflicts */}
-        {currentStepConfig && currentStepConfig.id === 'step6' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step6CNCJConflicts
-              cncjConflictResult={state.cncjConflictResult}
-              loading={state.loading}
-              cncjReplacementCodes={state.cncjReplacementCodes}
-              cncjConflictCorrections={state.cncjConflictCorrections}
-              cncjForcedValidations={state.cncjForcedValidations}
-              cncjCodes={cncjCodes}
-              mergedClientAccounts={mergedClientAccounts}
-              onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
-              onCncjForcedValidationChange={handleCncjForcedValidationChange}
-              step4Duplicates={state.result?.duplicates}
-              step4Suggestions={step4Suggestions}
-              step4ReplacementCodes={state.replacementCodes}
-              initialSuggestions={state.initialSuggestions}
-              initialCncjSuggestions={state.initialCncjSuggestions}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={allCncjConflictsResolved}
-              onNext={handleCncjNext}
-              onPrevious={handleNavigatePrevious}
-            />
-          </StepRenderer>
-        )}
+            {/* Step 5: Review Corrections */}
+            {currentStepConfig && currentStepConfig.id === 'step5' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step5ReviewCorrections
+                  result={state.result}
+                  loading={state.loading}
+                  replacementCodes={state.replacementCodes}
+                  mergedClientAccounts={mergedClientAccounts}
+                  originalClientAccounts={state.clientAccounts}
+                  duplicateIdsFromStep4={duplicateIdsFromStep4}
+                  duplicateCorrectionsCount={duplicateCorrectionsCount}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={true}
+                  onNext={handleReviewNext}
+                  onPrevious={handleNavigatePrevious}
+                />
+              </StepRenderer>
+            )}
 
-        {/* Step 7: Final Summary */}
-        {currentStepConfig && currentStepConfig.id === 'step7' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step7FinalSummary
-              clientAccounts={state.clientAccounts}
-              result={state.result}
-              cncjConflictResult={state.cncjConflictResult}
-              replacementCodes={state.replacementCodes}
-              cncjReplacementCodes={state.cncjReplacementCodes}
-              cncjConflictCorrections={state.cncjConflictCorrections}
-              mergedClientAccounts={mergedClientAccounts}
-              generalAccounts={state.generalAccounts}
-              finalFilter={state.finalFilter}
-              onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={nextStepConfig}
-              canProceed={true}
-              onNext={handleNavigateNext}
-              onPrevious={handleNavigatePrevious}
-            />
-          </StepRenderer>
-        )}
+            {/* Step 6: CNCJ Conflicts */}
+            {currentStepConfig && currentStepConfig.id === 'step6' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step6CNCJConflicts
+                  cncjConflictResult={state.cncjConflictResult}
+                  loading={state.loading}
+                  cncjReplacementCodes={state.cncjReplacementCodes}
+                  cncjConflictCorrections={state.cncjConflictCorrections}
+                  cncjForcedValidations={state.cncjForcedValidations}
+                  cncjCodes={cncjCodes}
+                  mergedClientAccounts={mergedClientAccounts}
+                  onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
+                  onCncjForcedValidationChange={handleCncjForcedValidationChange}
+                  step4Duplicates={state.result?.duplicates}
+                  step4Suggestions={step4Suggestions}
+                  step4ReplacementCodes={state.replacementCodes}
+                  initialSuggestions={state.initialSuggestions}
+                  initialCncjSuggestions={state.initialCncjSuggestions}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={allCncjConflictsResolved}
+                  onNext={handleCncjNext}
+                  onPrevious={handleNavigatePrevious}
+                />
+              </StepRenderer>
+            )}
 
-        {/* Step Final: Metadata Completion */}
-        {currentStepConfig && currentStepConfig.id === 'stepFinal' && (
-          <StepRenderer step={currentStepConfig} isActive={true}>
-            <Step8MetadataCompletion
-              clientAccounts={state.clientAccounts}
-              mergedClientAccounts={mergedClientAccounts}
-              generalAccounts={state.generalAccounts}
-              replacementCodes={state.replacementCodes}
-              cncjReplacementCodes={state.cncjReplacementCodes}
-              result={state.result}
-              cncjConflictResult={state.cncjConflictResult}
-              cncjConflictCorrections={state.cncjConflictCorrections}
-              missingMetadata={state.missingMetadata}
-              onMetadataChange={handleMetadataChange}
-            />
-            <StepNavigation
-              currentStep={currentStepConfig}
-              previousStep={previousStepConfig}
-              nextStep={undefined}
-              canProceed={false}
-              onPrevious={handleNavigatePrevious}
-              showNext={false}
-            />
-          </StepRenderer>
+            {/* Step 7: Final Summary */}
+            {currentStepConfig && currentStepConfig.id === 'step7' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step7FinalSummary
+                  clientAccounts={state.clientAccounts}
+                  result={state.result}
+                  cncjConflictResult={state.cncjConflictResult}
+                  replacementCodes={state.replacementCodes}
+                  cncjReplacementCodes={state.cncjReplacementCodes}
+                  cncjConflictCorrections={state.cncjConflictCorrections}
+                  mergedClientAccounts={mergedClientAccounts}
+                  generalAccounts={state.generalAccounts}
+                  finalFilter={state.finalFilter}
+                  onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={nextStepConfig}
+                  canProceed={true}
+                  onNext={handleNavigateNext}
+                  onPrevious={handleNavigatePrevious}
+                />
+              </StepRenderer>
+            )}
+
+            {/* Step Final: Metadata Completion */}
+            {currentStepConfig && currentStepConfig.id === 'stepFinal' && (
+              <StepRenderer step={currentStepConfig} isActive={true}>
+                <Step8MetadataCompletion
+                  clientAccounts={state.clientAccounts}
+                  mergedClientAccounts={mergedClientAccounts}
+                  generalAccounts={state.generalAccounts}
+                  replacementCodes={state.replacementCodes}
+                  cncjReplacementCodes={state.cncjReplacementCodes}
+                  result={state.result}
+                  cncjConflictResult={state.cncjConflictResult}
+                  cncjConflictCorrections={state.cncjConflictCorrections}
+                  missingMetadata={state.missingMetadata}
+                  onMetadataChange={handleMetadataChange}
+                />
+                <StepNavigation
+                  currentStep={currentStepConfig}
+                  previousStep={previousStepConfig}
+                  nextStep={undefined}
+                  canProceed={false}
+                  onPrevious={handleNavigatePrevious}
+                  showNext={false}
+                />
+              </StepRenderer>
+            )}
+          </>
         )}
 
               </div>
