@@ -24,6 +24,7 @@ import { ProjectPersistence } from './components/ProjectPersistence';
 import { AppAction } from './types/accounts';
 import { APP_VERSION, formatVersion } from './utils/version';
 import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConflictUtils';
+import { calculateSuggestionsWithDetails } from './utils/codeSuggestions';
 
 const initialState: AppState = {
   clientAccounts: [],
@@ -366,6 +367,27 @@ const App: React.FC = () => {
     return new Set(state.cncjAccounts.map(acc => acc.number));
   }, [state.cncjAccounts]);
 
+  // Calculer les suggestions initiales de l'étape 4 (pour l'export combiné à l'étape 6)
+  const step4Suggestions = useMemo(() => {
+    const duplicates = state.result?.duplicates || [];
+    if (duplicates.length === 0) {
+      return new Map();
+    }
+    
+    const uniqueClients = state.result?.uniqueClients || [];
+    const matches = state.result?.matches || [];
+    const unmatchedClients = state.result?.unmatchedClients || [];
+    
+    const existingCodes = new Set([
+      ...uniqueClients.map((acc: Account) => acc.number),
+      ...matches.map((acc: Account) => acc.number),
+      ...unmatchedClients.map((acc: Account) => acc.number)
+    ]);
+    
+    // Calculer sans les replacementCodes pour garder les détails originaux
+    return calculateSuggestionsWithDetails(duplicates, existingCodes, {}, cncjCodes);
+  }, [state.result, cncjCodes]);
+
   // Obtenir la configuration de l'étape actuelle
   const currentStepConfig = getStepConfig(state.currentStep);
   const previousStepConfig = getPreviousStep(state.currentStep);
@@ -577,6 +599,9 @@ const App: React.FC = () => {
               mergedClientAccounts={mergedClientAccounts}
               onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
               onCncjForcedValidationChange={handleCncjForcedValidationChange}
+              step4Duplicates={state.result?.duplicates}
+              step4Suggestions={step4Suggestions}
+              step4ReplacementCodes={state.replacementCodes}
             />
             <StepNavigation
               currentStep={currentStepConfig}

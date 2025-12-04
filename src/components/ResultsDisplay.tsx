@@ -23,6 +23,10 @@ interface ResultsDisplayProps {
   mergedClientAccounts?: Account[];
   originalClientAccounts?: Account[];
   duplicateIdsFromStep4?: Set<string>;
+  // Données de l'étape 4 pour l'export combiné à l'étape 6
+  step4Duplicates?: Account[];
+  step4Suggestions?: Map<string, SuggestionResult>;
+  step4ReplacementCodes?: { [key: string]: string };
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -38,7 +42,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onCncjForcedValidationChange,
   mergedClientAccounts,
   originalClientAccounts,
-  duplicateIdsFromStep4
+  duplicateIdsFromStep4,
+  step4Duplicates,
+  step4Suggestions,
+  step4ReplacementCodes
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
@@ -85,12 +92,17 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const suggestionsMap = new Map<string, SuggestionResult>();
     const usedCodes = new Set([...cncjCodes]);
     
+    // Codes clients existants (pour différencier des doublons)
+    const existingClientCodes = new Set<string>();
     if (mergedClientAccounts) {
-      mergedClientAccounts.forEach(acc => usedCodes.add(acc.number));
+      mergedClientAccounts.forEach(acc => {
+        usedCodes.add(acc.number);
+        existingClientCodes.add(acc.number);
+      });
     }
     
     duplicates.forEach(duplicate => {
-      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes);
+      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes, existingClientCodes);
       suggestionsMap.set(duplicate.id, result);
       
       if (result.code) {
@@ -110,8 +122,13 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const suggestionsMap = new Map<string, SuggestionResult>();
     const usedCodes = new Set([...cncjCodes]);
     
+    // Codes clients existants (pour différencier des doublons)
+    const existingClientCodes = new Set<string>();
     if (mergedClientAccounts) {
-      mergedClientAccounts.forEach(acc => usedCodes.add(acc.number));
+      mergedClientAccounts.forEach(acc => {
+        usedCodes.add(acc.number);
+        existingClientCodes.add(acc.number);
+      });
     }
     
     Object.values(replacementCodes).forEach(code => {
@@ -127,7 +144,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         return;
       }
       
-      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes);
+      const result = suggestNextCodeWithDetails(duplicate.number, usedCodes, cncjCodes, existingClientCodes);
       suggestionsMap.set(duplicate.id, result);
       
       if (result.code) {
@@ -162,6 +179,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   // State pour afficher le modal de détails des suggestions
   const [showSuggestionDetails, setShowSuggestionDetails] = useState(false);
+  // State pour inclure les données de l'étape 4 dans l'export de l'étape 6
+  const [includeStep4InExport, setIncludeStep4InExport] = useState(false);
 
   if (loading) {
     return (
@@ -631,7 +650,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
             <div className="p-4 border-b flex justify-between items-center bg-purple-50">
               <h3 className="text-lg font-semibold text-purple-900">
-                🔍 Détails des suggestions ({duplicates.length} {conflictType === 'cncj-conflicts' ? 'conflits' : 'doublons'})
+                🔍 Détails des suggestions 
+                {includeStep4InExport && conflictType === 'cncj-conflicts' && step4Duplicates ? (
+                  <span> ({step4Duplicates.length} doublons + {duplicates.length} conflits CNCJ)</span>
+                ) : (
+                  <span> ({duplicates.length} {conflictType === 'cncj-conflicts' ? 'conflits' : 'doublons'})</span>
+                )}
               </h3>
               <button
                 onClick={() => setShowSuggestionDetails(false)}
@@ -643,102 +667,307 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               </button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[60vh]">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100 sticky top-0">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Code original</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Code 7 chiffres</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Titre</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Suggestion</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Détail du calcul</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {duplicates.map((d, index) => {
-                    // Utiliser les suggestions INITIALES pour conserver les détails du calcul original
-                    const suggestionResult = conflictType === 'cncj-conflicts' 
-                      ? initialCncjSuggestions.get(d.id) 
-                      : initialSuggestions.get(d.id);
-                    const hasSuggestion = !!suggestionResult?.code;
-                    
-                    return (
-                      <tr key={d.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-3 py-2 font-mono text-xs">{getDisplayCode(d)}</td>
-                        <td className="px-3 py-2 font-mono text-xs">{d.number}</td>
-                        <td className="px-3 py-2 text-xs truncate max-w-[200px]" title={d.title}>{d.title || '-'}</td>
-                        <td className="px-3 py-2">
-                          {hasSuggestion ? (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono">
-                              {suggestionResult?.code}
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs">
-                              Aucune
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-gray-600">
-                          {suggestionResult?.reason || '-'}
-                          {suggestionResult?.blockedBy && (
-                            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
-                              suggestionResult.blockedBy === 'cncj' ? 'bg-red-100 text-red-700' :
-                              suggestionResult.blockedBy === 'client' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-purple-100 text-purple-700'
-                            }`}>
-                              {suggestionResult.blockedBy === 'cncj' ? 'CNCJ' :
-                               suggestionResult.blockedBy === 'client' ? 'Client' : 'CNCJ+Client'}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 border-t bg-gray-50 flex justify-between">
-              <button
-                onClick={() => {
-                  // Export CSV des détails de suggestions
-                  const csvHeaders = ['code original', 'code 7 chiffres', 'titre', 'suggestion', 'détail calcul', 'source blocage'];
-                  const csvRows = duplicates.map(d => {
-                    const suggestionResult = conflictType === 'cncj-conflicts' 
-                      ? initialCncjSuggestions.get(d.id) 
-                      : initialSuggestions.get(d.id);
-                    
-                    return [
-                      getDisplayCode(d),
-                      d.number,
-                      d.title || '',
-                      suggestionResult?.code || '',
-                      suggestionResult?.reason || '',
-                      suggestionResult?.blockedBy || ''
-                    ];
+              {/* Légende en haut du tableau (si case cochée) */}
+              {includeStep4InExport && conflictType === 'cncj-conflicts' && (
+                <div className="mb-4 flex gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-amber-200 border border-amber-400"></span>
+                    <span className="text-gray-700">📋 Doublon (étape 4) : {step4Duplicates?.length || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-red-200 border border-red-400"></span>
+                    <span className="text-gray-700">⚠️ Conflit CNCJ (étape 6) : {duplicates.length}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tableau combiné (mixé et trié par code 7 chiffres) */}
+              {(() => {
+                // Préparer les données combinées
+                type CombinedRow = {
+                  type: 'doublon' | 'cncj';
+                  account: typeof duplicates[0];
+                  suggestionDoublon: SuggestionResult | undefined;
+                  suggestionCncj: SuggestionResult | undefined;
+                  finalCode: string;
+                };
+                
+                let combinedData: CombinedRow[] = [];
+                const isCombined = includeStep4InExport && conflictType === 'cncj-conflicts';
+                
+                // Ajouter les données de l'étape actuelle
+                duplicates.forEach(d => {
+                  const suggestionResult = conflictType === 'cncj-conflicts' 
+                    ? initialCncjSuggestions.get(d.id) 
+                    : initialSuggestions.get(d.id);
+                  combinedData.push({
+                    type: conflictType === 'cncj-conflicts' ? 'cncj' : 'doublon',
+                    account: d,
+                    suggestionDoublon: conflictType === 'cncj-conflicts' ? undefined : suggestionResult,
+                    suggestionCncj: conflictType === 'cncj-conflicts' ? suggestionResult : undefined,
+                    finalCode: replacementCodes[d.id] || ''
                   });
-                  
-                  const csvContent = [
-                    csvHeaders.join(';'),
-                    ...csvRows.map(row => row.map(cell => `"${sanitizeCsvValue(cell).replace(/"/g, '""')}"`).join(';'))
-                  ].join('\n');
-                  
-                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = conflictType === 'cncj-conflicts' ? 'details_suggestions_cncj.csv' : 'details_suggestions_doublons.csv';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                📥 Exporter CSV
-              </button>
-              <button
-                onClick={() => setShowSuggestionDetails(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Fermer
-              </button>
+                });
+                
+                // Si case cochée et étape 6, ajouter aussi les doublons de l'étape 4
+                if (isCombined && step4Duplicates) {
+                  step4Duplicates.forEach(d => {
+                    combinedData.push({
+                      type: 'doublon',
+                      account: d,
+                      suggestionDoublon: step4Suggestions?.get(d.id),
+                      suggestionCncj: undefined,
+                      finalCode: step4ReplacementCodes?.[d.id] || ''
+                    });
+                  });
+                }
+                
+                // Trier par code 7 chiffres, puis par code original si égaux
+                combinedData.sort((a, b) => {
+                  const cmp = a.account.number.localeCompare(b.account.number);
+                  if (cmp !== 0) return cmp;
+                  // Si codes 7 chiffres égaux, trier par code original
+                  const codeA = getDisplayCode(a.account);
+                  const codeB = getDisplayCode(b.account);
+                  return codeA.localeCompare(codeB);
+                });
+                
+                return (
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100 sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Code original</th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Code 7 chiffres</th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Titre</th>
+                        {isCombined ? (
+                          <>
+                            <th className="px-3 py-2 text-left font-semibold text-amber-700 bg-amber-50">Suggestion Doublon</th>
+                            <th className="px-3 py-2 text-left font-semibold text-red-700 bg-red-50">Suggestion CNCJ</th>
+                          </>
+                        ) : (
+                          <th className="px-3 py-2 text-left font-semibold text-gray-700">Suggestion</th>
+                        )}
+                        {isCombined && (
+                          <th className="px-3 py-2 text-left font-semibold text-gray-700">Code final</th>
+                        )}
+                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Détail du calcul</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {combinedData.map((row, index) => {
+                        const rowBgClass = isCombined 
+                          ? (row.type === 'doublon' ? 'bg-amber-50' : 'bg-red-50')
+                          : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50');
+                        
+                        const currentSuggestion = row.type === 'doublon' ? row.suggestionDoublon : row.suggestionCncj;
+                        
+                        return (
+                          <tr key={`${row.type}-${row.account.id}`} className={rowBgClass}>
+                            <td className="px-3 py-2 font-mono text-xs">{getDisplayCode(row.account)}</td>
+                            <td className="px-3 py-2 font-mono text-xs">{row.account.number}</td>
+                            <td className="px-3 py-2 text-xs truncate max-w-[120px]" title={row.account.title}>{row.account.title || '-'}</td>
+                            {isCombined ? (
+                              <>
+                                <td className="px-3 py-2 bg-amber-50/50">
+                                  {row.suggestionDoublon?.code ? (
+                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-mono border border-amber-300">
+                                      {row.suggestionDoublon.code}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">-</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 bg-red-50/50">
+                                  {row.suggestionCncj?.code ? (
+                                    <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-mono border border-red-300">
+                                      {row.suggestionCncj.code}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">-</span>
+                                  )}
+                                </td>
+                              </>
+                            ) : (
+                              <td className="px-3 py-2">
+                                {currentSuggestion?.code ? (
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-mono">
+                                    {currentSuggestion.code}
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-xs">
+                                    Aucune
+                                  </span>
+                                )}
+                              </td>
+                            )}
+                            {isCombined && (
+                              <td className="px-3 py-2">
+                                {row.finalCode ? (
+                                  <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-mono">
+                                    {row.finalCode}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">-</span>
+                                )}
+                              </td>
+                            )}
+                            <td className="px-3 py-2 text-xs text-gray-600">
+                              {currentSuggestion?.reason || '-'}
+                              {currentSuggestion?.blockedBy && (
+                                <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
+                                  currentSuggestion.blockedBy === 'cncj' ? 'bg-red-100 text-red-700' :
+                                  currentSuggestion.blockedBy === 'client' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-purple-100 text-purple-700'
+                                }`}>
+                                  {currentSuggestion.blockedBy === 'cncj' ? 'CNCJ' :
+                                   currentSuggestion.blockedBy === 'client' ? 'Client' : 'CNCJ+Client'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                );
+              })()}
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex flex-col gap-3">
+              {/* Case à cocher pour inclure l'étape 4 (seulement à l'étape 6) */}
+              {conflictType === 'cncj-conflicts' && step4Duplicates && step4Duplicates.length > 0 && (
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includeStep4InExport}
+                    onChange={(e) => setIncludeStep4InExport(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span>Inclure les données de l'étape 4 (doublons) dans l'export</span>
+                  <span className="text-xs text-gray-500">({step4Duplicates.length} doublons)</span>
+                </label>
+              )}
+              
+              <div className="flex justify-between">
+                <button
+                  onClick={() => {
+                    // Export CSV des détails de suggestions (mixé et trié si case cochée)
+                    type ExportRow = {
+                      type: 'doublon' | 'cncj';
+                      code7: string;
+                      suggestionDoublon: string;
+                      suggestionCncj: string;
+                      data: string[];
+                    };
+                    
+                    let allRows: ExportRow[] = [];
+                    const isCombined = includeStep4InExport && conflictType === 'cncj-conflicts';
+                    
+                    // Ajouter les données de l'étape actuelle
+                    duplicates.forEach(d => {
+                      const suggestionResult = conflictType === 'cncj-conflicts' 
+                        ? initialCncjSuggestions.get(d.id) 
+                        : initialSuggestions.get(d.id);
+                      const finalCode = replacementCodes[d.id] || '';
+                      
+                      if (isCombined) {
+                        // Pour CNCJ, la suggestion va dans la colonne CNCJ
+                        allRows.push({
+                          type: 'cncj',
+                          code7: d.number,
+                          suggestionDoublon: '',
+                          suggestionCncj: suggestionResult?.code || '',
+                          data: [
+                            getDisplayCode(d),
+                            d.number,
+                            d.title || '',
+                            '', // Suggestion Doublon (vide pour CNCJ)
+                            suggestionResult?.code || '', // Suggestion CNCJ
+                            finalCode,
+                            suggestionResult?.reason || '',
+                            suggestionResult?.blockedBy || ''
+                          ]
+                        });
+                      } else {
+                        allRows.push({
+                          type: conflictType === 'cncj-conflicts' ? 'cncj' : 'doublon',
+                          code7: d.number,
+                          suggestionDoublon: conflictType !== 'cncj-conflicts' ? (suggestionResult?.code || '') : '',
+                          suggestionCncj: conflictType === 'cncj-conflicts' ? (suggestionResult?.code || '') : '',
+                          data: [
+                            getDisplayCode(d),
+                            d.number,
+                            d.title || '',
+                            suggestionResult?.code || '',
+                            suggestionResult?.reason || '',
+                            suggestionResult?.blockedBy || ''
+                          ]
+                        });
+                      }
+                    });
+                    
+                    // Si case cochée et étape 6, ajouter aussi les doublons de l'étape 4
+                    if (isCombined && step4Duplicates && step4Suggestions) {
+                      step4Duplicates.forEach(d => {
+                        const suggestionResult = step4Suggestions.get(d.id);
+                        const finalCode = step4ReplacementCodes?.[d.id] || '';
+                        
+                        // Pour Doublon, la suggestion va dans la colonne Doublon
+                        allRows.push({
+                          type: 'doublon',
+                          code7: d.number,
+                          suggestionDoublon: suggestionResult?.code || '',
+                          suggestionCncj: '',
+                          data: [
+                            getDisplayCode(d),
+                            d.number,
+                            d.title || '',
+                            suggestionResult?.code || '', // Suggestion Doublon
+                            '', // Suggestion CNCJ (vide pour Doublon)
+                            finalCode,
+                            suggestionResult?.reason || '',
+                            suggestionResult?.blockedBy || ''
+                          ]
+                        });
+                      });
+                    }
+                    
+                    // Trier par code 7 chiffres, puis par code original si égaux
+                    allRows.sort((a, b) => {
+                      const cmp = a.code7.localeCompare(b.code7);
+                      if (cmp !== 0) return cmp;
+                      // Si codes 7 chiffres égaux, trier par code original (2ème élément du data)
+                      return a.data[0].localeCompare(b.data[0]);
+                    });
+                    
+                    // Construire le CSV
+                    const headers = isCombined
+                      ? ['code original', 'code 7 chiffres', 'titre', 'suggestion doublon', 'suggestion CNCJ', 'code final', 'détail calcul', 'source blocage']
+                      : ['code original', 'code 7 chiffres', 'titre', 'suggestion', 'détail calcul', 'source blocage'];
+                    
+                    let csvContent = headers.join(';') + '\n';
+                    csvContent += allRows.map(row => row.data.map(cell => `"${sanitizeCsvValue(cell).replace(/"/g, '""')}"`).join(';')).join('\n');
+                    
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = isCombined 
+                      ? 'details_suggestions_complet.csv' 
+                      : (conflictType === 'cncj-conflicts' ? 'details_suggestions_cncj.csv' : 'details_suggestions_doublons.csv');
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  📥 Exporter CSV
+                </button>
+                <button
+                  onClick={() => setShowSuggestionDetails(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
             </div>
           </div>
         </div>

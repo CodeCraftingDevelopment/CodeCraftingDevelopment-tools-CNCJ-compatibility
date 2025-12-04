@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProcessingResult, Account } from '../types/accounts';
 import { ResultsDisplay } from '../components/ResultsDisplay';
+import { SuggestionResult } from '../utils/codeSuggestions';
 
 interface Step6CNCJConflictsProps {
   cncjConflictResult: ProcessingResult | null;
@@ -12,6 +13,10 @@ interface Step6CNCJConflictsProps {
   mergedClientAccounts: Account[];
   onCncjReplacementCodeChange: (accountId: string, code: string) => void;
   onCncjForcedValidationChange: (accountId: string, forced: boolean) => void;
+  // Données de l'étape 4 pour l'export combiné
+  step4Duplicates?: Account[];
+  step4Suggestions?: Map<string, SuggestionResult>;
+  step4ReplacementCodes?: { [key: string]: string };
 }
 
 export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
@@ -23,7 +28,10 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   cncjCodes,
   mergedClientAccounts,
   onCncjReplacementCodeChange,
-  onCncjForcedValidationChange
+  onCncjForcedValidationChange,
+  step4Duplicates,
+  step4Suggestions,
+  step4ReplacementCodes
 }) => {
   return (
     <ResultsDisplay
@@ -39,6 +47,9 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       cncjForcedValidations={cncjForcedValidations}
       onCncjForcedValidationChange={onCncjForcedValidationChange}
       mergedClientAccounts={mergedClientAccounts}
+      step4Duplicates={step4Duplicates}
+      step4Suggestions={step4Suggestions}
+      step4ReplacementCodes={step4ReplacementCodes}
     />
   );
 };

@@ -1,11 +1,20 @@
 /**
+ * Détail d'un code bloqué avec sa source
+ */
+export interface BlockedCodeDetail {
+  code: string;
+  source: 'cncj' | 'client' | 'doublon';  // Source du blocage
+}
+
+/**
  * Résultat détaillé d'une suggestion de code
  */
 export interface SuggestionResult {
   code: string | null;
   reason: string;
   triedCodes?: string[];  // Codes essayés mais indisponibles
-  blockedBy?: 'cncj' | 'client' | 'both';  // Type de blocage
+  blockedCodesDetails?: BlockedCodeDetail[];  // Détails par code bloqué
+  blockedBy?: 'cncj' | 'client' | 'both';  // Type de blocage global
 }
 
 /**
@@ -14,12 +23,14 @@ export interface SuggestionResult {
  * @param originalCode - Le code original à incrémenter
  * @param usedCodes - Ensemble des codes déjà utilisés
  * @param cncjCodes - Ensemble des codes CNCJ (pour identifier la source du blocage)
+ * @param existingClientCodes - Ensemble des codes clients existants (pour différencier des doublons)
  * @returns Objet contenant le code suggéré et les détails du calcul
  */
 export function suggestNextCodeWithDetails(
   originalCode: string, 
   usedCodes: Set<string>,
-  cncjCodes?: Set<string>
+  cncjCodes?: Set<string>,
+  existingClientCodes?: Set<string>
 ): SuggestionResult {
   // Vérifier si le code est vide ou non numérique
   if (!originalCode || !/^\d+$/.test(originalCode)) {
@@ -38,36 +49,56 @@ export function suggestNextCodeWithDetails(
   const base = Math.floor(codeNumber / 10) * 10;
   const maxInRange = base + 9;
   const triedCodes: string[] = [];
+  const blockedCodesDetails: BlockedCodeDetail[] = [];
   let cncjBlocked = 0;
   let clientBlocked = 0;
+  let doublonBlocked = 0;
 
   // Essayer chaque code dans la plage [codeNumber + 1, maxInRange]
   for (let candidate = codeNumber + 1; candidate <= maxInRange; candidate++) {
     const candidateStr = candidate.toString();
     if (!usedCodes.has(candidateStr)) {
       const increment = candidate - codeNumber;
+      // Construire le détail des codes indisponibles
+      const detailStr = blockedCodesDetails.length > 0 
+        ? ` (${blockedCodesDetails.map(d => `${d.code}[${d.source}]`).join(', ')} indisponibles)`
+        : '';
       return { 
         code: candidateStr, 
-        reason: `+${increment} depuis ${originalCode}${triedCodes.length > 0 ? ` (codes ${triedCodes.join(', ')} indisponibles)` : ''}`,
-        triedCodes: triedCodes.length > 0 ? triedCodes : undefined
+        reason: `+${increment} depuis ${originalCode}${detailStr}`,
+        triedCodes: triedCodes.length > 0 ? triedCodes : undefined,
+        blockedCodesDetails: blockedCodesDetails.length > 0 ? blockedCodesDetails : undefined
       };
     }
     triedCodes.push(candidateStr);
+    
+    // Déterminer la source du blocage
+    let source: 'cncj' | 'client' | 'doublon';
     if (cncjCodes?.has(candidateStr)) {
+      source = 'cncj';
       cncjBlocked++;
-    } else {
+    } else if (existingClientCodes?.has(candidateStr)) {
+      source = 'client';
       clientBlocked++;
+    } else {
+      source = 'doublon';
+      doublonBlocked++;
     }
+    blockedCodesDetails.push({ code: candidateStr, source });
   }
 
-  // Plage saturée
-  const blockedBy = cncjBlocked > 0 && clientBlocked > 0 ? 'both' : 
+  // Plage saturée - déterminer le type de blocage global
+  const blockedBy = (cncjBlocked > 0 && (clientBlocked > 0 || doublonBlocked > 0)) ? 'both' : 
                     cncjBlocked > 0 ? 'cncj' : 'client';
+  
+  // Construire le message détaillé
+  const detailStr = blockedCodesDetails.map(d => `${d.code}[${d.source}]`).join(', ');
   
   return { 
     code: null, 
-    reason: `Plage ${base}-${maxInRange} saturée (${triedCodes.join(', ')} indisponibles)`,
+    reason: `Plage ${base}-${maxInRange} saturée (${detailStr})`,
     triedCodes,
+    blockedCodesDetails,
     blockedBy
   };
 }
@@ -245,7 +276,8 @@ export function calculateSuggestionsWithDetails(
         result = { code: originalCode, reason: 'Code original disponible (premier du groupe)' };
       } else {
         // Les suivants utilisent l'incrémentation avec détails
-        result = suggestNextCodeWithDetails(originalCode, allUsedCodes, cncjCodes);
+        // Passer existingCodes pour différencier les codes clients des doublons
+        result = suggestNextCodeWithDetails(originalCode, allUsedCodes, cncjCodes, existingCodes);
       }
 
       suggestions.set(duplicate.id, result);
