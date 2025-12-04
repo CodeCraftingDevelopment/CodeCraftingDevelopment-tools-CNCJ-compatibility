@@ -1,5 +1,35 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.1.0] - 2025-12-04
+
+### Export combiné des suggestions (Étapes 4 + 6)
+
+#### Fonctionnalité : Vue et export combinés des suggestions
+- **Modal de détails des suggestions** : vue complète des calculs de suggestions
+  - Case à cocher "Inclure les données de l'étape 4" dans le modal de l'étape 6
+  - Légende visuelle en haut : 📋 Doublon (étape 4) / ⚠️ Conflit CNCJ (étape 6)
+  - Deux colonnes séparées : **Suggestion Doublon** et **Suggestion CNCJ**
+  - Colonne **Code final** : codes validés par l'utilisateur
+  - Fond coloré par type : ambre (doublons), rouge (CNCJ)
+- **Export CSV combiné** : fichier unique avec toutes les suggestions triées
+  - Colonnes : code original, code 7 chiffres, titre, suggestion doublon, suggestion CNCJ, code final, détail calcul, source blocage
+
+#### Tri amélioré
+- Tri principal par code 7 chiffres
+- Tri secondaire par code original (8 chiffres) si codes 7 chiffres identiques
+
+#### Détails des calculs enrichis
+- Affichage de la source des codes bloqués : CNCJ, Client, Doublon
+- Badge coloré indiquant la source du blocage
+
+#### Fichiers modifiés
+- `src/components/ResultsDisplay.tsx` - Modal combiné, export CSV, tri amélioré
+- `src/components/DuplicateRow.tsx` - Badges et corrections ESLint
+- `src/steps/Step6CNCJConflicts.tsx` - Passage des props étape 4
+- `src/App.tsx` - Calcul et transmission des suggestions étape 4
+
+---
+
 ## 2025-12-04
 
 ### Ajouts du 2025-12-04 (Suggestions automatiques - Étape 6)
@@ -223,4 +253,4 @@ export const STEPS_CONFIG: StepConfig[] = [
 
 ---
 
-*Dernière mise à jour : 22/11/2025*
+*Dernière mise à jour : 04/12/2025*

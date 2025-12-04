@@ -10,7 +10,7 @@ interface DuplicateRowProps {
   isDuplicateCode: boolean;
   isCncjCode?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
-  corrections?: { [key: string]: string | 'error' };
+  _corrections?: { [key: string]: string | 'error' };
   suggestion?: SuggestionResult;
   initialSuggestion?: SuggestionResult;
   cncjForcedValidations?: Set<string>;
@@ -24,7 +24,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isDuplicateCode,
   isCncjCode = false,
   conflictType = 'duplicates',
-  corrections = {},
+  _corrections = {},
   suggestion,
   initialSuggestion,
   cncjForcedValidations = new Set(),

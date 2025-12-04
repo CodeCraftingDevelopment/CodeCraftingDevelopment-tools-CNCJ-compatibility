@@ -415,7 +415,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isDuplicateCode={isDuplicateCode}
                       isCncjCode={isCncjCode}
                       conflictType={conflictType}
-                      corrections={corrections}
+                      _corrections={corrections}
                       suggestion={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
                       initialSuggestion={initialSuggestion}
                       cncjForcedValidations={cncjForcedValidations}
@@ -692,7 +692,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   finalCode: string;
                 };
                 
-                let combinedData: CombinedRow[] = [];
+                const combinedData: CombinedRow[] = [];
                 const isCombined = includeStep4InExport && conflictType === 'cncj-conflicts';
                 
                 // Ajouter les données de l'étape actuelle
@@ -859,7 +859,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       data: string[];
                     };
                     
-                    let allRows: ExportRow[] = [];
+                    const allRows: ExportRow[] = [];
                     const isCombined = includeStep4InExport && conflictType === 'cncj-conflicts';
                     
                     // Ajouter les données de l'étape actuelle
