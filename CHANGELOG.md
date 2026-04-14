@@ -1,5 +1,12 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.2.1] - 2026-04-14
+
+### 🐛 **Correction : exclusion des comptes vues de l'héritage PCG**
+- **Corrigé** : Les comptes à 3-4 caractères (comptes vues) ne sont plus utilisés comme référence pour l'héritage de métadonnées PCG
+- **Règle métier** : Ne pas descendre en dessous de 5 digits pour la recherche du compte PCG le plus proche
+- **Impact** : Conditions `>= 4` remplacées par `>= 5` dans `accountMatchingUtils.ts` et `Step8MetadataCompletion.tsx`
+
 ## [2.2.0] - 2025-12-04
 
 ### 🎯 **Système de nommage intelligent et persistant**
