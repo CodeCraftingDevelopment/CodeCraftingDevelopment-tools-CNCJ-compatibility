@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Account, ProcessingResult, AccountMetadata } from '../types/accounts';
+import { Account, ProcessingResult, CncjConflictResult, AccountMetadata } from '../types/accounts';
 import { toAccountMetadata } from '../utils/typeGuards';
 import { StepStatsGrid, StepStat, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
@@ -53,7 +53,7 @@ interface Step8MetadataCompletionProps {
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   result: ProcessingResult | null;
-  cncjConflictResult: ProcessingResult | null;
+  cncjConflictResult: CncjConflictResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
   missingMetadata: { [accountId: string]: AccountMetadata };
   onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
@@ -92,7 +92,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   // Reconstruire les données de résumé (logique de l'étape 7)
   const finalSummaryData: SummaryRow[] = useMemo(() => {
     const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-    const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+    const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
     const toCreateIds = new Set(result?.toCreate?.map(t => t.id) || []);
     
     return clientAccounts.map((account): SummaryRow => {
@@ -380,7 +380,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
       // Calculer l'historique des codes
       const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-      const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+      const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
       
       const isStep4Duplicate = step4Ids.has(account.id);
       const isStep6Conflict = step6Ids.has(account.id);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Account, ProcessingResult } from '../types/accounts';
+import { Account, ProcessingResult, CncjConflictResult } from '../types/accounts';
 import { StepStatsGrid, StepStat, StepLegend, StepEmptyState } from './components/StepContent';
 import { getDisplayCode } from '../utils/accountUtils';
 
@@ -21,7 +21,7 @@ interface SummaryRow {
 interface Step7FinalSummaryProps {
   clientAccounts: Account[];
   result: ProcessingResult | null;
-  cncjConflictResult: ProcessingResult | null;
+  cncjConflictResult: CncjConflictResult | null;
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
@@ -47,7 +47,7 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
 }) => {
   // Calculer les données du récapitulatif
   const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-  const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+  const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
   const toCreateIds = new Set(result?.toCreate?.map(t => t.id) || []);
   
   const finalSummaryData: SummaryRow[] = clientAccounts.map((account): SummaryRow => {

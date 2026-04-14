@@ -1,4 +1,4 @@
-import { Account, ProcessingResult } from '../types/accounts';
+import { Account, ProcessingResult, CncjConflictResult } from '../types/accounts';
 import { toAccountMetadata } from './typeGuards';
 
 /**
@@ -29,12 +29,12 @@ export const normalizeForDisplay = (code: string): string => {
 export const computeFinalCode = (
   account: Account,
   result: ProcessingResult | null,
-  cncjConflictResult: ProcessingResult | null,
+  cncjConflictResult: CncjConflictResult | null,
   replacementCodes: { [key: string]: string },
   cncjReplacementCodes: { [key: string]: string }
 ): string => {
   const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-  const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+  const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
   
   const isStep4Duplicate = step4Ids.has(account.id);
   const isStep6Conflict = step6Ids.has(account.id);
@@ -99,14 +99,14 @@ export const inheritPcgMetadata = (
 export const buildCodeHistory = (
   account: Account,
   result: ProcessingResult | null,
-  cncjConflictResult: ProcessingResult | null,
+  cncjConflictResult: CncjConflictResult | null,
   replacementCodes: { [key: string]: string },
   cncjReplacementCodes: { [key: string]: string },
   finalCode: string,
   referencePcgCode?: string
 ): CodeHistory => {
   const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
-  const step6Ids = new Set(cncjConflictResult?.duplicates?.map(d => d.id) || []);
+  const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
   
   const isStep4Duplicate = step4Ids.has(account.id);
   const isStep6Conflict = step6Ids.has(account.id);

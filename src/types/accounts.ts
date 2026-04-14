@@ -36,6 +36,11 @@ export interface ProcessingResult {
   toCreate: Account[];
 }
 
+export interface CncjConflictResult {
+  conflicts: Account[];
+  nonConflicts: Account[];
+}
+
 export interface FileUploadResult {
   accounts: Account[];
   errors: string[];
@@ -73,7 +78,7 @@ export interface AppState {
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   mergeInfo: MergeInfo[];
-  cncjConflictResult: ProcessingResult | null;
+  cncjConflictResult: CncjConflictResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjForcedValidations: Set<string>;
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
@@ -106,7 +111,7 @@ export type AppAction =
   | { type: 'SET_CNCJ_REPLACEMENT_CODE'; payload: { accountId: string; code: string } }
   | { type: 'CLEAR_CNCJ_REPLACEMENT_CODES' }
   | { type: 'SET_MERGE_INFO'; payload: MergeInfo[] }
-  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: ProcessingResult | null }
+  | { type: 'SET_CNCJ_CONFLICT_RESULT'; payload: CncjConflictResult | null }
   | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
   | { type: 'SET_CNCJ_FORCED_VALIDATION'; payload: { accountId: string; forced: boolean } }
   | { type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' }

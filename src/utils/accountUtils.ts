@@ -136,9 +136,7 @@ export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[]
     const key = `${account.number}-${account.title || ''}`;
     countMap.set(key, (countMap.get(key) || 0) + 1);
   });
-  
-  // countMap généré:
-  
+
   accounts.forEach(account => {
     // Créer une clé unique basée sur le numéro ET le titre
     const key = `${account.number}-${account.title || ''}`;
@@ -160,10 +158,7 @@ export const mergeIdenticalAccounts = (accounts: Account[]): { merged: Account[]
     }
     // Si la clé existe déjà, on ignore ce compte (fusionné dans le premier)
   });
-  
-  // mergeInfo final:
-  // Fusion terminée -
-  
+
   return { merged, mergeInfo };
 };
 

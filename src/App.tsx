@@ -4,7 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { NormalizationStep } from './components/NormalizationStep';
 import { Account, FileMetadata, AppState } from './types/accounts';
 import { processAccounts, mergeIdenticalAccounts } from './utils/accountUtils';
-import { cleanupFutureSteps } from './utils/stepCleanup';
+import { appReducer, initialState } from './reducers/appReducer';
 import { useStepValidation } from './hooks/useStepValidation';
 import { useAppNavigation } from './hooks/useAppNavigation';
 import { getStepConfig, getNextStep, getPreviousStep } from './config/stepsConfig';
@@ -20,167 +20,50 @@ import { Step7FinalSummary } from './steps/Step7FinalSummary';
 import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
-import { ProjectPersistence } from './components/ProjectPersistence';
-import { ClientNameInput } from './components/ClientNameInput';
-import { AppAction } from './types/accounts';
-import { APP_VERSION, formatVersion } from './utils/version';
+import { AppHeader } from './components/AppHeader';
 import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConflictUtils';
 import { calculateSuggestionsWithDetails } from './utils/codeSuggestions';
-
-const initialState: AppState = {
-  clientAccounts: [],
-  cncjAccounts: [],
-  generalAccounts: [],
-  clientFileInfo: null,
-  cncjFileInfo: null,
-  generalFileInfo: null,
-  result: null,
-  loading: false,
-  errors: [],
-  currentStep: 'step1',
-  replacementCodes: {},
-  cncjReplacementCodes: {},
-  mergeInfo: [],
-  cncjConflictResult: null,
-  cncjConflictCorrections: {},
-  cncjForcedValidations: new Set(),
-  finalFilter: 'all',
-  accountsNeedingNormalization: [],
-  isNormalizationApplied: false,
-  missingMetadata: {},
-  initialSuggestions: {},
-  initialCncjSuggestions: {},
-  clientName: '',
-  fileName: ''
-};
-
-
-const appReducer = (state: AppState, action: AppAction): AppState => {
-  switch (action.type) {
-    case 'SET_CLIENT_ACCOUNTS':
-      return { ...state, clientAccounts: action.payload };
-    case 'SET_CNCJ_ACCOUNTS':
-      return { ...state, cncjAccounts: action.payload };
-    case 'SET_GENERAL_ACCOUNTS':
-      return { ...state, generalAccounts: action.payload };
-    case 'SET_CLIENT_FILE_INFO':
-      return { ...state, clientFileInfo: action.payload };
-    case 'SET_CNCJ_FILE_INFO':
-      return { ...state, cncjFileInfo: action.payload };
-    case 'SET_GENERAL_FILE_INFO':
-      return { ...state, generalFileInfo: action.payload };
-    case 'SET_RESULT':
-      return { ...state, result: action.payload, loading: false };
-    case 'SET_LOADING':
-      return { ...state, loading: action.payload };
-    case 'SET_ERRORS':
-      return { ...state, errors: action.payload };
-    case 'CLEAR_ERRORS':
-      return { ...state, errors: [] };
-    case 'SET_CURRENT_STEP': {
-      const stepOrder = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'stepFinal'];
-      const currentIndex = stepOrder.indexOf(state.currentStep);
-      const targetIndex = stepOrder.indexOf(action.payload);
-      
-      if (targetIndex < currentIndex) {
-        // Navigation vers l'arrière - nettoyer les données des étapes futures
-        return cleanupFutureSteps(state, action.payload);
-      }
-      
-      return { ...state, currentStep: action.payload };
-    }
-    case 'SET_REPLACEMENT_CODE':
-      return { 
-        ...state, 
-        replacementCodes: { 
-          ...state.replacementCodes, 
-          [action.payload.accountId]: action.payload.code 
-        } 
-      };
-    case 'CLEAR_REPLACEMENT_CODES':
-      return { ...state, replacementCodes: {} };
-    case 'SET_CNCJ_REPLACEMENT_CODE':
-      return { 
-        ...state, 
-        cncjReplacementCodes: { 
-          ...state.cncjReplacementCodes, 
-          [action.payload.accountId]: action.payload.code 
-        } 
-      };
-    case 'CLEAR_CNCJ_REPLACEMENT_CODES':
-      return { ...state, cncjReplacementCodes: {} };
-    case 'SET_MERGE_INFO':
-      return { ...state, mergeInfo: action.payload };
-    case 'SET_CNCJ_CONFLICT_RESULT':
-      return { ...state, cncjConflictResult: action.payload };
-    case 'SET_CNCJ_CONFLICT_CORRECTIONS':
-      return { ...state, cncjConflictCorrections: action.payload };
-    case 'SET_CNCJ_FORCED_VALIDATION': {
-      const newForcedValidations = new Set(state.cncjForcedValidations);
-      if (action.payload.forced) {
-        newForcedValidations.add(action.payload.accountId);
-      } else {
-        newForcedValidations.delete(action.payload.accountId);
-      }
-      return { ...state, cncjForcedValidations: newForcedValidations };
-    }
-    case 'CLEAR_CNCJ_FORCED_VALIDATIONS':
-      return { ...state, cncjForcedValidations: new Set() };
-    case 'SET_FINAL_FILTER':
-      return { ...state, finalFilter: action.payload };
-    case 'SET_ACCOUNTS_NEEDING_NORMALIZATION':
-      return { ...state, accountsNeedingNormalization: action.payload };
-    case 'SET_NORMALIZATION_APPLIED':
-      return { ...state, isNormalizationApplied: action.payload };
-    case 'SET_MISSING_METADATA':
-      return { 
-        ...state, 
-        missingMetadata: { 
-          ...state.missingMetadata, 
-          ...action.payload 
-        } 
-      };
-    case 'SET_MISSING_METADATA_FIELD':
-      return { 
-        ...state, 
-        missingMetadata: { 
-          ...state.missingMetadata, 
-          [action.payload.accountId]: { 
-            ...(state.missingMetadata[action.payload.accountId] || {}), 
-            [action.payload.field]: action.payload.value 
-          } 
-        } 
-      };
-    case 'CLEAR_MISSING_METADATA':
-      return { ...state, missingMetadata: {} };
-    case 'SET_INITIAL_SUGGESTIONS':
-      return { ...state, initialSuggestions: action.payload };
-    case 'SET_INITIAL_CNCJ_SUGGESTIONS':
-      return { ...state, initialCncjSuggestions: action.payload };
-    case 'CLEAR_INITIAL_SUGGESTIONS':
-      return { ...state, initialSuggestions: {}, initialCncjSuggestions: {} };
-    case 'SET_CLIENT_NAME':
-      return { ...state, clientName: action.payload };
-    case 'SET_FILE_NAME':
-      return { ...state, fileName: action.payload };
-    default:
-      return state;
-  }
-};
 
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
   const [showImportFlow, setShowImportFlow] = useState(false);
 
+  const handleProjectLoaded = useCallback((newState: AppState) => {
+    if (newState.clientAccounts.length > 0 &&
+        newState.cncjAccounts.length > 0 &&
+        newState.generalAccounts.length > 0) {
+      const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
+      dispatch({ type: 'SET_RESULT', payload: result });
+
+      if (['step6', 'step7', 'stepFinal'].includes(newState.currentStep)) {
+        const mergedAccounts = newState.clientAccounts.map(account => {
+          const replacementCode = newState.replacementCodes[account.id];
+          return replacementCode?.trim() ? { ...account, number: replacementCode.trim() } : account;
+        });
+        const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
+        dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
+        if (Object.keys(newState.cncjConflictCorrections).length === 0) {
+          const corrections = autoCorrectCncjConflicts(cncjConflicts.conflicts, newState.cncjAccounts, mergedAccounts);
+          dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
+        }
+      }
+    }
+    if (newState.currentStep !== 'step1' ||
+        newState.clientAccounts.length > 0 ||
+        newState.cncjAccounts.length > 0 ||
+        newState.generalAccounts.length > 0) {
+      setShowImportFlow(true);
+    }
+  }, []);
+
   const processClientAccounts = useCallback((clientAccounts: Account[], cncjAccounts: Account[], generalAccounts: Account[] = []) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
-    // Simulate processing delay for better UX
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const result = processAccounts(clientAccounts, cncjAccounts, generalAccounts);
       dispatch({ type: 'SET_RESULT', payload: result });
-    }, 500);
+    });
   }, []);
 
   const handleFileLoaded = useCallback((accounts: Account[], source: 'client' | 'general' | 'cncj', fileInfo: FileMetadata) => {
@@ -420,77 +303,9 @@ const App: React.FC = () => {
         {/* Header - Only show when not in import flow */}
         {!showImportFlow && (
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">
-                🏦 Compte Processor
-              </h1>
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                {formatVersion(APP_VERSION)}
-              </span>
-            </div>
-            <p className="text-gray-600">
-              Import des comptes comptables client vers le plan comptable général et CNCJ
-            </p>
-            
-            {/* Project Persistence Controls */}
-            <div className="flex justify-center mt-4">
-              <ProjectPersistence
-                state={state}
-                dispatch={dispatch}
-                onProjectLoaded={(newState) => {
-                  // Recalculate processing results synchronously if we have all the data
-                  if (newState.clientAccounts.length > 0 && 
-                      newState.cncjAccounts.length > 0 && 
-                      newState.generalAccounts.length > 0) {
-                    
-                    // Calculate result synchronously
-                    const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
-                    dispatch({ type: 'SET_RESULT', payload: result });
-                    
-                    // If user was at step 6 or beyond, recalculate CNCJ conflicts
-                    if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
-                      // Calculate merged accounts with step 4 replacement codes
-                      const mergedAccounts = newState.clientAccounts.map(account => {
-                        const replacementCode = newState.replacementCodes[account.id];
-                        if (replacementCode?.trim()) {
-                          return { ...account, number: replacementCode.trim() };
-                        }
-                        return account;
-                      });
-                      
-                      // Calculate CNCJ conflicts
-                      const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
-                      dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
-                      
-                      // Only recalculate corrections if user hasn't made manual changes
-                      const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
-                      if (!hasManualCorrections) {
-                        const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
-                        dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
-                      }
-                    }
-                  }
-                  
-                  // Afficher le flux d'import si le projet a des données ou n'est pas à l'étape initiale
-                  if (newState.currentStep !== 'step1' || 
-                      newState.clientAccounts.length > 0 || 
-                      newState.cncjAccounts.length > 0 || 
-                      newState.generalAccounts.length > 0) {
-                    setShowImportFlow(true);
-                  }
-                }}
-              />
-            </div>
-            
-            {/* Client Name Input */}
-            <div className="flex justify-center mt-2">
-              <ClientNameInput
-                clientName={state.clientName}
-                onClientNameChange={(name) => dispatch({ type: 'SET_CLIENT_NAME', payload: name })}
-              />
-            </div>
-            
-            {/* New Choice Buttons */}
+            <AppHeader state={state} dispatch={dispatch} onProjectLoaded={handleProjectLoaded} variant="home" />
+
+            {/* Choice Buttons */}
             <div className="flex flex-col items-center gap-4 mt-8">
               <button
                 onClick={() => {
@@ -530,84 +345,8 @@ const App: React.FC = () => {
         {/* Import Flow Content - Only show when "Pour import FEC" is clicked */}
         {showImportFlow && (
           <>
-            {/* Header in Import Flow */}
             <div className="text-center mb-8">
-              <div className="flex items-center justify-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  🏦 Compte Processor
-                </h1>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                  {formatVersion(APP_VERSION)}
-                </span>
-              </div>
-              <p className="text-gray-600">
-                Import des comptes comptables client vers le plan comptable général et CNCJ
-              </p>
-              
-              {/* Project Persistence Controls */}
-              <div className="flex justify-center mt-4">
-                <ProjectPersistence
-                  state={state}
-                  dispatch={dispatch}
-                  onProjectLoaded={(newState) => {
-                    // Recalculate processing results synchronously if we have all the data
-                    if (newState.clientAccounts.length > 0 && 
-                        newState.cncjAccounts.length > 0 && 
-                        newState.generalAccounts.length > 0) {
-                      
-                      // Calculate result synchronously
-                      const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
-                      dispatch({ type: 'SET_RESULT', payload: result });
-                      
-                      // If user was at step 6 or beyond, recalculate CNCJ conflicts
-                      if (newState.currentStep === 'step6' || newState.currentStep === 'step7' || newState.currentStep === 'stepFinal') {
-                        // Calculate merged accounts with step 4 replacement codes
-                        const mergedAccounts = newState.clientAccounts.map(account => {
-                          const replacementCode = newState.replacementCodes[account.id];
-                          if (replacementCode?.trim()) {
-                            return { ...account, number: replacementCode.trim() };
-                          }
-                          return account;
-                        });
-                        
-                        // Calculate CNCJ conflicts
-                        const cncjConflicts = processCncjConflicts(mergedAccounts, newState.cncjAccounts);
-                        dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts });
-                        
-                        // Only recalculate corrections if user hasn't made manual changes
-                        const hasManualCorrections = Object.keys(newState.cncjConflictCorrections).length > 0;
-                        if (!hasManualCorrections) {
-                          const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, newState.cncjAccounts, mergedAccounts);
-                          dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections });
-                        }
-                      }
-                    }
-                    
-                    // Afficher le flux d'import si le projet a des données ou n'est pas à l'étape initiale
-                    if (newState.currentStep !== 'step1' || 
-                        newState.clientAccounts.length > 0 || 
-                        newState.cncjAccounts.length > 0 || 
-                        newState.generalAccounts.length > 0) {
-                      setShowImportFlow(true);
-                    }
-                  }}
-                />
-              </div>
-              
-              {/* Client Name Input */}
-              <div className="flex justify-center mt-2">
-                <ClientNameInput
-                  clientName={state.clientName}
-                  onClientNameChange={(name) => dispatch({ type: 'SET_CLIENT_NAME', payload: name })}
-                />
-              </div>
-              
-              {/* Import Title */}
-              <div className="mt-6 flex items-center justify-center">
-                <div className="px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium text-lg border-2 border-gray-300">
-                  📁 Pour import FEC
-                </div>
-              </div>
+              <AppHeader state={state} dispatch={dispatch} onProjectLoaded={handleProjectLoaded} variant="import" />
             </div>
             
             {/* Back Button */}

@@ -169,8 +169,6 @@ const saveWithFileSystemAccess = async (jsonString: string, filename?: string): 
     
     // Retourner le nom de fichier utilisé
     return fileHandle.name;
-    
-    // Projet sauvegardé avec File System Access API
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'AbortError') {
       // L'utilisateur a annulé la boîte de dialogue
@@ -337,12 +335,6 @@ export const loadProject = (file: File): Promise<ProjectFile> => {
           reject(new Error('Le fichier projet est corrompu ou a été modifié (checksum invalide)'));
           return;
         }
-        
-        // Projet chargé avec succès
-        // Comptes: ${projectFile.metadata.accountCounts.client} clients, ${projectFile.metadata.accountCounts.cncj} CNCJ, ${projectFile.metadata.accountCounts.general} généraux
-        // Créé le: ${new Date(projectFile.metadata.createdAt).toLocaleString()}
-        // Checksum vérifié: ${projectFile.metadata.checksum.substring(0, 16)}...
-        // Version du projet: ${projectFile.version}
         
         // Vérifier la compatibilité de version
         if (isNewerVersion(APP_VERSION, projectFile.version)) {

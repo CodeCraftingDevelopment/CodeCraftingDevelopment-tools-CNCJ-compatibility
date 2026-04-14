@@ -155,8 +155,6 @@ export const setupTestHelpers = (callbacks: {
   // Exposer les helpers globalement
   (window as any).__TEST_HELPERS__ = helpers;
 
-  // Logger pour le debugging
-  // Test helpers initialized:
 };
 
 /**

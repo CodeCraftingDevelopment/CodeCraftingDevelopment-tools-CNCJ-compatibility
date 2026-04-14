@@ -112,33 +112,7 @@ export function suggestNextCodeWithDetails(
  * @returns Le code suggéré ou null si aucun code n'est disponible (finit par 9)
  */
 export function suggestNextCode(originalCode: string, usedCodes: Set<string>): string | null {
-  // Vérifier si le code est vide ou non numérique
-  if (!originalCode || !/^\d+$/.test(originalCode)) {
-    return null;
-  }
-
-  const codeNumber = parseInt(originalCode, 10);
-  
-  // Si le code finit par 9, il n'y a pas de suggestion possible
-  const lastDigit = codeNumber % 10;
-  if (lastDigit === 9) {
-    return null;
-  }
-
-  // Calculer la base (dizaine) - ex: pour 145 => 140, pour 142 => 140
-  const base = Math.floor(codeNumber / 10) * 10;
-  const maxInRange = base + 9;
-
-  // Essayer chaque code dans la plage [codeNumber + 1, maxInRange]
-  for (let candidate = codeNumber + 1; candidate <= maxInRange; candidate++) {
-    const candidateStr = candidate.toString();
-    if (!usedCodes.has(candidateStr)) {
-      return candidateStr;
-    }
-  }
-
-  // Aucun code disponible dans la plage
-  return null;
+  return suggestNextCodeWithDetails(originalCode, usedCodes).code;
 }
 
 /**
@@ -170,12 +144,6 @@ export function calculateSuggestions(
       allUsedCodes.add(code.trim());
     }
   });
-
-  // DEBUG: Logger les codes utilisés pour le débogage
-  const relevantCodes = Array.from(allUsedCodes).filter(c => c.startsWith('467001')).sort();
-  if (relevantCodes.length > 0) {
-    // Codes utilisés commençant par 467001:
-  }
 
   // Grouper les doublons par code original
   const duplicatesByCode = new Map<string, Array<{ id: string; number: string }>>();

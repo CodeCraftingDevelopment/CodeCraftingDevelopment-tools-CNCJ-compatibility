@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { Account, ProcessingResult } from '../types/accounts';
+import { Account, ProcessingResult, CncjConflictResult } from '../types/accounts';
 import { normalizeAccountCode } from '../utils/accountUtils';
 
 interface UseStepValidationProps {
   result: ProcessingResult | null;
-  cncjConflictResult: ProcessingResult | null;
+  cncjConflictResult: CncjConflictResult | null;
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   cncjForcedValidations: Set<string>;
@@ -63,9 +63,9 @@ export const useStepValidation = ({
 
   // Calculer si tous les conflits CNCJ sont résolus
   const allCncjConflictsResolved = useMemo(() => {
-    if (!cncjConflictResult || cncjConflictResult.duplicates.length === 0) return true;
+    if (!cncjConflictResult || cncjConflictResult.conflicts.length === 0) return true;
     
-    const conflictIds = new Set(cncjConflictResult.duplicates.map(d => d.id));
+    const conflictIds = new Set(cncjConflictResult.conflicts.map(d => d.id));
     const codeOccurrences: { [key: string]: string[] } = {};
     
     // Calculer les occurrences de codes SEULEMENT pour les conflits CNCJ
@@ -82,7 +82,7 @@ export const useStepValidation = ({
     });
     
     // Obtenir tous les codes CNCJ (sauf les conflits en cours de résolution)
-    const cncjConflictCodes = new Set(cncjConflictResult.duplicates.map(d => d.number));
+    const cncjConflictCodes = new Set(cncjConflictResult.conflicts.map(d => d.number));
     const otherCncjCodes = cncjAccounts
       .filter(acc => !cncjConflictCodes.has(acc.number))
       .map(acc => acc.number);
@@ -95,7 +95,7 @@ export const useStepValidation = ({
     const allOtherCodes = new Set([...otherCncjCodes, ...otherClientCodes]);
     
     // Vérifier que tous les conflits CNCJ ont un code valide et unique
-    return cncjConflictResult.duplicates.every((account) => {
+    return cncjConflictResult.conflicts.every((account) => {
       // Skip validation if this account is forced
       if (cncjForcedValidations.has(account.id)) {
         return true;

@@ -1,10 +1,10 @@
 import React from 'react';
-import { ProcessingResult, Account } from '../types/accounts';
+import { CncjConflictResult, ProcessingResult, Account } from '../types/accounts';
 import { ResultsDisplay } from '../components/ResultsDisplay';
 import { SuggestionResult } from '../utils/codeSuggestions';
 
 interface Step6CNCJConflictsProps {
-  cncjConflictResult: ProcessingResult | null;
+  cncjConflictResult: CncjConflictResult | null;
   loading: boolean;
   cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
@@ -38,10 +38,16 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   initialSuggestions,
   initialCncjSuggestions
 }) => {
+  const adaptedResult: ProcessingResult | null = cncjConflictResult ? {
+    duplicates: cncjConflictResult.conflicts,
+    uniqueClients: cncjConflictResult.nonConflicts,
+    matches: [], unmatchedClients: [], toCreate: []
+  } : null;
+
   return (
     <ResultsDisplay
       key="step6"
-      result={cncjConflictResult} 
+      result={adaptedResult}
       loading={loading} 
       showOnly="duplicates"
       replacementCodes={cncjReplacementCodes}

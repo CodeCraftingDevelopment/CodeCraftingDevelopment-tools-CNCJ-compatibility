@@ -81,7 +81,7 @@ export const useAppNavigation = (
       dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: cncjConflicts })
 
       // Étape 2 : Générer les corrections automatiques
-      const corrections = autoCorrectCncjConflicts(cncjConflicts.duplicates, state.cncjAccounts, mergedClientAccounts)
+      const corrections = autoCorrectCncjConflicts(cncjConflicts.conflicts, state.cncjAccounts, mergedClientAccounts)
       dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: corrections })
     }
 

@@ -1,4 +1,4 @@
-import { Account, ProcessingResult } from '../types/accounts';
+import { Account, CncjConflictResult } from '../types/accounts';
 
 /**
  * Incrémente un code client avec contrainte (ne jamais passer à la dizaine supérieure)
@@ -75,29 +75,19 @@ export const autoCorrectCncjConflicts = (
 /**
  * Traiter les conflits CNCJ (comptes fusionnés qui existent dans CNCJ)
  */
-export const processCncjConflicts = (mergedClientAccounts: Account[], cncjAccounts: Account[]): ProcessingResult => {
-  // Utiliser les codes CNCJ tels quels (données de référence avec isCNCJ=true)
+export const processCncjConflicts = (mergedClientAccounts: Account[], cncjAccounts: Account[]): CncjConflictResult => {
   const cncjCodes = new Set(cncjAccounts.map(acc => acc.number));
-  
-  // Identifier les comptes clients qui sont en conflit avec les codes CNCJ
+
   const conflicts: Account[] = [];
   const nonConflicts: Account[] = [];
-  
+
   mergedClientAccounts.forEach(clientAccount => {
-    // Les comptes clients sont déjà normalisés à 7 chiffres à l'étape 3
     if (cncjCodes.has(clientAccount.number)) {
       conflicts.push(clientAccount);
     } else {
       nonConflicts.push(clientAccount);
     }
   });
-  
-  // Retourner un résultat compatible avec l'interface existante
-  return {
-    duplicates: conflicts, // Les conflits CNCJ sont traités comme des "doublons"
-    uniqueClients: nonConflicts,
-    matches: [], // Pas de correspondances pertinentes pour cette étape
-    unmatchedClients: [], // Pas de non-correspondances pertinentes pour cette étape
-    toCreate: [] // Pas de comptes à créer pour cette étape
-  };
+
+  return { conflicts, nonConflicts };
 };
