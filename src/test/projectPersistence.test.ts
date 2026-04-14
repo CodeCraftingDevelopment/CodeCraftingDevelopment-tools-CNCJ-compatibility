@@ -9,7 +9,7 @@ import {
 describe('projectPersistence', () => {
   describe('validateProjectFile', () => {
     const validProjectFile = {
-      version: '2.2.0',
+      version: '2.2.1',
       metadata: {
         createdAt: '2024-01-01T00:00:00.000Z',
         checksum: 'abc123',
@@ -136,7 +136,7 @@ describe('projectPersistence', () => {
   describe('projectFileToAppState', () => {
     it('should convert cncjForcedValidations array to Set', () => {
       const projectFile = {
-        version: '2.2.0',
+        version: '2.2.1',
         metadata: { createdAt: '', checksum: '', accountCounts: { client: 0, cncj: 0, general: 0 } },
         data: {
           clientAccounts: [],
@@ -170,7 +170,7 @@ describe('projectPersistence', () => {
 
     it('should default missing optional fields', () => {
       const projectFile = {
-        version: '2.2.0',
+        version: '2.2.1',
         metadata: { createdAt: '', checksum: '', accountCounts: { client: 0, cncj: 0, general: 0 } },
         data: {
           clientAccounts: [],
@@ -205,7 +205,7 @@ describe('projectPersistence', () => {
 
     it('should always set result and cncjConflictResult to null', () => {
       const projectFile = {
-        version: '2.2.0',
+        version: '2.2.1',
         metadata: { createdAt: '', checksum: '', accountCounts: { client: 0, cncj: 0, general: 0 } },
         data: {
           clientAccounts: [],
