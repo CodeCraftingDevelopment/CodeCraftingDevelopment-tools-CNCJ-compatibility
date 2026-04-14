@@ -215,9 +215,9 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
               <div className="bg-purple-100 rounded-lg p-3">
                 <h4 className="text-sm font-semibold text-purple-700 mb-2">📋 Règles de traitement :</h4>
                 <ul className="text-xs text-purple-600 space-y-1">
-                  <li>• <strong>Algorithme:</strong> Héritage PCG par préfixe (4 premiers chiffres)</li>
+                  <li>• <strong>Algorithme:</strong> Héritage PCG par préfixe (4 premiers chiffres), comptes de 5 digits minimum</li>
                   <li>• <strong>Calcul:</strong> Différence numérique minimale pour trouver le compte PCG le plus proche</li>
-                  <li>• <strong>Logique:</strong> <code>code.substring(0, 4)</code> pour regrouper les comptes PCG</li>
+                  <li>• <strong>Logique:</strong> <code>code.substring(0, 4)</code> pour regrouper les comptes PCG (les comptes vues à 3-4 chiffres sont exclus)</li>
                   <li>• <strong>Métadonnées:</strong> Héritage automatique des données du compte PCG correspondant</li>
                   <li>• <strong>Exportation:</strong> Finalisation des données complètes et corrigées</li>
                 </ul>

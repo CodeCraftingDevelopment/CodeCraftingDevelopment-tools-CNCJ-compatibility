@@ -51,14 +51,16 @@ export const computeFinalCode = (
 
 /**
  * Trouver le compte PCG le plus proche par différence numérique minimale
+ * Ne pas descendre en dessous de 5 digits - les comptes à 4 ou 3 caractères sont des comptes vues
  */
 export const findClosestPcgMatch = (
   code: string,
   pcgAccountsByPrefix: Map<string, Account[]>
 ): Account | null => {
+  if (code.length < 5) return null;
   const codeNum = parseInt(code);
   if (isNaN(codeNum)) return null;
-  
+
   const prefix = code.substring(0, 4);
   const matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
   
@@ -138,7 +140,7 @@ export const preparePcgLookups = (generalAccounts: Account[]) => {
   const pcgAccountsByPrefix = new Map<string, Account[]>();
   generalAccounts.forEach(account => {
     const codeNum = parseInt(account.number);
-    if (!isNaN(codeNum) && account.number.length >= 4) {
+    if (!isNaN(codeNum) && account.number.length >= 5) {
       const prefix = account.number.substring(0, 4);
       if (!pcgAccountsByPrefix.has(prefix)) {
         pcgAccountsByPrefix.set(prefix, []);

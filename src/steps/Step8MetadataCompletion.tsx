@@ -225,7 +225,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         
         let inheritedData: AccountMetadata = {};
         
-        if (code.length >= 4) {
+        if (code.length >= 5) {
           const prefix = code.substring(0, 4);
           const codeNum = parseInt(code);
           
@@ -329,7 +329,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     const pcgAccountsByPrefix = new Map<string, Account[]>();
     generalAccounts.forEach(account => {
       const codeNum = parseInt(account.number);
-      if (!isNaN(codeNum) && account.number.length >= 4) {
+      if (!isNaN(codeNum) && account.number.length >= 5) {
         const prefix = account.number.substring(0, 4);
         if (!pcgAccountsByPrefix.has(prefix)) {
           pcgAccountsByPrefix.set(prefix, []);
@@ -347,7 +347,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       let matchingPcgAccounts: Account[] = [];
       let referencePcgCode: string | undefined;
 
-      if (!isInPcg && finalCode.length >= 4) {
+      if (!isInPcg && finalCode.length >= 5) {
         const prefix = finalCode.substring(0, 4);
         const codeNum = parseInt(finalCode);
         
