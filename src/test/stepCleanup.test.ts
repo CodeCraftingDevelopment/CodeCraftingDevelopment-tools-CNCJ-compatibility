@@ -23,7 +23,7 @@ describe('stepCleanup', () => {
     finalFilter: 'step4',
     accountsNeedingNormalization: [{ id: 'n1', originalNumber: '10001234', normalizedNumber: '1000123' }],
     isNormalizationApplied: true,
-    missingMetadata: {},
+    missingMetadata: { 'a-1': { parent_code: '108' } },
     svvCorrespondences: {},
     svvFileInfo: null,
     initialSuggestions: {},
@@ -46,6 +46,7 @@ describe('stepCleanup', () => {
       expect(result.finalFilter).toBe('all');
       expect(result.accountsNeedingNormalization).toEqual([]);
       expect(result.isNormalizationApplied).toBe(false);
+      expect(result.missingMetadata).toEqual({});
     })
 
     it('should reset from step4 onward when navigating to step4', () => {
@@ -59,6 +60,8 @@ describe('stepCleanup', () => {
       expect(result.finalFilter).toBe('all');
       // replacementCodes should NOT be reset at step4
       expect(result.replacementCodes).toEqual({ 'a-1': '142' });
+      // missingMetadata should NOT be reset at step4 (mêmes comptes, on préserve)
+      expect(result.missingMetadata).toEqual({ 'a-1': { parent_code: '108' } });
     })
 
     it('should only reset finalFilter when navigating to step6', () => {

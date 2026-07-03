@@ -1,16 +1,19 @@
 import { useCallback, useState } from 'react';
 import { Account, FileMetadata, AccountMetadata } from '../types/accounts';
 import { formatFileSize } from '../utils/fileUtils';
+import { preparePcgLookups, inheritPcgMetadata, normalizeForDisplay, MANUAL_PCG_REFERENCE_KEY, UNRESOLVED_PCG_REFERENCE_KEY } from '../utils/accountMatchingUtils';
 
 interface UseMetadataImportProps {
   _accountsNeedingMetadata: Account[];
   metadataFields: Array<{ key: string; label: string; type: string; options?: string[] }>;
+  generalAccounts: Account[];
   onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
 
 export const useMetadataImport = ({
   _accountsNeedingMetadata,
   metadataFields,
+  generalAccounts,
   onMetadataChange
 }: UseMetadataImportProps) => {
   const [metadataFileInfo, setMetadataFileInfo] = useState<FileMetadata | null>(null);
@@ -67,24 +70,59 @@ export const useMetadataImport = ({
         // Parser les données
         const metadataUpdates: { [accountId: string]: Record<string, string | number | boolean | null> } = {};
         let processedCount = 0;
-        
+
+        // Lookup des comptes PCG (par code) pour l'héritage automatique via referencePcgCode
+        const { pcgLookup } = preparePcgLookups(generalAccounts);
+        const idIndex = headers.indexOf('id');
+        const referenceIndex = headers.indexOf('referencePcgCode');
+        const closestMatchIndex = headers.indexOf('hasClosestMatch');
+
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(';').map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"'));
-          
+
           if (values.length < 4) continue;
-          
-          const accountId = values[headers.indexOf('id')];
-          
-          // Extraire les métadonnées (colonnes après les 4 premières)
+
+          const accountId = values[idIndex];
+          if (!accountId) continue;
+
           const metadata: Record<string, string | number | boolean | null> = {};
+
+          // Pour les lignes sans correspondance automatique (hasClosestMatch = false) qui
+          // renseignent un referencePcgCode : hériter automatiquement des paramètres de ce compte PCG.
+          const referencePcgCode = referenceIndex >= 0 ? (values[referenceIndex] || '').trim() : '';
+          const hasClosestMatch = closestMatchIndex >= 0
+            ? (values[closestMatchIndex] || '').trim().toLowerCase() === 'true'
+            : true;
+
+          let inheritedFromReference = false;
+          if (referencePcgCode && !hasClosestMatch) {
+            const pcgAccount = pcgLookup.get(referencePcgCode)
+              || pcgLookup.get(normalizeForDisplay(referencePcgCode));
+            if (pcgAccount) {
+              const { inheritedData } = inheritPcgMetadata(pcgAccount);
+              Object.assign(metadata, inheritedData);
+              // Marquer le compte comme retraité (conserve le code PCG de référence)
+              metadata[MANUAL_PCG_REFERENCE_KEY] = pcgAccount.number;
+              inheritedFromReference = true;
+            } else {
+              // Référence PCG saisie mais introuvable dans le PCG chargé → à identifier/corriger
+              metadata[UNRESOLVED_PCG_REFERENCE_KEY] = referencePcgCode;
+            }
+          }
+
+          // Colonnes de métadonnées explicites du fichier.
+          // En cas d'héritage par référence, ne pas écraser l'héritage avec des cellules vides.
           metadataFields.forEach(field => {
             const fieldIndex = headers.indexOf(field.key);
             if (fieldIndex >= 0 && values[fieldIndex] !== undefined) {
-              metadata[field.key] = values[fieldIndex];
+              const value = values[fieldIndex];
+              if (!inheritedFromReference || value !== '') {
+                metadata[field.key] = value;
+              }
             }
           });
-          
-          if (accountId && Object.keys(metadata).length > 0) {
+
+          if (Object.keys(metadata).length > 0) {
             metadataUpdates[accountId] = metadata;
             processedCount++;
           }
@@ -123,7 +161,7 @@ export const useMetadataImport = ({
     };
     
     reader.readAsText(file, 'utf-8');
-  }, [metadataFields, onMetadataChange]);
+  }, [metadataFields, generalAccounts, onMetadataChange]);
 
   const handleClearMetadataFile = useCallback(() => {
     setMetadataFileInfo(null);

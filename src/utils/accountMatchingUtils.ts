@@ -6,6 +6,22 @@ import { toAccountMetadata } from './typeGuards';
  */
 export type ModificationSource = 'step4' | 'step6' | 'step4+step6' | null;
 
+/**
+ * Clé réservée stockée dans les métadonnées d'un compte pour marquer qu'il a été
+ * retraité manuellement via un referencePcgCode lors de l'import (étape 8).
+ * Sa valeur est le code PCG de référence saisi manuellement.
+ * Non listée dans metadataFields → ignorée par les cartes éditables et les exports.
+ */
+export const MANUAL_PCG_REFERENCE_KEY = '__manualPcgReference';
+
+/**
+ * Clé réservée stockée à l'import quand une ligne renseigne un referencePcgCode qui
+ * n'existe PAS dans le PCG chargé (aucune correspondance possible). Sa valeur est le
+ * code saisi. Permet d'identifier visuellement ces lignes à corriger.
+ * Non listée dans metadataFields → ignorée par les cartes éditables et les exports.
+ */
+export const UNRESOLVED_PCG_REFERENCE_KEY = '__unresolvedPcgReference';
+
 export interface CodeHistory {
   originalCode: string; // Code original 8 chiffres
   normalizedCode: string; // Code normalisé 7 chiffres

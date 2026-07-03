@@ -16,6 +16,7 @@ interface SummaryRow {
   isStep4Duplicate: boolean;
   isStep6Conflict: boolean;
   isToCreate: boolean;
+  isForced: boolean;
 }
 
 interface Step7FinalSummaryProps {
@@ -25,6 +26,7 @@ interface Step7FinalSummaryProps {
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   cncjConflictCorrections: { [key: string]: string | 'error' };
+  cncjForcedValidations: Set<string>;
   mergedClientAccounts: Account[];
   generalAccounts: Account[];
   finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
@@ -40,6 +42,7 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   replacementCodes,
   cncjReplacementCodes,
   cncjConflictCorrections,
+  cncjForcedValidations,
   mergedClientAccounts,
   generalAccounts: _generalAccounts,
   finalFilter,
@@ -58,7 +61,8 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
     const isStep4Duplicate = step4Ids.has(account.id);
     const isStep6Conflict = step6Ids.has(account.id);
     const isToCreate = toCreateIds.has(account.id);
-    
+    const isForced = cncjForcedValidations.has(account.id);
+
     let modificationSource: ModificationSource = null;
     if (isStep4Duplicate && isStep6Conflict) {
       modificationSource = 'step4+step6';
@@ -83,11 +87,12 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
       originalCode: getDisplayCode(account),
       correctedCode: correctedCode,
       cncjCorrection: cncjCorrection,
-      wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined,
+      wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined || isForced,
       modificationSource,
       isStep4Duplicate,
       isStep6Conflict,
-      isToCreate
+      isToCreate,
+      isForced
     };
   });
 
@@ -105,12 +110,16 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
 
   const computeFinalCode = (row: SummaryRow): string => {
     if (row.modificationSource === 'step4+step6') {
+      // Validation forcée sans code CNCJ saisi → conserver le code issu de l'étape 4 (normalisé)
+      if (row.isForced && row.cncjCorrection === '-') return row.correctedCode;
       return row.cncjCorrection === 'Erreur' ? row.correctedCode : row.cncjCorrection;
     }
     if (row.modificationSource === 'step4') {
       return row.correctedCode;
     }
     if (row.modificationSource === 'step6') {
+      // Validation forcée → accepter le code normalisé (7 chiffres) tel quel
+      if (row.isForced) return row.correctedCode;
       return row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
     }
     return row.correctedCode || row.originalCode;
@@ -172,6 +181,10 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
 
     if (row.modificationSource === 'step6' || row.modificationSource === 'step4+step6') {
       badges.push({ label: 'Correction CNCJ', className: 'bg-orange-600 text-white' });
+    }
+
+    if (row.isForced) {
+      badges.push({ label: '🔒 Validation forcée', className: 'bg-blue-600 text-white' });
     }
 
     if (!row.modificationSource && row.wasModified) {

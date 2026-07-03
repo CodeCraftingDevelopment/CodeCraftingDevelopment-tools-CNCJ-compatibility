@@ -207,6 +207,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // State pour inclure les données de l'étape 4 dans l'export de l'étape 6
   const [includeStep4InExport, setIncludeStep4InExport] = useState(false);
 
+  // Conflits CNCJ pouvant être forcés (étape 6) : champ de remplacement vide et pas déjà forcés.
+  // Forcer = accepter le code normalisé (7 chiffres) tel quel, sans modification.
+  const forceableCncjConflicts = conflictType === 'cncj-conflicts'
+    ? duplicates.filter(d => !replacementCodes[d.id]?.trim() && !cncjForcedValidations.has(d.id))
+    : [];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -363,6 +369,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           >
             ✨ Valider les suggestions
           </button>
+
+          {/* Bouton pour forcer toutes les validations avec les codes normalisés - étape 6 uniquement */}
+          {conflictType === 'cncj-conflicts' && onCncjForcedValidationChange && (
+            <button
+              onClick={() => {
+                // Forcer la validation des conflits non résolus (champ vide, pas déjà forcés)
+                forceableCncjConflicts.forEach(conflict => {
+                  onCncjForcedValidationChange(conflict.id, true);
+                });
+              }}
+              disabled={forceableCncjConflicts.length === 0}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              title={forceableCncjConflicts.length > 0
+                ? `Forcer la validation de ${forceableCncjConflicts.length} conflit(s) avec leur code normalisé (7 chiffres)`
+                : 'Aucun conflit à forcer (tous déjà résolus ou forcés)'}
+            >
+              🔒 Tout forcer (codes normalisés)
+            </button>
+          )}
         </div>
       )}
 
