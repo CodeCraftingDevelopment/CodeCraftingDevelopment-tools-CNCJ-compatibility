@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react';
-import { FileMetadata } from '../types/accounts';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FileMetadata, Account } from '../types/accounts';
 import { parseSvvCorrespondences } from '../utils/accountUtils';
+import { normalizeForDisplay } from '../utils/accountMatchingUtils';
 import { formatFileSize, validateFileSize } from '../utils/fileUtils';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from './DropZone';
@@ -8,6 +9,7 @@ import { DropZone } from './DropZone';
 interface SvvUploaderProps {
   fileInfo: FileMetadata | null;
   correspondences: { [compteEncheres: string]: string };
+  generalAccounts: Account[];
   disabled?: boolean;
   onLoaded: (correspondences: { [compteEncheres: string]: string }, fileInfo: FileMetadata) => void;
   onCleared: () => void;
@@ -16,13 +18,28 @@ interface SvvUploaderProps {
 export const SvvUploader: React.FC<SvvUploaderProps> = ({
   fileInfo,
   correspondences,
+  generalAccounts,
   disabled = false,
   onLoaded,
   onCleared
 }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // Mode d'aperçu : toutes les correspondances, ou seulement les cibles absentes du PCG
+  const [previewMode, setPreviewMode] = useState<'all' | 'missing'>('all');
   // Fichier SVV optionnel : les problèmes sont affichés localement et ne bloquent JAMAIS le flux.
   const [localMessage, setLocalMessage] = useState<string>('');
+
+  // Codes existants dans le fichier PCG (comptes PCG + CNCJ), pour vérifier les cibles SVV
+  const pcgCodes = useMemo(
+    () => new Set(generalAccounts.map(a => normalizeForDisplay(a.number))),
+    [generalAccounts]
+  );
+  // Correspondances dont la cible (2e colonne) n'existe PAS dans le PCG chargé
+  const missingTargets = useMemo(
+    () => Object.entries(correspondences).filter(([, target]) => !pcgCodes.has(normalizeForDisplay(target))),
+    [correspondences, pcgCodes]
+  );
+  const pcgLoaded = generalAccounts.length > 0;
 
   const processFile = useCallback(async (file: File) => {
     setLocalMessage('');
@@ -79,13 +96,17 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
     }
   }, [onLoaded]);
 
+  // L'import SVV n'est possible que si le PCG (avec CNCJ) est chargé (référence des cibles)
+  const effectiveDisabled = disabled || !pcgLoaded;
+
   const { dragState, fileInputRef, handlers } = useDragAndDrop({
-    disabled,
+    disabled: effectiveDisabled,
     onDrop: processFile,
     acceptedTypes: ['.csv']
   });
 
   const entries = Object.entries(correspondences);
+  const previewEntries = previewMode === 'missing' ? missingTargets : entries;
 
   return (
     <div className="mb-4 w-full" data-testid="file-uploader-svv">
@@ -97,7 +118,7 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
 
       <DropZone
         dragState={dragState}
-        disabled={disabled}
+        disabled={effectiveDisabled}
         loading={fileInfo?.loadStatus === 'loading'}
         fileInfo={fileInfo}
         onDragOver={handlers.handleDragOver}
@@ -114,7 +135,7 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
           type="file"
           accept=".csv"
           onChange={handlers.handleFileChange}
-          disabled={disabled || fileInfo?.loadStatus === 'loading'}
+          disabled={effectiveDisabled || fileInfo?.loadStatus === 'loading'}
           className="sr-only"
           data-testid="file-input-svv"
         />
@@ -127,8 +148,14 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
               </svg>
             </div>
             <div className="text-sm text-gray-600">
-              <p className="font-medium text-xs sm:text-sm">Glissez-déposez le fichier de correspondances SVV</p>
-              <p className="text-xs">ou cliquez pour parcourir</p>
+              {pcgLoaded ? (
+                <>
+                  <p className="font-medium text-xs sm:text-sm">Glissez-déposez le fichier de correspondances SVV</p>
+                  <p className="text-xs">ou cliquez pour parcourir</p>
+                </>
+              ) : (
+                <p className="font-medium text-xs sm:text-sm text-gray-500">Chargez d'abord le fichier « PCG avec CNCJ » pour activer cet import</p>
+              )}
             </div>
           </div>
         )}
@@ -181,11 +208,28 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
                 : `${fileInfo.rowCount} correspondance${fileInfo.rowCount > 1 ? 's' : ''} SVV chargée${fileInfo.rowCount > 1 ? 's' : ''}`}
             </div>
 
+            {/* Vérification : la cible (2e colonne) doit exister dans le fichier PCG */}
+            {entries.length > 0 && (
+              !pcgLoaded ? (
+                <div className="text-xs text-gray-500 text-center">Chargez le fichier PCG pour vérifier l'existence des cibles.</div>
+              ) : missingTargets.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => { setPreviewMode('missing'); setIsPreviewOpen(true); }}
+                  className="block w-full text-center text-sm text-orange-700 font-medium hover:text-orange-900 underline decoration-dotted underline-offset-2"
+                >
+                  ⚠️ {missingTargets.length} cible{missingTargets.length > 1 ? 's' : ''} absente{missingTargets.length > 1 ? 's' : ''} du PCG — 👁 Consulter
+                </button>
+              ) : (
+                <div className="text-sm text-green-600 text-center">✓ Toutes les cibles existent dans le PCG</div>
+              )
+            )}
+
             {entries.length > 0 && (
               <div className="flex justify-center space-x-2">
                 <button
                   type="button"
-                  onClick={() => setIsPreviewOpen(true)}
+                  onClick={() => { setPreviewMode('all'); setIsPreviewOpen(true); }}
                   className="px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full hover:bg-green-100 transition-colors"
                 >
                   Consulter les correspondances
@@ -216,8 +260,21 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Correspondances SVV</h3>
-                <p className="text-sm text-gray-500 mt-1">{entries.length} correspondance{entries.length > 1 ? 's' : ''}</p>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {previewMode === 'missing' ? '⚠️ Cibles SVV absentes du PCG' : 'Correspondances SVV'}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {previewMode === 'missing'
+                    ? `${previewEntries.length} cible${previewEntries.length > 1 ? 's' : ''} sans compte correspondant dans le PCG`
+                    : (
+                      <>
+                        {entries.length} correspondance{entries.length > 1 ? 's' : ''}
+                        {pcgLoaded && missingTargets.length > 0 && (
+                          <span className="text-orange-600"> · {missingTargets.length} cible{missingTargets.length > 1 ? 's' : ''} absente{missingTargets.length > 1 ? 's' : ''} du PCG</span>
+                        )}
+                      </>
+                    )}
+                </p>
               </div>
               <button onClick={() => setIsPreviewOpen(false)} className="text-gray-400 hover:text-gray-600" aria-label="Fermer">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,15 +288,26 @@ export const SvvUploader: React.FC<SvvUploaderProps> = ({
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Compte Enchères</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Correspondance</th>
+                    {pcgLoaded && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dans le PCG</th>}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {entries.map(([source, target]) => (
-                    <tr key={source} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 font-mono text-gray-600">{source}</td>
-                      <td className="px-4 py-2 font-mono text-gray-900">{target}</td>
-                    </tr>
-                  ))}
+                  {previewEntries.map(([source, target]) => {
+                    const inPcg = pcgCodes.has(normalizeForDisplay(target));
+                    return (
+                      <tr key={source} className={pcgLoaded && !inPcg ? 'bg-orange-50' : 'hover:bg-gray-50'}>
+                        <td className="px-4 py-2 font-mono text-gray-600">{source}</td>
+                        <td className={`px-4 py-2 font-mono ${pcgLoaded && !inPcg ? 'text-orange-700 font-semibold' : 'text-gray-900'}`}>{target}</td>
+                        {pcgLoaded && (
+                          <td className="px-4 py-2 text-xs">
+                            {inPcg
+                              ? <span className="text-green-600">✓ présent</span>
+                              : <span className="text-orange-700 font-semibold">✗ absent</span>}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

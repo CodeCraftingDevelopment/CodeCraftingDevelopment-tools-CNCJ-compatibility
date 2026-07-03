@@ -33,6 +33,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [invalidRows, setInvalidRows] = useState<InvalidRow[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isCncjPreviewOpen, setIsCncjPreviewOpen] = useState(false);
+  // Pour le PCG : true si la colonne isCNCJ est absente (avertissement bloquant)
+  const [cncjColumnMissing, setCncjColumnMissing] = useState(false);
+
+  // Sous-ensemble des comptes CNCJ (colonne isCNCJ = true), pour la consultation dédiée (PCG uniquement)
+  const cncjSubset = source === 'general'
+    ? loadedAccounts.filter(acc => String(acc.rawData?.isCNCJ).toLowerCase() === 'true')
+    : [];
 
   const processFile = useCallback(async (file: File) => {
     // Validate file size first
@@ -63,6 +71,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     setLocalErrors([]);
     setInvalidRows([]);
     setIsModalOpen(false);
+    setCncjColumnMissing(false);
     onFileLoaded([], source, loadingFileInfo);
 
     try {
@@ -103,14 +112,20 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         ...acc,
         source: source // Conserver la source pour les fichiers séparés
       }));
-      
+
+      // PCG : la colonne isCNCJ est obligatoire (les comptes CNCJ en sont dérivés).
+      // Son absence est un avertissement bloquant (la progression est stoppée par canProceed).
+      const cncjColumnAbsent = source === 'general' &&
+        !result.accounts.some(a => a.rawData && Object.prototype.hasOwnProperty.call(a.rawData, 'isCNCJ'));
+      setCncjColumnMissing(cncjColumnAbsent);
+
       const finalFileInfo: FileMetadata = {
         name: file.name,
         size: formatFileSize(file.size),
         rowCount: importedCount,
         totalRows,
         skippedRows: discrepancy,
-        loadStatus: hasErrors || hasDiscrepancy ? 'warning' : 'success'
+        loadStatus: hasErrors || hasDiscrepancy || cncjColumnAbsent ? 'warning' : 'success'
       };
       
       const feedbackMessages = [...result.errors];
@@ -154,6 +169,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     setLocalErrors([]);
     setInvalidRows([]);
     setIsModalOpen(false);
+    setIsCncjPreviewOpen(false);
+    setCncjColumnMissing(false);
   }, [onFileCleared, source]);
 
   const downloadTemplate = useCallback(() => {
@@ -297,9 +314,20 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               'text-red-600'
             }`}>
               {fileInfo.loadStatus === 'success' && `${fileInfo.rowCount} comptes chargés avec succès`}
-              {fileInfo.loadStatus === 'warning' && `Import partiel: ${fileInfo.rowCount} compte${fileInfo.rowCount > 1 ? 's' : ''} importé${fileInfo.rowCount > 1 ? 's' : ''}`}
+              {fileInfo.loadStatus === 'warning' && (
+                cncjColumnMissing && !(fileInfo.skippedRows && fileInfo.skippedRows > 0)
+                  ? `${fileInfo.rowCount} compte${fileInfo.rowCount > 1 ? 's' : ''} chargé${fileInfo.rowCount > 1 ? 's' : ''}`
+                  : `Import partiel: ${fileInfo.rowCount} compte${fileInfo.rowCount > 1 ? 's' : ''} importé${fileInfo.rowCount > 1 ? 's' : ''}`
+              )}
               {fileInfo.loadStatus === 'error' && 'Échec du chargement'}
             </div>
+
+            {source === 'general' && cncjColumnMissing && (
+              <div className="text-sm text-orange-800 bg-orange-50 border border-orange-300 rounded p-2">
+                ⚠️ Colonne <span className="font-mono">isCNCJ</span> absente : un fichier « PCG avec CNCJ » est requis.
+                Impossible de continuer tant qu'elle n'est pas présente.
+              </div>
+            )}
 
             {fileInfo.skippedRows !== undefined && fileInfo.skippedRows > 0 && (
               <div className="text-xs text-orange-600">
@@ -333,8 +361,22 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                Consulter les données
+                {source === 'general' ? 'Consulter les comptes PCG' : 'Consulter les données'}
               </button>
+              {source === 'general' && (
+                <button
+                  type="button"
+                  onClick={() => setIsCncjPreviewOpen(true)}
+                  className="px-3 py-1 text-xs bg-orange-50 text-orange-700 rounded-full hover:bg-orange-100 transition-colors flex items-center gap-1"
+                  data-testid="preview-cncj"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Consulter les comptes CNCJ ({cncjSubset.length})
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handlers.handleButtonClick}
@@ -349,8 +391,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       </DropZone>
       
       <p className="mt-2 text-xs text-gray-500 text-center">
-        {source === 'general' 
-          ? "Format CSV attendu: fichier Comptes_PCG avec colonnes (code, name) sans isCNCJ"
+        {source === 'general'
+          ? "Format CSV attendu: fichier PCG+CNCJ au format Axelor (colonnes code, name, …, isCNCJ)"
           : source === 'cncj'
           ? "Format CSV attendu: fichier Comptes_CNCJ avec colonnes (code, name)"
           : "Format CSV attendu: deux colonnes - numéros de comptes (numériques) et titres (texte)"
@@ -371,6 +413,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
           accounts={loadedAccounts}
           fileName={fileInfo?.name || 'fichier.csv'}
           onClose={() => setIsPreviewModalOpen(false)}
+        />
+      )}
+
+      {isCncjPreviewOpen && (
+        <DataPreviewModal
+          accounts={cncjSubset}
+          fileName={`Comptes CNCJ — ${fileInfo?.name || 'PCG'}`}
+          onClose={() => setIsCncjPreviewOpen(false)}
         />
       )}
     </div>

@@ -6,7 +6,6 @@ import { FileMetadata, Account } from '../types/accounts';
 interface Step1FileUploadProps {
   clientFileInfo: FileMetadata | null;
   generalFileInfo: FileMetadata | null;
-  cncjFileInfo: FileMetadata | null;
   svvFileInfo: FileMetadata | null;
   svvCorrespondences: { [compteEncheres: string]: string };
   loading: boolean;
@@ -17,13 +16,11 @@ interface Step1FileUploadProps {
   onError: (errors: string[]) => void;
   clientAccounts?: Account[];
   generalAccounts?: Account[];
-  cncjAccounts?: Account[];
 }
 
 export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
   clientFileInfo,
   generalFileInfo,
-  cncjFileInfo,
   svvFileInfo,
   svvCorrespondences,
   loading,
@@ -33,8 +30,7 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
   onSvvCleared,
   onError,
   clientAccounts = [],
-  generalAccounts = [],
-  cncjAccounts = []
+  generalAccounts = []
 }) => {
   return (
     <>
@@ -53,27 +49,17 @@ export const Step1FileUpload: React.FC<Step1FileUploadProps> = ({
         onFileLoaded={onFileLoaded}
         onFileCleared={onFileCleared}
         onError={onError}
-        label="📊 Fichier Comptes_PCG (plan comptable général)"
+        label="📊 Fichier comptes PCG avec CNCJ"
         source="general"
         disabled={loading}
         fileInfo={generalFileInfo}
         loadedAccounts={generalAccounts}
       />
-      
-      <FileUploader
-        onFileLoaded={onFileLoaded}
-        onFileCleared={onFileCleared}
-        onError={onError}
-        label="🎯 Fichier Comptes_CNCJ (comptes homologués CNCJ)"
-        source="cncj"
-        disabled={loading}
-        fileInfo={cncjFileInfo}
-        loadedAccounts={cncjAccounts}
-      />
 
       <SvvUploader
         fileInfo={svvFileInfo}
         correspondences={svvCorrespondences}
+        generalAccounts={generalAccounts}
         disabled={loading}
         onLoaded={onSvvLoaded}
         onCleared={onSvvCleared}

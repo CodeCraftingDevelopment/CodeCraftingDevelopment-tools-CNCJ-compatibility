@@ -82,7 +82,7 @@ export interface AppState {
   cncjConflictResult: CncjConflictResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjForcedValidations: Set<string>;
-  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
+  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' | 'svv';
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
   missingMetadata: { [accountId: string]: AccountMetadata };
@@ -119,7 +119,7 @@ export type AppAction =
   | { type: 'SET_CNCJ_CONFLICT_CORRECTIONS'; payload: { [key: string]: string | 'error' } }
   | { type: 'SET_CNCJ_FORCED_VALIDATION'; payload: { accountId: string; forced: boolean } }
   | { type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' }
-  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' }
+  | { type: 'SET_FINAL_FILTER'; payload: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' | 'svv' }
   | { type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION'; payload: NormalizationAccount[] }
   | { type: 'SET_NORMALIZATION_APPLIED'; payload: boolean }
   | { type: 'SET_MISSING_METADATA'; payload: { [accountId: string]: AccountMetadata } }

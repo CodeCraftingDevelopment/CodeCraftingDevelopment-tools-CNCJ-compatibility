@@ -24,6 +24,13 @@ import { AppHeader } from './components/AppHeader';
 import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConflictUtils';
 import { calculateSuggestionsWithDetails } from './utils/codeSuggestions';
 
+// Les comptes CNCJ ne sont plus fournis via un upload dédié : ils sont dérivés du fichier PCG
+// (lignes dont la colonne isCNCJ vaut true).
+const deriveCncjFromGeneral = (generalAccounts: Account[]): Account[] =>
+  generalAccounts
+    .filter(acc => String(acc.rawData?.isCNCJ).toLowerCase() === 'true')
+    .map(acc => ({ ...acc, source: 'cncj' as const }));
+
 const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
@@ -31,7 +38,6 @@ const App: React.FC = () => {
 
   const handleProjectLoaded = useCallback((newState: AppState) => {
     if (newState.clientAccounts.length > 0 &&
-        newState.cncjAccounts.length > 0 &&
         newState.generalAccounts.length > 0) {
       const result = processAccounts(newState.clientAccounts, newState.cncjAccounts, newState.generalAccounts);
       dispatch({ type: 'SET_RESULT', payload: result });
@@ -82,53 +88,41 @@ const App: React.FC = () => {
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_MERGE_INFO', payload: [] });
       }
-      
+
       // Fusionner les comptes identiques (même numéro ET titre) avant de les stocker
       const { merged: mergedAccounts, mergeInfo } = mergeIdenticalAccounts(accounts);
-      
+
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: mergedAccounts });
         dispatch({ type: 'SET_MERGE_INFO', payload: mergeInfo });
-        
-        // Process if we have all three files and they are fully loaded (not loading)
-        if (state.cncjFileInfo && state.cncjFileInfo.loadStatus !== 'loading' &&
-            state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
-            state.cncjAccounts.length > 0 && state.generalAccounts.length > 0) {
+
+        // Traiter si le PCG est chargé (les comptes CNCJ sont dérivés du PCG via isCNCJ)
+        if (state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
+            state.generalAccounts.length > 0) {
           processClientAccounts(mergedAccounts, state.cncjAccounts, state.generalAccounts);
         }
       }
     } else if (source === 'general') {
-      
+
       dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: accounts });
-        
-        // Process if we have client and CNCJ files and they are fully loaded (not loading)
+
+        // Dériver les comptes CNCJ depuis la colonne isCNCJ du fichier PCG
+        const derivedCncj = deriveCncjFromGeneral(accounts);
+        dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: derivedCncj });
+
+        // Traiter si le fichier client est chargé
         if (state.clientFileInfo && state.clientFileInfo.loadStatus !== 'loading' &&
-            state.cncjFileInfo && state.cncjFileInfo.loadStatus !== 'loading' &&
-            state.clientAccounts.length > 0 && state.cncjAccounts.length > 0) {
-          processClientAccounts(state.clientAccounts, state.cncjAccounts, accounts);
-        }
-      }
-    } else if (source === 'cncj') {
-      
-      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: fileInfo });
-      // Only update accounts if not in loading state
-      if (fileInfo.loadStatus !== 'loading') {
-        dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: accounts });
-        
-        // Process if we have client and general files and they are fully loaded (not loading)
-        if (state.clientFileInfo && state.clientFileInfo.loadStatus !== 'loading' &&
-            state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
-            state.clientAccounts.length > 0 && state.generalAccounts.length > 0) {
-          processClientAccounts(state.clientAccounts, accounts, state.generalAccounts);
+            state.clientAccounts.length > 0) {
+          processClientAccounts(state.clientAccounts, derivedCncj, accounts);
         }
       }
     }
-  }, [state.cncjAccounts, state.clientAccounts, state.generalAccounts, state.cncjFileInfo, state.generalFileInfo, state.clientFileInfo, processClientAccounts]);
+  }, [state.cncjAccounts, state.clientAccounts, state.generalAccounts, state.generalFileInfo, state.clientFileInfo, processClientAccounts]);
 
   const handleError = useCallback((errors: string[]) => {
     dispatch({ type: 'SET_ERRORS', payload: errors });
@@ -141,9 +135,8 @@ const App: React.FC = () => {
     } else if (source === 'general') {
       dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
       dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
-    } else if (source === 'cncj') {
+      // Les comptes CNCJ sont dérivés du PCG : les vider aussi
       dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
-      dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
     }
     // Réinitialiser le résultat et les étapes suivantes
     dispatch({ type: 'SET_RESULT', payload: null });
@@ -403,7 +396,6 @@ const App: React.FC = () => {
                 <Step1FileUpload
                   clientFileInfo={state.clientFileInfo}
                   generalFileInfo={state.generalFileInfo}
-                  cncjFileInfo={state.cncjFileInfo}
                   svvFileInfo={state.svvFileInfo}
                   svvCorrespondences={state.svvCorrespondences}
                   loading={state.loading}
@@ -414,7 +406,6 @@ const App: React.FC = () => {
                   onError={handleError}
                   clientAccounts={state.clientAccounts}
                   generalAccounts={state.generalAccounts}
-                  cncjAccounts={state.cncjAccounts}
                 />
                 <StepNavigation
                   currentStep={currentStepConfig}
@@ -490,6 +481,7 @@ const App: React.FC = () => {
                   replacementCodes={state.replacementCodes}
                   mergedClientAccounts={mergedClientAccounts}
                   originalClientAccounts={state.clientAccounts}
+                  svvCorrespondences={state.svvCorrespondences}
                   duplicateIdsFromStep4={duplicateIdsFromStep4}
                   duplicateCorrectionsCount={duplicateCorrectionsCount}
                 />
@@ -514,6 +506,7 @@ const App: React.FC = () => {
                   cncjConflictCorrections={state.cncjConflictCorrections}
                   cncjForcedValidations={state.cncjForcedValidations}
                   cncjCodes={cncjCodes}
+                  svvCorrespondences={state.svvCorrespondences}
                   mergedClientAccounts={mergedClientAccounts}
                   onCncjReplacementCodeChange={handleCncjReplacementCodeChange}
                   onCncjForcedValidationChange={handleCncjForcedValidationChange}
@@ -547,6 +540,7 @@ const App: React.FC = () => {
                   cncjForcedValidations={state.cncjForcedValidations}
                   mergedClientAccounts={mergedClientAccounts}
                   generalAccounts={state.generalAccounts}
+                  svvCorrespondences={state.svvCorrespondences}
                   finalFilter={state.finalFilter}
                   onFilterChange={(filter) => dispatch({ type: 'SET_FINAL_FILTER', payload: filter })}
                 />

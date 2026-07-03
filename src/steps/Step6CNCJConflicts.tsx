@@ -10,6 +10,7 @@ interface Step6CNCJConflictsProps {
   cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjForcedValidations: Set<string>;
   cncjCodes: Set<string>;
+  svvCorrespondences: { [compteEncheres: string]: string };
   mergedClientAccounts: Account[];
   onCncjReplacementCodeChange: (accountId: string, code: string) => void;
   onCncjForcedValidationChange: (accountId: string, forced: boolean) => void;
@@ -29,6 +30,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
   cncjConflictCorrections,
   cncjForcedValidations,
   cncjCodes,
+  svvCorrespondences,
   mergedClientAccounts,
   onCncjReplacementCodeChange,
   onCncjForcedValidationChange,
@@ -55,6 +57,7 @@ export const Step6CNCJConflicts: React.FC<Step6CNCJConflictsProps> = ({
       conflictType="cncj-conflicts"
       corrections={cncjConflictCorrections}
       cncjCodes={cncjCodes}
+      svvCorrespondences={svvCorrespondences}
       cncjForcedValidations={cncjForcedValidations}
       onCncjForcedValidationChange={onCncjForcedValidationChange}
       mergedClientAccounts={mergedClientAccounts}

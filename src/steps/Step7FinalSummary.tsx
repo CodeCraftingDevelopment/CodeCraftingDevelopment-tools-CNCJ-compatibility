@@ -17,6 +17,7 @@ interface SummaryRow {
   isStep6Conflict: boolean;
   isToCreate: boolean;
   isForced: boolean;
+  isSvv: boolean;
 }
 
 interface Step7FinalSummaryProps {
@@ -29,8 +30,9 @@ interface Step7FinalSummaryProps {
   cncjForcedValidations: Set<string>;
   mergedClientAccounts: Account[];
   generalAccounts: Account[];
-  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
-  onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate') => void;
+  svvCorrespondences: { [compteEncheres: string]: string };
+  finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' | 'svv';
+  onFilterChange: (filter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' | 'svv') => void;
   pcgManualOverrides?: { [accountCode: string]: Partial<Record<string, string | number | boolean | null>> };
   onPcgManualOverrideChange?: (accountCode: string, overrides: Partial<Record<string, string | number | boolean | null>>) => void;
 }
@@ -44,15 +46,44 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   cncjConflictCorrections,
   cncjForcedValidations,
   mergedClientAccounts,
-  generalAccounts: _generalAccounts,
+  generalAccounts,
+  svvCorrespondences,
   finalFilter,
   onFilterChange
 }) => {
+  // Normaliser un code à 7 chiffres
+  const normalizeForDisplay = (code: string): string => {
+    if (!code || code === '-' || code === 'Erreur') return code;
+    return code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
+  };
+
+  // Résoudre le code final d'une ligne (source unique de vérité pour affichage + « à créer »)
+  const resolveFinalCode = (
+    modificationSource: ModificationSource,
+    correctedCode: string,
+    cncjCorrection: string,
+    isForced: boolean,
+    originalCode: string
+  ): string => {
+    if (modificationSource === 'step4+step6') {
+      if (isForced && cncjCorrection === '-') return correctedCode;
+      return cncjCorrection === 'Erreur' ? correctedCode : cncjCorrection;
+    }
+    if (modificationSource === 'step4') return correctedCode;
+    if (modificationSource === 'step6') {
+      if (isForced) return correctedCode;
+      return cncjCorrection === 'Erreur' ? originalCode : cncjCorrection;
+    }
+    return correctedCode || originalCode;
+  };
+
+  // Un compte est « à créer » si son code FINAL n'existe pas dans le PCG (cohérent avec l'étape 8)
+  const pcgCodes = new Set(generalAccounts.map(a => normalizeForDisplay(a.number)));
+
   // Calculer les données du récapitulatif
   const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
   const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
-  const toCreateIds = new Set(result?.toCreate?.map(t => t.id) || []);
-  
+
   const finalSummaryData: SummaryRow[] = clientAccounts.map((account): SummaryRow => {
     const mergedAccount = mergedClientAccounts.find(m => m.id === account.id);
     const correctedByCncj = cncjReplacementCodes[account.id]; // Utiliser les valeurs saisies à l'étape 6
@@ -60,8 +91,8 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
     
     const isStep4Duplicate = step4Ids.has(account.id);
     const isStep6Conflict = step6Ids.has(account.id);
-    const isToCreate = toCreateIds.has(account.id);
     const isForced = cncjForcedValidations.has(account.id);
+    const isSvv = !!svvCorrespondences[account.originalNumber || ''];
 
     let modificationSource: ModificationSource = null;
     if (isStep4Duplicate && isStep6Conflict) {
@@ -76,64 +107,58 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
       ? (mergedAccount ? mergedAccount.number : account.number)
       : account.number;
     
-    // Priorité aux saisies manuelles : si l'utilisateur a saisi une valeur, l'utiliser même si validation auto dit 'error'
-    const cncjCorrection = correctedByCncj !== undefined && correctedByCncj !== '' 
-      ? correctedByCncj 
-      : (hasCncjError ? 'Erreur' : '-');
-    
+    // Priorité aux saisies manuelles : si l'utilisateur a saisi une valeur, l'utiliser même si validation auto dit 'error'.
+    // Une validation forcée accepte le compte tel quel : elle annule l'erreur d'auto-correction CNCJ.
+    const cncjCorrection = correctedByCncj !== undefined && correctedByCncj !== ''
+      ? correctedByCncj
+      : (isForced ? '-' : (hasCncjError ? 'Erreur' : '-'));
+
+    const originalCode = getDisplayCode(account);
+    const finalCode = normalizeForDisplay(resolveFinalCode(modificationSource, correctedCode, cncjCorrection, isForced, originalCode));
+    const isToCreate = !pcgCodes.has(finalCode);
+
     return {
       id: account.id,
       title: account.title || 'Sans titre',
-      originalCode: getDisplayCode(account),
+      originalCode: originalCode,
       correctedCode: correctedCode,
       cncjCorrection: cncjCorrection,
-      wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined || isForced,
+      wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined || isForced || isSvv,
       modificationSource,
       isStep4Duplicate,
       isStep6Conflict,
       isToCreate,
-      isForced
+      isForced,
+      isSvv
     };
   });
 
+  // Les transferts SVV forment leur propre catégorie : exclus des « doublons » et « CNCJ »
   const modifiedCount = finalSummaryData.filter(row => row.wasModified).length;
-  const step4Count = finalSummaryData.filter(row => row.isStep4Duplicate).length;
-  const step6Count = finalSummaryData.filter(row => row.isStep6Conflict).length;
+  const step4Count = finalSummaryData.filter(row => row.isStep4Duplicate && !row.isSvv).length;
+  const step6Count = finalSummaryData.filter(row => row.isStep6Conflict && !row.isSvv).length;
   const toCreateCount = finalSummaryData.filter(row => row.isToCreate).length;
+  const svvCount = finalSummaryData.filter(row => row.isSvv).length;
   const totalCount = finalSummaryData.length;
 
   const filteredData = finalSummaryData.filter(row => {
     if (finalFilter === 'all') return true;
     if (finalFilter === 'toCreate') return row.isToCreate;
+    if (finalFilter === 'svv') return row.isSvv;
+    if (finalFilter === 'step4') return row.isStep4Duplicate && !row.isSvv;
+    if (finalFilter === 'step6') return row.isStep6Conflict && !row.isSvv;
     return row.modificationSource === finalFilter;
   });
 
-  const computeFinalCode = (row: SummaryRow): string => {
-    if (row.modificationSource === 'step4+step6') {
-      // Validation forcée sans code CNCJ saisi → conserver le code issu de l'étape 4 (normalisé)
-      if (row.isForced && row.cncjCorrection === '-') return row.correctedCode;
-      return row.cncjCorrection === 'Erreur' ? row.correctedCode : row.cncjCorrection;
-    }
-    if (row.modificationSource === 'step4') {
-      return row.correctedCode;
-    }
-    if (row.modificationSource === 'step6') {
-      // Validation forcée → accepter le code normalisé (7 chiffres) tel quel
-      if (row.isForced) return row.correctedCode;
-      return row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
-    }
-    return row.correctedCode || row.originalCode;
-  };
-
-  // Normaliser un code à 7 chiffres pour l'affichage
-  const normalizeForDisplay = (code: string): string => {
-    if (!code || code === '-' || code === 'Erreur') return code;
-    return code.length > 7 ? code.slice(0, 7) : code.padEnd(7, '0');
-  };
+  const computeFinalCode = (row: SummaryRow): string =>
+    resolveFinalCode(row.modificationSource, row.correctedCode, row.cncjCorrection, row.isForced, row.originalCode);
 
   const getFinalCodeClasses = (row: SummaryRow): string => {
     if (row.cncjCorrection === 'Erreur') {
       return 'bg-red-100 text-red-700 border border-red-200';
+    }
+    if (row.isSvv) {
+      return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
     }
 
     switch (row.modificationSource) {
@@ -149,6 +174,12 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   };
 
   const getCardStyles = (row: SummaryRow) => {
+    if (row.isSvv) {
+      return {
+        cardClass: 'border-indigo-200 bg-indigo-50',
+        accentClass: 'text-indigo-700'
+      };
+    }
     if (row.isToCreate) {
       return {
         cardClass: 'border-purple-200 bg-purple-50',
@@ -170,6 +201,16 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
 
   const buildBadges = (row: SummaryRow) => {
     const badges: Array<{ label: string; className: string }> = [];
+
+    if (row.isSvv) {
+      // Pour un transfert SVV, le doublon (consolidation) et le conflit CNCJ sont des
+      // conséquences internes du mappage : on n'affiche que le badge SVV (+ forçage éventuel).
+      badges.push({ label: '🔁 Transfert SVV', className: 'bg-indigo-600 text-white' });
+      if (row.isForced) {
+        badges.push({ label: '🔒 Validation forcée', className: 'bg-blue-600 text-white' });
+      }
+      return badges;
+    }
 
     if (row.isToCreate) {
       badges.push({ label: 'À créer', className: 'bg-purple-600 text-white' });
@@ -201,11 +242,12 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={5}>
+      <StepStatsGrid columns={svvCount > 0 ? 6 : 5}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
         <StepStat value={modifiedCount} label="Comptes modifiés" color="green" />
         <StepStat value={step4Count} label="Correction doublons" color="blue" />
         <StepStat value={step6Count} label="Corrections CNCJ" color="orange" />
+        {svvCount > 0 && <StepStat value={svvCount} label="Transferts SVV" color="indigo" />}
         <StepStat value={toCreateCount} label="À créer" color="purple" />
       </StepStatsGrid>
 
@@ -214,7 +256,8 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
         items={[
           { color: 'bg-blue-50 border-l-4 border-blue-400', label: 'Correction doublons' },
           { color: 'bg-orange-50 border-l-4 border-orange-400', label: 'Corrections CNCJ' },
-          { color: 'bg-purple-50 border-l-4 border-purple-400', label: 'À créer' }
+          { color: 'bg-purple-50 border-l-4 border-purple-400', label: 'À créer' },
+          ...(svvCount > 0 ? [{ color: 'bg-indigo-50 border-l-4 border-indigo-400', label: 'Transfert SVV' }] : [])
         ]}
       />
 
@@ -261,6 +304,18 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
           >
             À créer ({toCreateCount})
           </button>
+          {svvCount > 0 && (
+            <button
+              onClick={() => onFilterChange('svv')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                finalFilter === 'svv'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              🔁 Transferts SVV ({svvCount})
+            </button>
+          )}
         </div>
       </div>
 
@@ -280,7 +335,6 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
                 const finalCodeClasses = getFinalCodeClasses(row);
                 const { cardClass } = getCardStyles(row);
                 const badges = buildBadges(row);
-                const hasClientChange = row.correctedCode !== row.originalCode;
                 const hasCncjCorrection = row.cncjCorrection !== '-' && row.cncjCorrection !== 'Erreur';
 
                 return (
@@ -314,29 +368,40 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
                         <span className="font-mono text-sm">{row.originalCode}</span>
                       </div>
 
-                      <div className="flex items-start gap-2 min-w-[10rem]">
-                        <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-200 text-blue-800 uppercase">
-                          Correction doublon
-                        </span>
-                        <span className="font-mono text-sm">
-                          {hasClientChange ? normalizeForDisplay(row.correctedCode) : '—'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-start gap-2 min-w-[10rem]">
-                        <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-200 text-orange-800 uppercase">
-                          Correction CNCJ
-                        </span>
-                        <span className="font-mono text-sm">
-                          {row.cncjCorrection === 'Erreur' ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
-                              ⚠️ Erreur
+                      {row.isSvv ? (
+                        <div className="flex items-start gap-2 min-w-[10rem]">
+                          <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-200 text-indigo-800 uppercase">
+                            Mappage SVV
+                          </span>
+                          <span className="font-mono text-sm">→ {normalizeForDisplay(row.correctedCode)}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-start gap-2 min-w-[10rem]">
+                            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-200 text-blue-800 uppercase">
+                              Correction doublon
                             </span>
-                          ) : (
-                            hasCncjCorrection ? normalizeForDisplay(row.cncjCorrection) : '—'
-                          )}
-                        </span>
-                      </div>
+                            <span className="font-mono text-sm">
+                              {row.isStep4Duplicate ? normalizeForDisplay(row.correctedCode) : '—'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-start gap-2 min-w-[10rem]">
+                            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-200 text-orange-800 uppercase">
+                              Correction CNCJ
+                            </span>
+                            <span className="font-mono text-sm">
+                              {row.cncjCorrection === 'Erreur' ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
+                                  ⚠️ Erreur
+                                </span>
+                              ) : (
+                                hasCncjCorrection ? normalizeForDisplay(row.cncjCorrection) : '—'
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      )}
 
                       <div className="flex items-start gap-2 min-w-[10rem]">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-green-200 text-green-800 uppercase">

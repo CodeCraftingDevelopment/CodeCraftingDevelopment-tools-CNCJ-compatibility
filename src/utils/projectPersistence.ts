@@ -27,7 +27,7 @@ export interface ProjectFile {
     mergeInfo: MergeInfo[];
     cncjConflictCorrections: { [key: string]: string | 'error' };
     cncjForcedValidations: string[];
-    finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate';
+    finalFilter: 'all' | 'step4' | 'step6' | 'step4+step6' | 'toCreate' | 'svv';
     accountsNeedingNormalization: NormalizationAccount[];
     isNormalizationApplied: boolean;
     missingMetadata: { [accountId: string]: AccountMetadata };

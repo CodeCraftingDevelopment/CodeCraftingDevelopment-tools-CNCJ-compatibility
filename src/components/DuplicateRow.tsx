@@ -10,6 +10,7 @@ interface DuplicateRowProps {
   isDuplicateCode: boolean;
   isCncjCode?: boolean;
   isSvv?: boolean;
+  isSvvTransfer?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
   _corrections?: { [key: string]: string | 'error' };
   suggestion?: SuggestionResult;
@@ -25,6 +26,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   isDuplicateCode,
   isCncjCode = false,
   isSvv = false,
+  isSvvTransfer = false,
   conflictType = 'duplicates',
   _corrections = {},
   suggestion,
@@ -115,6 +117,15 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               </div>
               <div className="text-xs">
                 <span className="text-gray-500">Normalisé (7):</span> {account.number}
+              </div>
+            </div>
+          ) : isSvv ? (
+            <div className="space-y-1">
+              <div className="text-xs">
+                <span className="text-gray-500">Origine :</span> {getDisplayCode(account)}
+              </div>
+              <div className="text-xs">
+                <span className="text-gray-500">SVV →</span> <span className="text-indigo-700 font-semibold">{account.number}</span>
               </div>
             </div>
           ) : (
@@ -268,6 +279,14 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
                 );
               }
             })()}
+            {isSvvTransfer && (
+              <span
+                className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 border border-indigo-300 rounded font-medium whitespace-nowrap"
+                title="Ce conflit correspond à un transfert SVV pré-validé (transfert vers le code homologué). Vous pouvez forcer la validation en confiance."
+              >
+                🔁 Transfert SVV
+              </span>
+            )}
           </div>
           {/* Afficher la case à cocher seulement si pas de code valide */}
           {!replacementCode?.trim() && (

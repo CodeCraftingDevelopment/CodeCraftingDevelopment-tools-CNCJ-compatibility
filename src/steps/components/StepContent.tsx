@@ -4,7 +4,7 @@ import React from 'react';
 interface StepStatProps {
   value: number | string;
   label: string;
-  color?: 'blue' | 'green' | 'orange' | 'red' | 'purple';
+  color?: 'blue' | 'green' | 'orange' | 'red' | 'purple' | 'indigo';
 }
 
 export const StepStat: React.FC<StepStatProps> = ({ value, label, color = 'blue' }) => {
@@ -13,7 +13,8 @@ export const StepStat: React.FC<StepStatProps> = ({ value, label, color = 'blue'
     green: 'text-green-600',
     orange: 'text-orange-600',
     red: 'text-red-600',
-    purple: 'text-purple-600'
+    purple: 'text-purple-600',
+    indigo: 'text-indigo-600'
   };
 
   return (

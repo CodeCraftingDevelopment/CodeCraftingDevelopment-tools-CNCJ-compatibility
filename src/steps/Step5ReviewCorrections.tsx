@@ -8,6 +8,7 @@ interface Step5ReviewCorrectionsProps {
   replacementCodes: { [key: string]: string };
   mergedClientAccounts: Account[];
   originalClientAccounts: Account[];
+  svvCorrespondences: { [compteEncheres: string]: string };
   duplicateIdsFromStep4: Set<string>;
   duplicateCorrectionsCount: number;
 }
@@ -18,6 +19,7 @@ export const Step5ReviewCorrections: React.FC<Step5ReviewCorrectionsProps> = ({
   replacementCodes,
   mergedClientAccounts,
   originalClientAccounts,
+  svvCorrespondences,
   duplicateIdsFromStep4,
   duplicateCorrectionsCount
 }) => {
@@ -36,6 +38,7 @@ export const Step5ReviewCorrections: React.FC<Step5ReviewCorrectionsProps> = ({
         onReplacementCodeChange={undefined}
         mergedClientAccounts={mergedClientAccounts}
         originalClientAccounts={originalClientAccounts}
+        svvCorrespondences={svvCorrespondences}
         duplicateIdsFromStep4={duplicateIdsFromStep4}
       />
     </>

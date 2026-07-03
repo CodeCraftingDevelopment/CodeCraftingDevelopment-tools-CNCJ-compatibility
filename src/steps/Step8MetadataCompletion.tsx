@@ -137,9 +137,10 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         ? (mergedAccount ? mergedAccount.number : account.number)
         : account.number;
       
-      const cncjCorrection = correctedByCncj !== undefined && correctedByCncj !== '' 
-        ? correctedByCncj 
-        : (hasCncjError ? 'Erreur' : '-');
+      // Une validation forcée accepte le compte tel quel : elle annule l'erreur d'auto-correction CNCJ.
+      const cncjCorrection = correctedByCncj !== undefined && correctedByCncj !== ''
+        ? correctedByCncj
+        : (isForced ? '-' : (hasCncjError ? 'Erreur' : '-'));
       
       return {
         id: account.id,

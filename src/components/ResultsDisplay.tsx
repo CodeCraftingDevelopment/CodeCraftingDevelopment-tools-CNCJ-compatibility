@@ -64,6 +64,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     conflictType === 'duplicates' && !!svvCorrespondences[account.originalNumber || ''];
   // Ids des doublons SVV : exclus de l'application en masse des suggestions (+1)
   const svvDuplicateIds = new Set(duplicates.filter(isSvvAccount).map(d => d.id));
+  // Séparer les transferts SVV (consolidation pré-validée N→1) des vrais doublons à traiter
+  const svvTransfers = duplicates.filter(isSvvAccount);
+  const realDuplicates = duplicates.filter(acc => !isSvvAccount(acc));
   
   // Suggestions INITIALES (calculées une seule fois, sans tenir compte des replacementCodes)
   // Ces suggestions sont utilisées pour le modal de détails et l'export CSV
@@ -206,6 +209,22 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const [showSuggestionDetails, setShowSuggestionDetails] = useState(false);
   // State pour inclure les données de l'étape 4 dans l'export de l'étape 6
   const [includeStep4InExport, setIncludeStep4InExport] = useState(false);
+  // Filtre des conflits CNCJ (étape 6) : tous / transferts SVV / autres conflits
+  const [cncjFilter, setCncjFilter] = useState<'all' | 'svv' | 'other'>('all');
+
+  // Conflits CNCJ correspondant à un transfert SVV (étape 6)
+  const isSvvTransferConflict = (account: Account): boolean =>
+    conflictType === 'cncj-conflicts' && !!svvCorrespondences[account.originalNumber || ''];
+  const svvConflictCount = conflictType === 'cncj-conflicts'
+    ? duplicates.filter(isSvvTransferConflict).length
+    : 0;
+  // Lignes réellement affichées dans la liste : filtrées à l'étape 6, vrais doublons à l'étape 4
+  const displayedRows = conflictType === 'cncj-conflicts'
+    ? duplicates.filter(account => {
+        if (cncjFilter === 'all') return true;
+        return cncjFilter === 'svv' ? isSvvTransferConflict(account) : !isSvvTransferConflict(account);
+      })
+    : realDuplicates;
 
   // Conflits CNCJ pouvant être forcés (étape 6) : champ de remplacement vide et pas déjà forcés.
   // Forcer = accepter le code normalisé (7 chiffres) tel quel, sans modification.
@@ -234,14 +253,29 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     <div className="space-y-6">
       {/* Résumé */}
       {showOnly === 'duplicates' ? (
-        duplicates.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">{duplicates.length}</div>
-              <div className="text-gray-600">{conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'}</div>
+        duplicates.length > 0 && (() => {
+          const svvCount = svvDuplicateIds.size;
+          const isDuplicatesType = conflictType !== 'cncj-conflicts';
+          const toResolve = duplicates.length - (isDuplicatesType ? svvCount : 0);
+          const allValidated = isDuplicatesType && toResolve === 0;
+          const bigNumber = isDuplicatesType ? toResolve : duplicates.length;
+          const label = conflictType === 'cncj-conflicts'
+            ? 'Conflits CNCJ identifiés'
+            : (toResolve === 1 ? 'Doublon à résoudre' : 'Doublons à résoudre');
+          return (
+            <div className={`${allValidated ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-lg p-4`}>
+              <div className="text-center">
+                <div className={`text-3xl font-bold ${allValidated ? 'text-green-600' : 'text-red-600'}`}>{bigNumber}</div>
+                <div className="text-gray-600">{label}</div>
+                {svvCount > 0 && (
+                  <div className="mt-1 text-sm text-indigo-700">
+                    🔁 {svvCount} transfert{svvCount > 1 ? 's' : ''} SVV (voir la section dédiée — aucune action requise)
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )
+          );
+        })()
       ) : showOnly !== 'review' ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-blue-900 mb-2">Résumé du traitement</h3>
@@ -397,21 +431,37 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           mergedClientAccounts={mergedClientAccounts || []}
           originalClientAccounts={originalClientAccounts || []}
           replacementCodes={replacementCodes || {}}
+          svvCorrespondences={svvCorrespondences}
           duplicateIdsFromStep4={duplicateIdsFromStep4 || new Set()}
         />
       )}
 
-      {/* Doublons */}
-      {duplicates.length > 0 && showOnly !== 'review' ? (
+      {/* Doublons (hors transferts SVV) */}
+      {realDuplicates.length > 0 && showOnly !== 'review' ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-red-900 mb-3">
-            ⚠️ {conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'} ({duplicates.length})
+            ⚠️ {conflictType === 'cncj-conflicts' ? 'Conflits CNCJ identifiés' : 'Doublons détectés'} ({realDuplicates.length})
           </h3>
-          {conflictType === 'duplicates' && (
-            <div className="mb-3 p-3 bg-amber-50 border border-amber-300 rounded-lg">
-              <p className="text-amber-800 text-sm">
-                <span className="font-semibold">⚠️ Important :</span> Allez jusqu'à l'étape 6 pour vérifier les conflits CNCJ avant de transmettre les corrections de doublons au client.
-              </p>
+          {conflictType === 'cncj-conflicts' && svvConflictCount > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => setCncjFilter('all')}
+                className={`px-3 py-1 text-sm rounded-lg font-medium transition-colors ${cncjFilter === 'all' ? 'bg-red-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'}`}
+              >
+                Tous ({duplicates.length})
+              </button>
+              <button
+                onClick={() => setCncjFilter('svv')}
+                className={`px-3 py-1 text-sm rounded-lg font-medium transition-colors ${cncjFilter === 'svv' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'}`}
+              >
+                🔁 Transferts SVV ({svvConflictCount})
+              </button>
+              <button
+                onClick={() => setCncjFilter('other')}
+                className={`px-3 py-1 text-sm rounded-lg font-medium transition-colors ${cncjFilter === 'other' ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'}`}
+              >
+                Autres conflits ({duplicates.length - svvConflictCount})
+              </button>
             </div>
           )}
           <div className={`${showOnly === 'duplicates' ? 'max-h-96' : 'max-h-40'} overflow-y-auto`}>
@@ -439,7 +489,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   ...(conflictType === 'cncj-conflicts' && mergedClientAccounts ? mergedClientAccounts.map(acc => acc.number) : [])
                 ]);
                 
-                return duplicates.map((account) => {
+                return displayedRows.map((account) => {
                   const currentCode = replacementCodes[account.id]?.trim();
                   const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
                   const isDuplicateWithOriginal = !!currentCode && allOriginalCodes.has(normalizedCurrentCode);
@@ -457,6 +507,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     : initialSuggestions.get(account.id);
                   
                   const isSvv = isSvvAccount(account);
+                  // À l'étape 6 : indicateur informatif « transfert SVV » (sans auto-validation)
+                  const svvTransfer = conflictType === 'cncj-conflicts' && !!svvCorrespondences[account.originalNumber || ''];
 
                   return (
                     <DuplicateRow
@@ -467,6 +519,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       isDuplicateCode={isDuplicateCode}
                       isCncjCode={isCncjCode}
                       isSvv={isSvv}
+                      isSvvTransfer={svvTransfer}
                       conflictType={conflictType}
                       _corrections={corrections}
                       suggestion={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}
@@ -483,13 +536,48 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       ) : showOnly === 'duplicates' ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-green-900 mb-3">
-            ✅ Aucun conflit trouvé
+            ✅ {conflictType === 'cncj-conflicts' ? 'Aucun conflit trouvé' : 'Aucun doublon à résoudre'}
           </h3>
           <p className="text-green-700">
-            Aucun compte client ne correspond à un compte CNCJ.
+            {conflictType === 'cncj-conflicts'
+              ? 'Aucun compte client ne correspond à un compte CNCJ.'
+              : (svvTransfers.length > 0
+                  ? 'Aucun doublon à différencier (les transferts SVV ci-dessous sont déjà consolidés).'
+                  : 'Aucun doublon détecté parmi les comptes clients.')}
           </p>
         </div>
       ) : null}
+
+      {/* Transferts SVV (consolidations pré-validées, hors doublons) */}
+      {svvTransfers.length > 0 && showOnly !== 'review' && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-indigo-900 mb-1">
+            🔁 Transferts SVV ({svvTransfers.length})
+          </h3>
+          <p className="text-sm text-indigo-700 mb-3">
+            Consolidations pré-validées : plusieurs comptes clients (8 chiffres) sont transférés vers un même compte homologué (7 chiffres). Aucune action requise.
+          </p>
+          <div className="max-h-96 overflow-y-auto">
+            <div className="space-y-3">
+              {[...svvTransfers]
+                .sort((a, b) => a.number.localeCompare(b.number) || getDisplayCode(a).localeCompare(getDisplayCode(b)))
+                .map((account) => (
+                  <DuplicateRow
+                    key={account.id}
+                    account={account}
+                    replacementCode={replacementCodes[account.id]?.trim() || ''}
+                    onReplacementCodeChange={onReplacementCodeChange || (() => {})}
+                    isDuplicateCode={false}
+                    isCncjCode={false}
+                    isSvv={true}
+                    conflictType="duplicates"
+                    _corrections={corrections}
+                  />
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Correspondances */}
       {showOnly === 'all' && matches.length > 0 && (

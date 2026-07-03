@@ -32,9 +32,13 @@ export const STEPS_CONFIG: StepConfig[] = [
     badge: 'Step 1',
     badgeColor: 'green',
     canProceed: (state) => {
-      return state.clientAccounts.length > 0 && 
-             state.cncjAccounts.length > 0 && 
+      // Les comptes CNCJ sont dérivés du PCG : la colonne isCNCJ doit être présente (sinon bloquant)
+      const pcgHasCncjColumn = state.generalAccounts.some(
+        acc => acc.rawData !== undefined && Object.prototype.hasOwnProperty.call(acc.rawData, 'isCNCJ')
+      );
+      return state.clientAccounts.length > 0 &&
              state.generalAccounts.length > 0 &&
+             pcgHasCncjColumn &&
              state.errors.length === 0 &&
              !state.loading &&
              state.result !== null;
