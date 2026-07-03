@@ -61,6 +61,7 @@ interface Step8MetadataCompletionProps {
   cncjConflictCorrections: { [key: string]: string | 'error' };
   cncjForcedValidations: Set<string>;
   cncjCodes: Set<string>;
+  cncjAccounts: Account[];
   missingMetadata: { [accountId: string]: AccountMetadata };
   onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
@@ -76,6 +77,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   cncjConflictCorrections,
   cncjForcedValidations,
   cncjCodes,
+  cncjAccounts,
   missingMetadata,
   onMetadataChange
 }) => {
@@ -191,18 +193,41 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
       const csvRows: string[][] = [];
 
+      // Titres officiels CNCJ (par code) : ils ne doivent JAMAIS être remplacés par un titre client
+      const cncjTitleByCode = new Map<string, string>();
+      cncjAccounts.forEach(acc => {
+        const code = normalizeForDisplay(acc.number);
+        if (acc.title && acc.title.trim() && !cncjTitleByCode.has(code)) {
+          cncjTitleByCode.set(code, acc.title);
+        }
+      });
+
+      // Titre issu du fichier client, indexé par code final (pour relibeller les comptes PCG)
+      const clientTitleByFinalCode = new Map<string, string>();
+      clientAccounts.forEach(account => {
+        const code = normalizeForDisplay(computeFinalCode(account, result, cncjConflictResult, replacementCodes, cncjReplacementCodes));
+        if (account.title && account.title.trim() && !clientTitleByFinalCode.has(code)) {
+          clientTitleByFinalCode.set(code, account.title);
+        }
+      });
+
       // Comptes PCG existants
       const pcgAccountRows = generalAccounts.map((account, index) => {
         const data = account.rawData || {};
         const importId = data.importId || `PCG${String(index + 1).padStart(4, '0')}`;
-        
+
+        // Libellé = titre client si un compte client correspond, SAUF comptes CNCJ (titre officiel intact)
+        const name = isCncjCode(account.number)
+          ? (account.title || '')
+          : (clientTitleByFinalCode.get(normalizeForDisplay(account.number)) ?? account.title ?? '');
+
         return {
           code: parseInt(account.number) || 0,
           row: [
             String(importId),
             account.number,
             String(data.parent_code || ''),
-            account.title || '',
+            name,
             String(data['accountType.importId'] || ''),
             String(data.isRegulatoryAccount ?? 'false'),
             String(data.commonPosition || '0'),
@@ -232,7 +257,10 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const clientAccountRows = accountsNeedingMetadata.map((row, index) => {
         const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
         const code = normalizeForDisplay(row.finalCode);
-        const name = row.title;
+        // Libellé client, SAUF si le code est CNCJ : on garde le titre officiel CNCJ (jamais modifié)
+        const name = isCncjCode(code)
+          ? (cncjTitleByCode.get(code) ?? row.title)
+          : row.title;
         const inheritedData = row.inheritedData;
 
         return {

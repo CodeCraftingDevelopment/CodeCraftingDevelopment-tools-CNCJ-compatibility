@@ -575,6 +575,7 @@ const App: React.FC = () => {
                   cncjConflictCorrections={state.cncjConflictCorrections}
                   cncjForcedValidations={state.cncjForcedValidations}
                   cncjCodes={cncjCodes}
+                  cncjAccounts={state.cncjAccounts}
                   missingMetadata={state.missingMetadata}
                   onMetadataChange={handleMetadataChange}
                 />
