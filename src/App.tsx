@@ -153,6 +153,17 @@ const App: React.FC = () => {
     dispatch({ type: 'CLEAR_CNCJ_REPLACEMENT_CODES' });
   }, []);
 
+  const handleSvvLoaded = useCallback((correspondences: { [compteEncheres: string]: string }, fileInfo: FileMetadata) => {
+    dispatch({ type: 'SET_SVV_FILE_INFO', payload: fileInfo });
+    if (fileInfo.loadStatus !== 'loading') {
+      dispatch({ type: 'SET_SVV_CORRESPONDENCES', payload: correspondences });
+    }
+  }, []);
+
+  const handleSvvCleared = useCallback(() => {
+    dispatch({ type: 'CLEAR_SVV_CORRESPONDENCES' });
+  }, []);
+
   const resetData = useCallback(() => {
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
@@ -258,7 +269,8 @@ const App: React.FC = () => {
     cncjReplacementCodes: state.cncjReplacementCodes,
     cncjForcedValidations: state.cncjForcedValidations,
     cncjAccounts: state.cncjAccounts,
-    mergedClientAccounts
+    mergedClientAccounts,
+    svvCorrespondences: state.svvCorrespondences
   });
 
   // Créer un Set des codes CNCJ pour la validation en temps réel (sans normalisation)
@@ -392,9 +404,13 @@ const App: React.FC = () => {
                   clientFileInfo={state.clientFileInfo}
                   generalFileInfo={state.generalFileInfo}
                   cncjFileInfo={state.cncjFileInfo}
+                  svvFileInfo={state.svvFileInfo}
+                  svvCorrespondences={state.svvCorrespondences}
                   loading={state.loading}
                   onFileLoaded={handleFileLoaded}
                   onFileCleared={handleFileCleared}
+                  onSvvLoaded={handleSvvLoaded}
+                  onSvvCleared={handleSvvCleared}
                   onError={handleError}
                   clientAccounts={state.clientAccounts}
                   generalAccounts={state.generalAccounts}
@@ -452,6 +468,7 @@ const App: React.FC = () => {
                   replacementCodes={state.replacementCodes}
                   onReplacementCodeChange={handleReplacementCodeChange}
                   cncjCodes={cncjCodes}
+                  svvCorrespondences={state.svvCorrespondences}
                 />
                 <StepNavigation
                   currentStep={currentStepConfig}

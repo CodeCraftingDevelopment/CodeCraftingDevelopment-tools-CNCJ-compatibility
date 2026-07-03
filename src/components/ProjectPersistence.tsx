@@ -146,6 +146,9 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: newAppState.accountsNeedingNormalization });
       dispatch({ type: 'SET_NORMALIZATION_APPLIED', payload: newAppState.isNormalizationApplied });
       dispatch({ type: 'SET_MISSING_METADATA', payload: newAppState.missingMetadata });
+      dispatch({ type: 'CLEAR_SVV_CORRESPONDENCES' });
+      dispatch({ type: 'SET_SVV_CORRESPONDENCES', payload: newAppState.svvCorrespondences });
+      dispatch({ type: 'SET_SVV_FILE_INFO', payload: newAppState.svvFileInfo });
       dispatch({ type: 'CLEAR_ERRORS' });
 
       // Notifier le composant parent

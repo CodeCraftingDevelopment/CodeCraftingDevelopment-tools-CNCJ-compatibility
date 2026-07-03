@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCSVFile, mergeIdenticalAccounts, findDuplicates } from '../utils/accountUtils'
+import { parseCSVFile, mergeIdenticalAccounts, findDuplicates, findAccountsNeedingNormalization, parseSvvCorrespondences } from '../utils/accountUtils'
 import { Account } from '../types/accounts'
 
 describe('accountUtils', () => {
@@ -174,8 +174,51 @@ describe('accountUtils', () => {
 
     it('should handle empty input', () => {
       const duplicates = findDuplicates([])
-      
+
       expect(duplicates).toHaveLength(0)
+    })
+  })
+
+  describe('findAccountsNeedingNormalization (mappage SVV)', () => {
+    it('impose la correspondance SVV au lieu de la troncature et marque isSvv', () => {
+      const accounts: Account[] = [
+        { id: '44566300-1', number: '44566300', title: 'A', source: 'client', originalNumber: '44566300' }
+      ]
+      const result = findAccountsNeedingNormalization(accounts, { '44566300': '4456620' })
+      expect(result).toHaveLength(1)
+      expect(result[0].normalizedNumber).toBe('4456620') // et non la troncature '4456630'
+      expect(result[0].isSvv).toBe(true)
+    })
+
+    it('retombe sur la troncature pour les comptes absents du mappage SVV', () => {
+      const accounts: Account[] = [
+        { id: '12345678-1', number: '12345678', title: 'B', source: 'client', originalNumber: '12345678' }
+      ]
+      const result = findAccountsNeedingNormalization(accounts, {})
+      expect(result[0].normalizedNumber).toBe('1234567')
+      expect(result[0].isSvv).toBe(false)
+    })
+
+    it('mappe des codes sources distincts vers la même cible (doublons gérés en aval)', () => {
+      const accounts: Account[] = [
+        { id: '44571000-1', number: '44571000', title: 'X', source: 'client', originalNumber: '44571000' },
+        { id: '44571100-2', number: '44571100', title: 'Y', source: 'client', originalNumber: '44571100' }
+      ]
+      const result = findAccountsNeedingNormalization(accounts, { '44571000': '4457110', '44571100': '4457110' })
+      expect(result.map(r => r.normalizedNumber)).toEqual(['4457110', '4457110'])
+      expect(result.every(r => r.isSvv)).toBe(true)
+    })
+  })
+
+  describe('parseSvvCorrespondences', () => {
+    it('parse un CSV point-virgule avec en-tête et l\'ignore', async () => {
+      const csv = 'Compte Enchères;Correspondance\n44566300;4456620\n44571000;4457110'
+      const file = new File([csv], 'svv.csv', { type: 'text/csv' })
+      const { correspondences, count, errors } = await parseSvvCorrespondences(file)
+      expect(count).toBe(2)
+      expect(errors).toHaveLength(0)
+      expect(correspondences['44566300']).toBe('4456620')
+      expect(correspondences['44571000']).toBe('4457110')
     })
   })
 })

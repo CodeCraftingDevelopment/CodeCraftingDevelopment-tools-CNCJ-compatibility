@@ -10,6 +10,7 @@ interface UseStepValidationProps {
   cncjForcedValidations: Set<string>;
   cncjAccounts: Account[];
   mergedClientAccounts: Account[];
+  svvCorrespondences: { [compteEncheres: string]: string };
 }
 
 export const useStepValidation = ({
@@ -19,7 +20,8 @@ export const useStepValidation = ({
   cncjReplacementCodes,
   cncjForcedValidations,
   cncjAccounts,
-  mergedClientAccounts
+  mergedClientAccounts,
+  svvCorrespondences
 }: UseStepValidationProps) => {
   // Calculer si tous les doublons sont résolus
   const allDuplicatesResolved = useMemo(() => {
@@ -50,16 +52,19 @@ export const useStepValidation = ({
     
     // Vérifier que tous les doublons ont un code valide et unique
     return result.duplicates.every((account) => {
+      // Doublon issu d'une consolidation SVV : déjà validé en amont (code cible partagé), non bloquant
+      if (svvCorrespondences[account.originalNumber || '']) return true;
+
       const currentCode = replacementCodes[account.id]?.trim();
       const isEmpty = !currentCode;
       const normalizedCurrentCode = currentCode ? normalizeAccountCode(currentCode) : '';
       const isDuplicateWithOriginal = currentCode && allOriginalCodes.has(normalizedCurrentCode);
       const isDuplicateWithReplacement = currentCode && (codeOccurrences[normalizedCurrentCode]?.length || 0) > 1;
       const isDuplicateCode = isDuplicateWithOriginal || isDuplicateWithReplacement;
-      
+
       return !isEmpty && !isDuplicateCode;
     });
-  }, [result, replacementCodes]);
+  }, [result, replacementCodes, svvCorrespondences]);
 
   // Calculer si tous les conflits CNCJ sont résolus
   const allCncjConflictsResolved = useMemo(() => {

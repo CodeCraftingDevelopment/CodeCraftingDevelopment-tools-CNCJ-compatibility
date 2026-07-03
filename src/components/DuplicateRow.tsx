@@ -9,6 +9,7 @@ interface DuplicateRowProps {
   onReplacementCodeChange: (accountId: string, code: string) => void;
   isDuplicateCode: boolean;
   isCncjCode?: boolean;
+  isSvv?: boolean;
   conflictType?: 'duplicates' | 'cncj-conflicts';
   _corrections?: { [key: string]: string | 'error' };
   suggestion?: SuggestionResult;
@@ -23,6 +24,7 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   onReplacementCodeChange,
   isDuplicateCode,
   isCncjCode = false,
+  isSvv = false,
   conflictType = 'duplicates',
   _corrections = {},
   suggestion,
@@ -38,6 +40,16 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
   const isManualEntry = !isEmpty && !isFromSuggestion;
   
   const getRowStyles = () => {
+    if (isSvv) {
+      // Consolidation SVV validée : présentée comme valide (vert), sans différenciation
+      return {
+        rowColorClass: 'bg-green-50 border-green-300',
+        numberColorClass: 'bg-green-100',
+        titleColorClass: 'bg-green-50',
+        inputColorClass: 'border-green-300 bg-green-50',
+        focusRingClass: 'focus:ring-green-400'
+      };
+    }
     if (isEmpty) {
       return {
         rowColorClass: 'bg-gray-50 border-gray-200',
@@ -153,17 +165,25 @@ export const DuplicateRow: React.FC<DuplicateRowProps> = ({
               💡 Suggestion
             </span>
           )}
-          {isManualEntry && (
-            <span 
-              className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 border border-purple-300 rounded whitespace-nowrap" 
+          {isManualEntry && !isSvv && (
+            <span
+              className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 border border-purple-300 rounded whitespace-nowrap"
               title="Code saisi manuellement"
             >
               ✏️ Manuel
             </span>
           )}
+          {isSvv && (
+            <span
+              className="ml-2 px-2 py-0.5 text-xs bg-indigo-100 text-indigo-700 border border-indigo-300 rounded whitespace-nowrap"
+              title="Consolidation validée par le mappage SVV (code cible partagé, pas de différenciation requise)"
+            >
+              🔁 SVV validé
+            </span>
+          )}
         </div>
-        {/* Bouton de suggestion - pour l'étape 4 (duplicates) et l'étape 6 (cncj-conflicts) */}
-        {!replacementCode?.trim() && (
+        {/* Bouton de suggestion - masqué pour les consolidations SVV (déjà validées) */}
+        {!replacementCode?.trim() && !isSvv && (
           <div className="ml-2">
             {suggestedCode ? (
               <button

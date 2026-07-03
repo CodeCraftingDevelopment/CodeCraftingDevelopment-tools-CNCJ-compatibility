@@ -31,6 +31,8 @@ export interface ProjectFile {
     accountsNeedingNormalization: NormalizationAccount[];
     isNormalizationApplied: boolean;
     missingMetadata: { [accountId: string]: AccountMetadata };
+    svvCorrespondences?: { [compteEncheres: string]: string };
+    svvFileInfo?: FileMetadata | null;
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
     initialSuggestions: { [accountId: string]: SuggestionResult };
     initialCncjSuggestions: { [accountId: string]: SuggestionResult };
@@ -90,6 +92,8 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       accountsNeedingNormalization: state.accountsNeedingNormalization,
       isNormalizationApplied: state.isNormalizationApplied,
       missingMetadata: state.missingMetadata,
+      svvCorrespondences: state.svvCorrespondences,
+      svvFileInfo: state.svvFileInfo,
       currentStep: state.currentStep,
       initialSuggestions: state.initialSuggestions || {},
       initialCncjSuggestions: state.initialCncjSuggestions || {},
@@ -391,6 +395,8 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     accountsNeedingNormalization: data.accountsNeedingNormalization,
     isNormalizationApplied: data.isNormalizationApplied,
     missingMetadata: data.missingMetadata,
+    svvCorrespondences: data.svvCorrespondences || {},
+    svvFileInfo: data.svvFileInfo || null,
     initialSuggestions: data.initialSuggestions || {},
     initialCncjSuggestions: data.initialCncjSuggestions || {},
     clientName: data.clientName || '',

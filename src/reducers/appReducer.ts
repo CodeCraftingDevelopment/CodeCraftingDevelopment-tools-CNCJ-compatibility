@@ -22,6 +22,8 @@ export const initialState: AppState = {
   accountsNeedingNormalization: [],
   isNormalizationApplied: false,
   missingMetadata: {},
+  svvCorrespondences: {},
+  svvFileInfo: null,
   initialSuggestions: {},
   initialCncjSuggestions: {},
   clientName: '',
@@ -126,6 +128,12 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       };
     case 'CLEAR_MISSING_METADATA':
       return { ...state, missingMetadata: {} };
+    case 'SET_SVV_CORRESPONDENCES':
+      return { ...state, svvCorrespondences: action.payload };
+    case 'SET_SVV_FILE_INFO':
+      return { ...state, svvFileInfo: action.payload };
+    case 'CLEAR_SVV_CORRESPONDENCES':
+      return { ...state, svvCorrespondences: {}, svvFileInfo: null };
     case 'SET_INITIAL_SUGGESTIONS':
       return { ...state, initialSuggestions: action.payload };
     case 'SET_INITIAL_CNCJ_SUGGESTIONS':

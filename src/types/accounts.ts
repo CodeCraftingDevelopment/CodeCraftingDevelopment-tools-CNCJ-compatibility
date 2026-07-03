@@ -20,6 +20,7 @@ export interface NormalizationAccount {
   originalNumber: string;
   normalizedNumber: string;
   title?: string;
+  isSvv?: boolean; // true si le code cible provient du mappage SVV (prioritaire sur la troncature)
 }
 
 export interface MergeInfo {
@@ -85,6 +86,9 @@ export interface AppState {
   accountsNeedingNormalization: NormalizationAccount[];
   isNormalizationApplied: boolean;
   missingMetadata: { [accountId: string]: AccountMetadata };
+  // Mappage SVV pré-validé en amont : code d'origine (8 chiffres) -> correspondance (7 chiffres)
+  svvCorrespondences: { [compteEncheres: string]: string };
+  svvFileInfo: FileMetadata | null;
   // Suggestions initiales pour conserver les détails des calculs
   initialSuggestions: { [accountId: string]: SuggestionResult };
   initialCncjSuggestions: { [accountId: string]: SuggestionResult };
@@ -125,6 +129,9 @@ export type AppAction =
   | { type: 'SET_INITIAL_CNCJ_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
   | { type: 'CLEAR_INITIAL_SUGGESTIONS' }
   | { type: 'SET_CLIENT_NAME'; payload: string }
-  | { type: 'SET_FILE_NAME'; payload: string };
+  | { type: 'SET_FILE_NAME'; payload: string }
+  | { type: 'SET_SVV_CORRESPONDENCES'; payload: { [compteEncheres: string]: string } }
+  | { type: 'SET_SVV_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'CLEAR_SVV_CORRESPONDENCES' };
 
 export type AppDispatch = React.Dispatch<AppAction>;

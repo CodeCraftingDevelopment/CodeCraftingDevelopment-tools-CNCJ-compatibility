@@ -250,26 +250,96 @@ export const processAccounts = (
   };
 };
 
-export const findAccountsNeedingNormalization = (accounts: Account[]): NormalizationAccount[] => {
+export const findAccountsNeedingNormalization = (
+  accounts: Account[],
+  svvCorrespondences: { [compteEncheres: string]: string } = {}
+): NormalizationAccount[] => {
   return accounts
-    .filter(account => account.source === 'client' && account.number.length !== 7)
+    .filter(account => {
+      if (account.source !== 'client') return false;
+      const svvTarget = svvCorrespondences[account.number];
+      // Priorité au mappage SVV : inclure si une correspondance existe et diffère du code actuel
+      if (svvTarget !== undefined) {
+        return svvTarget !== account.number;
+      }
+      return account.number.length !== 7;
+    })
     .map(account => {
+      const svvTarget = svvCorrespondences[account.number];
       let normalizedNumber: string;
-      if (account.number.length > 7) {
+      let isSvv = false;
+
+      if (svvTarget !== undefined) {
+        // Correspondance SVV pré-validée en amont (prioritaire sur la troncature)
+        normalizedNumber = svvTarget;
+        isSvv = true;
+      } else if (account.number.length > 7) {
         // Tronquer si trop long
         normalizedNumber = account.number.slice(0, 7);
       } else {
         // Ajouter des zéros en fin si trop court
         normalizedNumber = account.number.padEnd(7, '0');
       }
-      
+
       return {
         id: account.id,
         originalNumber: account.number,
         normalizedNumber,
-        title: account.title
+        title: account.title,
+        isSvv
       };
     });
+};
+
+/**
+ * Parse un fichier de correspondances SVV (format: "Compte Enchères;Correspondance").
+ * Retourne un mappage code d'origine (8 chiffres) -> code cible (7 chiffres).
+ */
+export interface SvvParseResult {
+  correspondences: { [compteEncheres: string]: string };
+  count: number;
+  errors: string[];
+}
+
+export const parseSvvCorrespondences = (file: File): Promise<SvvParseResult> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const text = (e.target?.result as string) || '';
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      const correspondences: { [compteEncheres: string]: string } = {};
+      const errors: string[] = [];
+      let count = 0;
+
+      lines.forEach((line, index) => {
+        const cells = line.split(';').map(c => c.replace(/^"|"$/g, '').trim());
+        const source = cells[0] || '';
+        const target = cells[1] || '';
+
+        // Ignorer une éventuelle ligne d'en-tête (valeurs non numériques)
+        const bothNumeric = /^\d+$/.test(source) && /^\d+$/.test(target);
+        if (index === 0 && !bothNumeric) {
+          return;
+        }
+        if (!bothNumeric) {
+          errors.push(`Ligne ${index + 1} ignorée (valeurs non numériques) : "${line}"`);
+          return;
+        }
+
+        correspondences[source] = target;
+        count++;
+      });
+
+      resolve({ correspondences, count, errors });
+    };
+
+    reader.onerror = () => {
+      resolve({ correspondences: {}, count: 0, errors: ['Erreur de lecture du fichier SVV'] });
+    };
+
+    reader.readAsText(file, 'utf-8');
+  });
 };
 
 export const applyNormalization = (accounts: Account[], normalizationAccounts: NormalizationAccount[]): Account[] => {

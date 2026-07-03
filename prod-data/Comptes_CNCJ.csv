@@ -1,73 +1,148 @@
-N° de compte;Intitulé du compte;Catégorie
-1080000;Compte du commissaire de justice;CNCJ
-4011100;Fournisseurs de l'office;CNCJ
-4011300;Fournisseurs liés aux comptes clients (activité de ventes judiciaires);CNCJ
-4120000;Clients - Prestations de service facturées (activité de ventes judiciaires);CNCJ
-4196300;Fonds détenus pour le compte des clients (activité de ventes judiciaires);CNCJ
-4196990;Clients ouverture informatique;CNCJ
-4362000;Assurance maladie des professions libérales;CNCJ
-4363000;Caisse de retraite des commissaires de justice - CAVOM;CNCJ
-4368000;Autres organismes sociaux et de retraite des commissaires de justice;CNCJ
-4456660;TVA déductible sur autres biens et services payés - encaissement;CNCJ
-4456620;TVA déductible - Adjugé 5,5%;CNCJ
-4456630;TVA déductible - Adjugé 10%;CNCJ
-4456640;TVA déductible - Adjugé 20%;CNCJ
-4457100;Tva Collectée;CNCJ
-4457110;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires);CNCJ
-4457111;TVA collectée honoraires - ventes judiciaires 5,5%;CNCJ
-4457112;TVA collectée honoraires - ventes judiciaires 10%;CNCJ
-4457113;TVA collectée honoraires - ventes judiciaires 20%;CNCJ
-4457114;TVA collectée - Adjugé ventes judiciaires 5,5%;CNCJ
-4457115;TVA collectée - Adjugé ventes judiciaires 10%;CNCJ
-4457116;TVA collectée - Adjugé ventes judiciaires 20%;CNCJ
-4457180;Tva Collectée facturée sur autres produits HT;CNCJ
-4552000;Charges sociales des commissaires de justice associés;CNCJ
-4555000;CSG déductible des commissaires de justice associés;CNCJ
-4556000;Frais divers des commissaires de justice associés;CNCJ
-4670300;Débours (activité de ventes judiciaires);CNCJ
-4671000;Ventes judiciaires - Compte créditeur de regroupement des comptes auxiliaires;CNCJ
-4672000;Ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires;CNCJ
-4681000;Commissaires de justice - Divers comptes créditeurs et charges à payer;CNCJ
-4682000;Ventes judiciaires - Compte adjudication;CNCJ
-4682010;Ventes judiciaires - Adjudications assujetties 5,5%;CNCJ
-4682020;Ventes judiciaires - Adjudications assujetties 10%;CNCJ
-4682030;Ventes judiciaires - Adjudications assujetties 20%;CNCJ
-4682040;Ventes judiciaires - Adjudications non assujetties TVA sur marge 5,5%;CNCJ
-4682050;Ventes judiciaires - Adjudications non assujetties TVA sur marge 10%;CNCJ
-4682060;Ventes judiciaires - Adjudications non assujetties TVA sur marge 20%;CNCJ
-4682070;Ventes judiciaires - Adjudications non assujetties Livraison CEE exo TVA;CNCJ
-4682080;Ventes judiciaires - Adjudications non assujetties Export eco TVA;CNCJ
-4682090;Ventes judiciaires - Adjudications non assujetties Franchise exo TVA;CNCJ
-4682100;Ventes judiciaires - Adjudications assujetties Livraison CEE exo TVA;CNCJ
-4682110;Ventes judiciaires - Adjudications assujetties Export eco TVA;CNCJ
-4682120;Ventes judiciaires - Adjudications assujetties Franchise exo TVA;CNCJ
-5420000;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64;CNCJ
-5421000;Banques établissements dépositaires autorisés - compte de placement;CNCJ
-5800000;Virements internes;CNCJ
-5810000;Virements internes - Banues établissements dépositaires autorisés;CNCJ
-6281200;Cotisations chambres;CNCJ
-6281210;Cotisations chambre nationale;CNCJ
-6281220;Cotisations chambre régionale;CNCJ
-6282000;Contribution volontaire obligatoire - CVO;CNCJ
-6283000;Cotisations professionnelles volontaires;CNCJ
-6440000;Rémunération des commissaires de justice associés;CNCJ
-6462000;Cotisations de retraite - CAVOM;CNCJ
-7061400;Ventes judiciaires - Actes, inventaires, prisées, ventes judiciaires;CNCJ
-7061401;Ventes judiciaires - Honoraires acheteurs 5,5%;CNCJ
-7061402;Ventes judiciaires - Honoraires acheteurs 10%;CNCJ
-7061403;Ventes judiciaires - Honoraires acheteurs 20%;CNCJ
-7061404;Ventes judiciares - Honoraires vendeurs 5,5%;CNCJ
-7061405;Ventes judiciares - Honoraires vendeurs 10%;CNCJ
-7061406;Ventes judiciares - Honoraires vendeurs 20%;CNCJ
-7061407;Ventes judiciaires - Honoraires acheteurs Livraison CEE exo TVA;CNCJ
-7061408;Ventes judiciaires - Honoraires acheteurs Export exo TVA;CNCJ
-7061409;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA;CNCJ
-7061410;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA;CNCJ
-7061411;Ventes judiciaires - Honoraires vendeurs Export exo TVA;CNCJ
-7061500;Ventes judiciaires - Formalités;CNCJ
-7062600;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises;CNCJ
-7068000;Autres produits HT;CNCJ
-7068100;Autres produits exo TVA;CNCJ
-7088000;Débours récupérés;CNCJ
-7094000;Débours payés irrécupérables;CNCJ
-7583000;Versements de la CVO;CNCJ
+N° de compte;Intitulé du compte
+1080000;Compte du commissaire de justice
+1081000;Commissaire de justice - Comptes prélèvements
+1082000;Commissaire de justice - Apports (Compte permanent)
+2748000;Caisse de prêts
+4011100;Fournisseurs de l'office
+4011200;Fournisseurs liés aux comptes clients (toutes activités sauf ventes judiciaires)
+4011300;Fournisseurs liés aux comptes clients (activité de ventes judiciaires)
+4120000;Clients - Prestations de service facturées (activité de ventes judiciaires) (activité de ventes judiciaires)
+4196100;Fonds détenus pour le comptes des clients (Saisies-rémunérations)
+4196300;Fonds détenus pour le compte des clients (activité de ventes judiciaires)
+4196990;Clients ouverture informatique
+4362000;Assurance maladie des professions libérales
+4363000;Caisse de retraite des commissaires de justice - CAVOM
+4368000;Autres organismes sociaux et de retraite des commissaires de justice
+4372000;Mutuelles
+4373000;Caisses de retraite
+4377000;Autres organismes sociaux intéressant le personnel
+4456610;TVA déductible sur services - comptabilisée
+4456660;TVA déductible sur autres biens et services payés - encaissement
+4456620;TVA déductible - Adjugé 5,5%
+4456630;TVA déductible - Adjugé 10%
+4456640;TVA déductible - Adjugé 20%
+4457100;Tva Collectée encaissée
+4457110;Tva Collectée facturée - toutes prestations et honoraires (hors ventes judiciaires)
+4457111;TVA collectée honoraires - ventes judiciaires 5,5%
+4457112;TVA collectée honoraires - ventes judiciaires 10%
+4457113;TVA collectée honoraires - ventes judiciaires 20%
+4457114;TVA collectée - Adjugé ventes judiciaires 5,5%
+4457115;TVA collectée - Adjugé ventes judiciaires 10%
+4457116;TVA collectée - Adjugé ventes judiciaires 20%
+4457180;Tva Collectée facturée sur autres produits HT
+4457800;Tva Collectée facturée sur autres produits HT
+4470000;Taxe forfaitaire sur les actes - encaissée
+4470100;Taxe forfaitaire sur les actes - facturée
+4552000;Charges sociales des commissaires de justice associés
+4555000;CSG déductible des commissaires de justice associés
+4556000;Frais divers des commissaires de justice associés
+4670000;Débours (toutes activités sauf ventes judiciaires)
+4670010;Débours - Saisies-rémunérations
+4670300;Débours (activité de ventes judiciaires)
+4671000;Ventes judiciaires - Compte créditeur de regroupement des comptes auxiliaires
+4672000;Ventes judiciaires - Compte débiteur de regroupement des comptes auxiliaires
+4681000;Commissaires de justice - Divers comptes créditeurs et charges à payer
+4682000;Ventes judiciaires - Compte adjudication
+4682010;Ventes judiciaires - Adjudications assujetties 5,5%
+4682020;Ventes judiciaires - Adjudications assujetties 10%
+4682030;Ventes judiciaires - Adjudications assujetties 20%
+4682040;Ventes judiciaires - Adjudications non assujetties TVA sur marge 5,5%
+4682050;Ventes judiciaires - Adjudications non assujetties TVA sur marge 10%
+4682060;Ventes judiciaires - Adjudications non assujetties TVA sur marge 20%
+4682070;Ventes judiciaires - Adjudications non assujetties Livraison CEE exo TVA
+4682080;Ventes judiciaires - Adjudications non assujetties Export eco TVA
+4682090;Ventes judiciaires - Adjudications non assujetties Franchise exo TVA
+4682100;Ventes judiciaires - Adjudications assujetties Livraison CEE exo TVA
+4682110;Ventes judiciaires - Adjudications assujetties Export eco TVA
+4682120;Ventes judiciaires - Adjudications assujetties Franchise exo TVA
+5420000;Banques établissements dépositaires autorisés - comptes clients - Banque Fonds clients article 64
+5421000;Banques établissements dépositaires autorisés - compte de placement
+5800000;Virements internes
+5810000;Virements internes - Banues établissements dépositaires autorisés
+6111000;Frais de traitement informatique
+6111100;Frais ADEC
+6211100;Bureau commun de signification
+6261100;Affranchissements activités monopole
+6261200;Affranchissements activités concurrence
+6262000;Télécommunications
+6281000;Cotisations S.C.T
+6281100;Cotisations COFRER
+6281200;Cotisations chambres
+6281210;Cotisations chambre nationale
+6281220;Cotisations chambre régionale
+6282000;Contribution volontaire obligatoire - CVO
+6283000;Cotisations professionnelles volontaires
+6411100;Rémunérations des clercs significateurs
+6411110;Rémunérations des clercs audienciers
+6411120;Rémunérations des clercs aux constats
+6411300;Rémunérations totale des associés au titre de l'exercice de l'activité libérale
+6412100;Congés payés (clercs significateurs)
+6412110;Congés payés (clercs audienciers)
+6412120;Congés payés (clercs aux constats)
+6413100;Primes et gratifications (clercs significateurs)
+6413110;Primes et gratifications (clercs audienciers)
+6413120;Primes et gratifications (clercs aux constats)
+6414100;Indemnités et avantages divers (clercs significateurs)
+6414110;Indemnités et avantages divers (clercs audienciers)
+6414120;Indemnités et avantages divers (clercs aux constats)
+6417000;Avantages en nature
+6417100;Avantages en nature (clercs significateurs)
+6417110;Avantages en nature (clercs audienciers)
+6417120;Avantages en nature (clercs aux constats)
+6440000;Rémunération des commissaires de justice associés
+6451100;Cotisations URSSAF  (clercs significateurs)
+6451110;Cotisations URSSAF (clercs audienciers)
+6451120;Cotisations URSSAF (clercs aux constats)
+6452100;Cotisations aux mutuelles (clercs significateurs)
+6452110;Cotisations aux mutuelles (clercs audienciers)
+6452120;Cotisations aux mutuelles (clercs aux constats)
+6456000;Charges sociales sur congés acquis au personnel
+6456100;Charges sociales sur congés (clercs significateurs)
+6456110;Charges sociales sur congés (clercs audienciers)
+6456120;Charges sociales sur congés (clercs aux constats)
+6462000;Cotisations de retraite - CAVOM
+6581100;Appels de fonds des groupements d'audience
+7061000;Emoluments - Prestations tarifées
+7061100;Actes (toutes activités sauf ventes judiciaires)
+7061101;Saisies des rémunérations - Emoluments du CdJ saisissant
+7061102;Saisies de rémunérations - Emoluments du CdJ répartiteur
+7061200;Formalités (toutes activités sauf ventes judiciaires)
+7061300;Droits proportionnels
+7061400;Ventes judiciaires - Actes, inventaires, prisées, ventes judiciaires
+7061401;Ventes judiciaires - Honoraires acheteurs 5,5%
+7061402;Ventes judiciaires - Honoraires acheteurs 10%
+7061403;Ventes judiciaires - Honoraires acheteurs 20%
+7061404;Ventes judiciares - Honoraires vendeurs 5,5%
+7061405;Ventes judiciares - Honoraires vendeurs 10%
+7061406;Ventes judiciares - Honoraires vendeurs 20%
+7061407;Ventes judiciaires - Honoraires acheteurs Livraison CEE exo TVA
+7061408;Ventes judiciaires - Honoraires acheteurs Export exo TVA
+7061409;Ventes judiciaires - Honoraires acheteurs Franchise exo TVA
+7061410;Ventes judiciaires - Honoraires vendeurs Livraison CEE exo TVA
+7061411;Ventes judiciaires - Honoraires vendeurs Export exo TVA
+7061412;Ventes judiciaires - Honoraires vendeurs Franchise exo TVA
+7061500;Ventes judiciaires - Formalités
+7061600;Actes pénaux
+7061700;Service desd audiences
+7061800;Prestations - Autres tarifs spéciaux
+7061810;Expropriation pour cause d'utilité publique
+7061820;Créances publiques (phase comminatoire)
+7061830;Procédure administrative
+7061840;Contentieux prud'homal
+7061850;Surendettement
+7062000;Honoraires - Prestations non tarifiées
+7062100;Honoraires conventionnels sur les actes
+7062200;Honoraires conventionnels sur les constats
+7062300;Honoraires conventionnels sur le recouvrement amiable
+7062400;Honoraires conventionnels sur les conseils, assistance, représentation, pilotage
+7062500;Honoraires des activités accessoires autorisées
+7062510;Activité de médiation
+7062520;Activité de vérification des comptes de tutelle
+7062600;Ventes judiciaires - Honoraires d'inventaires, prisées et expertises
+7062700;Honoraires divers
+7062800;Frais de transport pour les honoraires - Prestations non tarifées
+7068000;Autres produits HT
+7068100;Autres produits exo TVA
+7088000;Débours récupérés
+7094000;Débours payés irrécupérables
+7583000;Versements de la CVO

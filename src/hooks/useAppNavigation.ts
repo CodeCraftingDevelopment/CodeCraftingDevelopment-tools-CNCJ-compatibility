@@ -35,13 +35,13 @@ export const useAppNavigation = (
   }, [dispatch, state.result, handleNavigateNext])
 
   const handleMergeNext = useCallback(() => {
-    // Détecter les comptes nécessitant une normalisation
-    const accountsNeedingNormalization = findAccountsNeedingNormalization(state.clientAccounts)
+    // Détecter les comptes nécessitant une normalisation (mappage SVV prioritaire)
+    const accountsNeedingNormalization = findAccountsNeedingNormalization(state.clientAccounts, state.svvCorrespondences)
     dispatch({ type: 'SET_ACCOUNTS_NEEDING_NORMALIZATION', payload: accountsNeedingNormalization })
-    
+
     // Naviguer vers l'étape de normalisation
     handleNavigateNext()
-  }, [dispatch, state.clientAccounts, handleNavigateNext])
+  }, [dispatch, state.clientAccounts, state.svvCorrespondences, handleNavigateNext])
 
   const handleNormalizationNext = useCallback(() => {
     if (state.accountsNeedingNormalization.length > 0 && !state.isNormalizationApplied) {

@@ -30,6 +30,8 @@ interface ResultsDisplayProps {
   // Suggestions initiales sauvegardées (prioritaires sur le calcul)
   savedInitialSuggestions?: { [accountId: string]: SuggestionResult };
   savedInitialCncjSuggestions?: { [accountId: string]: SuggestionResult };
+  // Mappage SVV : les doublons issus d'une consolidation SVV sont pré-validés (étape 4)
+  svvCorrespondences?: { [compteEncheres: string]: string };
 }
 
 export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -50,10 +52,18 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   step4Suggestions,
   step4ReplacementCodes,
   savedInitialSuggestions,
-  savedInitialCncjSuggestions
+  savedInitialCncjSuggestions,
+  svvCorrespondences = {}
 }) => {
   // Déclarer les variables avant le useCallback
   const { duplicates = [], uniqueClients = [], matches = [], unmatchedClients = [], toCreate = [] } = result || {};
+
+  // Un doublon est « SVV » si son code d'origine (8 chiffres) figure dans le mappage SVV.
+  // La consolidation a été validée en amont : pas de différenciation demandée (étape 4 uniquement).
+  const isSvvAccount = (account: Account): boolean =>
+    conflictType === 'duplicates' && !!svvCorrespondences[account.originalNumber || ''];
+  // Ids des doublons SVV : exclus de l'application en masse des suggestions (+1)
+  const svvDuplicateIds = new Set(duplicates.filter(isSvvAccount).map(d => d.id));
   
   // Suggestions INITIALES (calculées une seule fois, sans tenir compte des replacementCodes)
   // Ces suggestions sont utilisées pour le modal de détails et l'export CSV
@@ -325,7 +335,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 // Appliquer uniquement si :
                 // 1. Il y a une suggestion (code pas null)
                 // 2. Le champ est vide (pas déjà rempli)
-                if (suggestionResult?.code && !replacementCodes[accountId]?.trim()) {
+                if (suggestionResult?.code && !replacementCodes[accountId]?.trim() && !svvDuplicateIds.has(accountId)) {
                   onReplacementCodeChange(accountId, suggestionResult.code);
                 }
               });
@@ -335,7 +345,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
               // Désactiver si aucune suggestion disponible
               const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
-                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim()
+                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim() && !svvDuplicateIds.has(accountId)
               );
               return availableSuggestions.length === 0;
             })()}
@@ -344,7 +354,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               // Utiliser les bonnes suggestions selon le type de conflit
               const currentSuggestions = conflictType === 'cncj-conflicts' ? cncjSuggestions : suggestions;
               const availableSuggestions = Array.from(currentSuggestions.entries()).filter(
-                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim()
+                ([accountId, suggestionResult]) => suggestionResult?.code && !replacementCodes[accountId]?.trim() && !svvDuplicateIds.has(accountId)
               );
               return availableSuggestions.length > 0 
                 ? `Appliquer ${availableSuggestions.length} suggestion(s) automatique(s)`
@@ -421,6 +431,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     ? initialCncjSuggestions.get(account.id) 
                     : initialSuggestions.get(account.id);
                   
+                  const isSvv = isSvvAccount(account);
+
                   return (
                     <DuplicateRow
                       key={account.id}
@@ -429,6 +441,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       onReplacementCodeChange={onReplacementCodeChange || (() => {})}
                       isDuplicateCode={isDuplicateCode}
                       isCncjCode={isCncjCode}
+                      isSvv={isSvv}
                       conflictType={conflictType}
                       _corrections={corrections}
                       suggestion={conflictType === 'cncj-conflicts' ? cncjSuggestions.get(account.id) : suggestions.get(account.id)}

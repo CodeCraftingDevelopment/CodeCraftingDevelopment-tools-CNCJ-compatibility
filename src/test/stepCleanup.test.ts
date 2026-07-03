@@ -24,6 +24,8 @@ describe('stepCleanup', () => {
     accountsNeedingNormalization: [{ id: 'n1', originalNumber: '10001234', normalizedNumber: '1000123' }],
     isNormalizationApplied: true,
     missingMetadata: {},
+    svvCorrespondences: {},
+    svvFileInfo: null,
     initialSuggestions: {},
     initialCncjSuggestions: {},
     clientName: '',

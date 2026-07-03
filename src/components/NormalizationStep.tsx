@@ -81,11 +81,17 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
       
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-6">
         <p className="text-sm text-gray-600 text-center">
-          💡 Les numéros de compte clients doivent avoir exactement 7 chiffres. 
-          Les comptes trop courts seront complétés avec des zéros en fin, 
+          💡 Les numéros de compte clients doivent avoir exactement 7 chiffres.
+          Les comptes trop courts seront complétés avec des zéros en fin,
           les comptes trop longs seront tronqués.
         </p>
       </div>
+
+      {accountsNeedingNormalization.some(a => a.isSvv) && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-6 text-sm text-indigo-700 text-center">
+          🔁 Les codes marqués <span className="font-semibold">SVV</span> proviennent du mappage pré-validé fourni (prioritaire sur la troncature automatique).
+        </div>
+      )}
       
       {/* Tableau avant/après */}
       <div className="overflow-x-auto max-h-64 overflow-y-auto mb-6">
@@ -108,6 +114,11 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
                 </td>
                 <td className="border border-gray-300 px-4 py-2 font-mono text-green-600 font-bold">
                   {account.normalizedNumber}
+                  {account.isSvv && (
+                    <span className="ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-300 align-middle">
+                      SVV
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
