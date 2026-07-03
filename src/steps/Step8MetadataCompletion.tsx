@@ -10,7 +10,8 @@ import { exportToCsv, escapeCsvCell } from '../utils/csvExportUtils';
 import {
   normalizeForDisplay,
   computeFinalCode,
-  preparePcgLookups,
+  MANUAL_PCG_REFERENCE_KEY,
+  UNRESOLVED_PCG_REFERENCE_KEY,
   type ModificationSource
 } from '../utils/accountMatchingUtils';
 
@@ -25,6 +26,7 @@ interface SummaryRow {
   isStep4Duplicate: boolean;
   isStep6Conflict: boolean;
   isToCreate: boolean;
+  isForced: boolean;
 }
 
 interface MetadataRow {
@@ -34,6 +36,8 @@ interface MetadataRow {
   inheritedData: AccountMetadata;
   isInherited: boolean;
   hasClosestMatch: boolean; // true si la recherche a abouti, false sinon
+  isManuallyImported: boolean; // true si retraité via referencePcgCode à l'import
+  isUnresolvedReference: boolean; // true si referencePcgCode saisi mais introuvable dans le PCG
   isInPcg: boolean; // pour le filtrage correct
   // Ajout de l'historique des codes
   codeHistory: {
@@ -55,6 +59,8 @@ interface Step8MetadataCompletionProps {
   result: ProcessingResult | null;
   cncjConflictResult: CncjConflictResult | null;
   cncjConflictCorrections: { [key: string]: string | 'error' };
+  cncjForcedValidations: Set<string>;
+  cncjCodes: Set<string>;
   missingMetadata: { [accountId: string]: AccountMetadata };
   onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
@@ -68,12 +74,23 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   result,
   cncjConflictResult,
   cncjConflictCorrections,
+  cncjForcedValidations,
+  cncjCodes,
   missingMetadata,
   onMetadataChange
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'withMatch' | 'withoutMatch'>('withoutMatch');
   const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({});
+  const [showUnresolvedModal, setShowUnresolvedModal] = useState(false);
+
+  // Détection CNCJ : un compte dont le code final existe dans la référence CNCJ doit être marqué isCNCJ=true.
+  // On normalise les deux côtés pour une comparaison fiable (7 chiffres).
+  const normalizedCncjCodes = useMemo(
+    () => new Set(Array.from(cncjCodes, code => normalizeForDisplay(code))),
+    [cncjCodes]
+  );
+  const isCncjCode = (code: string): boolean => normalizedCncjCodes.has(normalizeForDisplay(code));
   
   // Toggle individual card
   const toggleCard = (accountId: string) => {
@@ -103,7 +120,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const isStep4Duplicate = step4Ids.has(account.id);
       const isStep6Conflict = step6Ids.has(account.id);
       const isToCreate = toCreateIds.has(account.id);
-      
+      const isForced = cncjForcedValidations.has(account.id);
+
       let modificationSource: ModificationSource = null;
       if (isStep4Duplicate && isStep6Conflict) {
         modificationSource = 'step4+step6';
@@ -127,14 +145,15 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         originalCode: getDisplayCode(account),
         correctedCode: correctedCode,
         cncjCorrection: cncjCorrection,
-        wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined,
+        wasModified: replacementCodes[account.id] !== undefined || cncjReplacementCodes[account.id] !== undefined || isForced,
         modificationSource,
         isStep4Duplicate,
         isStep6Conflict,
-        isToCreate
+        isToCreate,
+        isForced
       };
     });
-  }, [clientAccounts, mergedClientAccounts, result, cncjConflictResult, replacementCodes, cncjReplacementCodes, cncjConflictCorrections]);
+  }, [clientAccounts, mergedClientAccounts, result, cncjConflictResult, replacementCodes, cncjReplacementCodes, cncjConflictCorrections, cncjForcedValidations]);
 
   // Fonction d'échappement CSV (utilitaire importé)
   // Utilise escapeCsvCell de csvExportUtils
@@ -170,15 +189,6 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         'statusSelect', 'isCNCJ'
       ];
 
-      const { pcgLookup } = preparePcgLookups(generalAccounts);
-
-      const clientCodesNotInPcg = finalSummaryData.filter(row => {
-        const finalCode = normalizeForDisplay(computeFinalCodeForSummary(row));
-        return !pcgLookup.has(finalCode);
-      });
-
-      const { pcgAccountsByPrefix } = preparePcgLookups(generalAccounts);
-
       const csvRows: string[][] = [];
 
       // Comptes PCG existants
@@ -212,41 +222,19 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             String(data.analyticDistributionRequiredOnMoveLines ?? ''),
             String(data['analyticDistributionTemplate.importId'] || ''),
             String(data.statusSelect || '1'),
-            String(data.isCNCJ ?? 'false')
+            isCncjCode(account.number) ? 'true' : String(data.isCNCJ ?? 'false')
           ]
         };
       });
 
-      // Comptes clients non présents dans PCG avec héritage
-      const clientAccountRows = clientCodesNotInPcg.map((row, index) => {
+      // Comptes clients non présents dans PCG : réutiliser les métadonnées de l'étape
+      // (héritage automatique + import manuel via referencePcgCode + éditions manuelles).
+      const clientAccountRows = accountsNeedingMetadata.map((row, index) => {
         const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
-        const code = normalizeForDisplay(computeFinalCodeForSummary(row));
+        const code = normalizeForDisplay(row.finalCode);
         const name = row.title;
-        
-        let inheritedData: AccountMetadata = {};
-        
-        if (code.length >= 5) {
-          const prefix = code.substring(0, 4);
-          const codeNum = parseInt(code);
-          
-          if (!isNaN(codeNum)) {
-            const matchingPcgAccounts = pcgAccountsByPrefix.get(prefix) || [];
-            
-            if (matchingPcgAccounts.length > 0) {
-              const closestPcgAccount = matchingPcgAccounts.reduce((closest, current) => {
-                const currentDiff = Math.abs(codeNum - parseInt(current.number));
-                const closestDiff = Math.abs(codeNum - parseInt(closest.number));
-                return currentDiff < closestDiff ? current : closest;
-              });
-              
-              inheritedData = toAccountMetadata(closestPcgAccount.rawData || {});
-              delete inheritedData.importId;
-              delete inheritedData.code;
-              delete inheritedData.name;
-            }
-          }
-        }
-        
+        const inheritedData = row.inheritedData;
+
         return {
           code: parseInt(code) || 0,
           row: [
@@ -273,7 +261,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             String(inheritedData.analyticDistributionRequiredOnMoveLines ?? ''),
             String(inheritedData['analyticDistributionTemplate.importId'] || ''),
             String(inheritedData.statusSelect || '1'),
-            String(inheritedData.isCNCJ ?? 'false')
+            isCncjCode(code) ? 'true' : String(inheritedData.isCNCJ ?? 'false')
           ]
         };
       });
@@ -308,12 +296,16 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   // Fonction utilitaire pour calculer le code final depuis SummaryRow
   const computeFinalCodeForSummary = (row: SummaryRow): string => {
     if (row.modificationSource === 'step4+step6') {
+      // Validation forcée sans code CNCJ saisi → conserver le code issu de l'étape 4 (normalisé)
+      if (row.isForced && row.cncjCorrection === '-') return row.correctedCode;
       return row.cncjCorrection === 'Erreur' ? row.correctedCode : row.cncjCorrection;
     }
     if (row.modificationSource === 'step4') {
       return row.correctedCode;
     }
     if (row.modificationSource === 'step6') {
+      // Validation forcée → accepter le code normalisé (7 chiffres) tel quel
+      if (row.isForced) return row.correctedCode;
       return row.cncjCorrection === 'Erreur' ? row.originalCode : row.cncjCorrection;
     }
     return row.correctedCode || row.originalCode;
@@ -378,6 +370,16 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const importedMetadata = missingMetadata[account.id] || {};
       const finalInheritedData = { ...inheritedData, ...importedMetadata };
 
+      // Détecter un retraitement manuel via referencePcgCode à l'import
+      const manualReference = typeof importedMetadata[MANUAL_PCG_REFERENCE_KEY] === 'string'
+        ? importedMetadata[MANUAL_PCG_REFERENCE_KEY] as string
+        : undefined;
+      const unresolvedReference = typeof importedMetadata[UNRESOLVED_PCG_REFERENCE_KEY] === 'string'
+        ? importedMetadata[UNRESOLVED_PCG_REFERENCE_KEY] as string
+        : undefined;
+      const isManuallyImported = !isInPcg && !!manualReference;
+      const isUnresolvedReference = !isInPcg && !isManuallyImported && !!unresolvedReference;
+
       // Calculer l'historique des codes
       const step4Ids = new Set(result?.duplicates?.map(d => d.id) || []);
       const step6Ids = new Set(cncjConflictResult?.conflicts?.map(d => d.id) || []);
@@ -397,7 +399,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         step4Code,
         step6Code,
         finalCode: finalCodeValue,
-        referencePcgCode
+        referencePcgCode: referencePcgCode || manualReference || unresolvedReference
       };
 
       return {
@@ -407,6 +409,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         inheritedData: finalInheritedData,
         isInherited: !isInPcg && isInherited,
         hasClosestMatch: !isInPcg && isInherited && matchingPcgAccounts.length > 0,
+        isManuallyImported,
+        isUnresolvedReference,
         isInPcg,
         codeHistory
       };
@@ -420,6 +424,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   const accountsInPcg = metadataData.filter(row => row.isInPcg);
   const totalCount = metadataData.length;
   const needingMetadataCount = accountsNeedingMetadata.length;
+  const unresolvedReferenceCount = accountsNeedingMetadata.filter(row => row.isUnresolvedReference).length;
 
   const filteredData = useMemo(() => {
     let data = accountsNeedingMetadata;
@@ -490,6 +495,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   const { metadataFileInfo, processMetadataFile, handleClearMetadataFile } = useMetadataImport({
     _accountsNeedingMetadata: accountsNeedingMetadata as unknown as Account[],
     metadataFields,
+    generalAccounts,
     onMetadataChange
   });
 
@@ -504,17 +510,20 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   const handleExportAccountsToCreate = () => {
     try {
       const csvHeaders = [
-        'id', 'title', 'finalCode', 'hasClosestMatch', 'referencePcgCode',
+        'id', 'title', 'original_client_code', 'finalCode', 'hasClosestMatch', 'referencePcgCode',
         ...metadataFields.map(field => field.key)
       ];
-      
+
       const csvRows = accountsNeedingMetadata.map(row => {
-        const metadataValues = metadataFields.map(field => 
-          row.inheritedData[field.key] || ''
+        const metadataValues = metadataFields.map(field =>
+          field.key === 'isCNCJ' && isCncjCode(row.finalCode)
+            ? 'true'
+            : (row.inheritedData[field.key] || '')
         );
         return [
           row.id,
           row.title,
+          row.codeHistory.originalCode,
           row.finalCode,
           row.hasClosestMatch ? 'true' : 'false',
           row.codeHistory.referencePcgCode || '',
@@ -562,10 +571,32 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           et qui nécessitent un remplissage des métadonnées. 
           <span className="font-semibold text-green-700">Les cartes vertes</span> indiquent qu'une correspondance proche a été trouvée 
           et les métadonnées sont pré-remplies. 
-          <span className="font-semibold text-red-700">Les cartes rouges</span> indiquent qu'aucune correspondance n'a été trouvée 
+          <span className="font-semibold text-red-700">Les cartes rouges</span> indiquent qu'aucune correspondance n'a été trouvée
           et les métadonnées doivent être saisies manuellement.
+          <span className="font-semibold text-blue-700"> Les cartes bleues</span> indiquent un compte retraité manuellement via un
+          <span className="font-mono"> referencePcgCode</span> à l'import (paramètres hérités du compte PCG de référence).
+          <span className="font-semibold text-amber-700"> Les cartes ambre</span> indiquent un
+          <span className="font-mono"> referencePcgCode</span> saisi mais introuvable dans le PCG (code à corriger).
         </p>
       </div>
+
+      {/* Alerte : références PCG introuvables */}
+      {unresolvedReferenceCount > 0 && (
+        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 text-sm text-amber-800 flex items-start justify-between gap-3">
+          <div>
+            ⚠️ <span className="font-semibold">{unresolvedReferenceCount} référence(s) PCG introuvable(s)</span> :
+            le code saisi dans <span className="font-mono">referencePcgCode</span> n'existe pas dans le PCG chargé.
+            Corrigez ces codes dans le fichier puis rechargez-le (cartes ambre ci-dessous).
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowUnresolvedModal(true)}
+            className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg hover:bg-amber-200 transition-colors font-medium"
+          >
+            👁 Consulter les lignes
+          </button>
+        </div>
+      )}
 
       {/* Filtre */}
       {accountsNeedingMetadata.length > 0 && (
@@ -627,24 +658,42 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             <div className="space-y-4">
               {filteredData.map((row) => {
                 const isCollapsed = collapsedCards[row.id] ?? true;
-                
+
+                // Style à quatre états : importé manuellement (bleu), référence PCG introuvable (ambre),
+                // correspondance auto (vert), aucune (rouge)
+                const cardBorderClass = row.isManuallyImported
+                  ? 'border-blue-200 bg-blue-50'
+                  : row.isUnresolvedReference ? 'border-amber-200 bg-amber-50'
+                  : row.hasClosestMatch ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50';
+                const headerBgClass = row.isManuallyImported
+                  ? 'bg-blue-50 hover:bg-blue-100'
+                  : row.isUnresolvedReference ? 'bg-amber-50 hover:bg-amber-100'
+                  : row.hasClosestMatch ? 'bg-green-50 hover:bg-green-100' : 'bg-red-50 hover:bg-red-100';
+                const badgeClass = row.isManuallyImported
+                  ? 'bg-blue-600 text-white'
+                  : row.isUnresolvedReference ? 'bg-amber-500 text-white'
+                  : row.hasClosestMatch ? 'bg-green-600 text-white' : 'bg-red-600 text-white';
+                const badgeLabel = row.isManuallyImported
+                  ? '📥 Importé manuellement'
+                  : row.isUnresolvedReference ? `⚠️ Référence PCG introuvable (${row.codeHistory.referencePcgCode || '—'})`
+                  : row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance';
+                const inputBorderClass = row.isManuallyImported
+                  ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
+                  : row.isUnresolvedReference
+                    ? 'border-amber-300 focus:ring-amber-500 focus:border-amber-500'
+                    : row.hasClosestMatch
+                      ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                      : 'border-red-300 focus:ring-red-500 focus:border-red-500';
+
                 return (
                   <div
                     key={row.id}
-                    className={`border rounded-lg shadow-sm transition-all duration-200 overflow-hidden ${
-                      row.hasClosestMatch 
-                        ? 'border-green-200 bg-green-50' 
-                        : 'border-red-200 bg-red-50'
-                    }`}
+                    className={`border rounded-lg shadow-sm transition-all duration-200 overflow-hidden ${cardBorderClass}`}
                   >
                     {/* Full-width clickable header */}
                     <button
                       onClick={() => toggleCard(row.id)}
-                      className={`w-full p-4 transition-colors flex items-center justify-between ${
-                        row.hasClosestMatch 
-                          ? 'bg-green-50 hover:bg-green-100' 
-                          : 'bg-red-50 hover:bg-red-100'
-                      }`}
+                      className={`w-full p-4 transition-colors flex items-center justify-between ${headerBgClass}`}
                       aria-expanded={!isCollapsed}
                     >
                       <div className="flex-1 text-left">
@@ -688,12 +737,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          row.hasClosestMatch
-                            ? 'bg-green-600 text-white'
-                            : 'bg-red-600 text-white'
-                        }`}>
-                          {row.hasClosestMatch ? '✓ Correspondance trouvée' : '✗ Aucune correspondance'}
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${badgeClass}`}>
+                          {badgeLabel}
                         </span>
                         <span 
                           className={`text-gray-500 transition-transform duration-200 ${
@@ -722,11 +767,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                             <select
                               value={typeof value === 'boolean' ? String(value) : value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
-                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
-                                row.hasClosestMatch
-                                  ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
-                                  : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                              }`}
+                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${inputBorderClass}`}
                             >
                               {field.options?.map((option) => (
                                 <option key={option} value={option}>
@@ -739,11 +780,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                               type="text"
                               value={typeof value === 'boolean' ? String(value) : value}
                               onChange={(e) => handleMetadataFieldChange(row.id, field.key, e.target.value)}
-                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${
-                                row.hasClosestMatch
-                                  ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
-                                  : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                              }`}
+                              className={`px-3 py-1 text-sm border rounded-md focus:ring-2 focus:border ${inputBorderClass}`}
                               placeholder={field.key.includes('importId') ? 'AT001' : ''}
                             />
                           )}
@@ -869,10 +906,20 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
                 <div className={`text-sm ${
                   metadataFileInfo.loadStatus === 'success' ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {metadataFileInfo.loadStatus === 'success' 
-                    ? `${metadataFileInfo.rowCount} métadonnées importées avec succès` 
+                  {metadataFileInfo.loadStatus === 'success'
+                    ? `${metadataFileInfo.rowCount} métadonnées importées avec succès`
                     : 'Échec de l\'import'}
                 </div>
+
+                {metadataFileInfo.loadStatus === 'success' && unresolvedReferenceCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowUnresolvedModal(true)}
+                    className="text-sm text-amber-700 font-medium hover:text-amber-900 underline decoration-dotted underline-offset-2"
+                  >
+                    ⚠️ {unresolvedReferenceCount} référence(s) PCG introuvable(s) — 👁 Consulter
+                  </button>
+                )}
                 
                 <div className="flex justify-center space-x-2">
                   <button
@@ -887,7 +934,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             )}
           </DropZone>
         </div>
-        
+
         <div className="space-y-1">
           <p className="text-sm text-gray-500">
             Contient tous les comptes PCG existants + les comptes clients non présents dans PCG
@@ -900,6 +947,79 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           </p>
         </div>
       </div>
+
+      {/* Modale : lignes avec referencePcgCode introuvable */}
+      {showUnresolvedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-amber-50">
+              <div>
+                <h3 className="text-lg font-semibold text-amber-900">
+                  ⚠️ Références PCG introuvables
+                </h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  {unresolvedReferenceCount} ligne{unresolvedReferenceCount > 1 ? 's' : ''} dont le referencePcgCode n'existe pas dans le PCG chargé
+                </p>
+              </div>
+              <button
+                onClick={() => setShowUnresolvedModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Fermer"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code original</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code final</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">referencePcgCode introuvable</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {accountsNeedingMetadata.filter(row => row.isUnresolvedReference).map((row, index) => (
+                      <tr key={row.id} className="hover:bg-amber-50">
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">{index + 1}</td>
+                        <td className="px-4 py-3 text-gray-800">{row.title}</td>
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-gray-600">{row.codeHistory.originalCode}</td>
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-gray-900">{row.finalCode}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                            {row.codeHistory.referencePcgCode || '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-600">
+                Corrigez ces codes dans le fichier CSV puis rechargez-le.
+              </div>
+              <button
+                onClick={() => setShowUnresolvedModal(false)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ interface CleanupConfig {
   finalFilter?: boolean;
   accountsNeedingNormalization?: boolean;
   isNormalizationApplied?: boolean;
+  missingMetadata?: boolean;
 }
 
 // Lookup table pour le nettoyage des étapes futures
@@ -21,7 +22,8 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     cncjForcedValidations: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
-    isNormalizationApplied: true
+    isNormalizationApplied: true,
+    missingMetadata: true
   },
   step2: {
     replacementCodes: true,
@@ -30,14 +32,16 @@ const STEP_CLEANUP_CONFIG: Record<Step, CleanupConfig> = {
     cncjForcedValidations: true,
     finalFilter: true,
     accountsNeedingNormalization: true,
-    isNormalizationApplied: true
+    isNormalizationApplied: true,
+    missingMetadata: true
   },
   step3: {
     replacementCodes: true,
     cncjConflictResult: true,
     cncjConflictCorrections: true,
     cncjForcedValidations: true,
-    finalFilter: true
+    finalFilter: true,
+    missingMetadata: true
   },
   step4: {
     cncjConflictResult: true,
@@ -84,6 +88,9 @@ export const cleanupFutureSteps = (state: AppState, targetStep: Step): AppState 
   if (config.isNormalizationApplied) {
     newState.isNormalizationApplied = false;
   }
-  
+  if (config.missingMetadata) {
+    newState.missingMetadata = {};
+  }
+
   return newState;
 };

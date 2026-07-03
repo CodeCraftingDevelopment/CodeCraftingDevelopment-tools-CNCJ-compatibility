@@ -527,6 +527,7 @@ const App: React.FC = () => {
                   replacementCodes={state.replacementCodes}
                   cncjReplacementCodes={state.cncjReplacementCodes}
                   cncjConflictCorrections={state.cncjConflictCorrections}
+                  cncjForcedValidations={state.cncjForcedValidations}
                   mergedClientAccounts={mergedClientAccounts}
                   generalAccounts={state.generalAccounts}
                   finalFilter={state.finalFilter}
@@ -555,6 +556,8 @@ const App: React.FC = () => {
                   result={state.result}
                   cncjConflictResult={state.cncjConflictResult}
                   cncjConflictCorrections={state.cncjConflictCorrections}
+                  cncjForcedValidations={state.cncjForcedValidations}
+                  cncjCodes={cncjCodes}
                   missingMetadata={state.missingMetadata}
                   onMetadataChange={handleMetadataChange}
                 />
