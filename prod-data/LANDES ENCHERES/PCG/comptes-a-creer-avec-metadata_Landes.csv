@@ -1,0 +1,15 @@
+id;title;original_client_code;finalCode;hasClosestMatch;referencePcgCode;parent_code;accountType.importId;isRegulatoryAccount;commonPosition;reconcileOk;compatibleAccounts;useForPartnerBalance;isTaxAuthorizedOnMoveLine;isTaxRequiredOnMoveLine;defaultTaxSet;vatSystemSelect;isRetrievedOnPaymentSession;serviceType.code;manageCutOffPeriod;hasAutomaticApplicationAccountingDate;analyticDistributionAuthorized;analyticDistributionRequiredOnInvoiceLines;analyticDistributionRequiredOnMoveLines;analyticDistributionTemplate.importId;statusSelect;isCNCJ
+1089000-2;COMPTE DE L'EXPLOITANT;10890000;1089000;false;1080000;;;;;;;;;;;;;;;;;;;;;
+1641200-4;EMPRUNTS BNP;16412000;1641200;false;1640000;;;;;;;;;;;;;;;;;;;;;
+5121140-22;BNP cpte Exploitation-fonctionnement Etude;51211400;5121140;true;5121000;512;AT004;;2;;;;;;;;;;;;;;;;1;false
+5121150-23;BANQUE BAMI-fonctionnement Etude;51211500;5121150;true;5121000;512;AT004;;2;;;;;;;;;;;;;;;;1;false
+6169000-28;Primes d'assurances;61690000;6169000;false;6160000;;;;;;;;;;;;;;;;;;;;;
+6228100-30;PUB/VENTES;62281000;6228100;true;6228000;622;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+6228200-31;FRAIS SUR VENTES;62282000;6228200;true;6228000;622;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+6251100-33;IK Mr DAUCHEZ;62511000;6251100;true;6251000;625;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;false
+6261000-35;FRAIS PTT;62610000;6261000;true;6260000;626;AT013;;2;;;;true;;|D20|;1;;;true;true;;;;;1;true
+6712000-41;PENALITES AMENDES FISCALE;67120000;6712000;false;6710000;;;;;;;;;;;;;;;;;;;;;
+6712200-42;AMENDES FISCALES;67122000;6712200;false;6710000;;;;;;;;;;;;;;;;;;;;;
+7063200-52;FRAIS RECUPERES NON ASS;70632000;7063200;false;7060000;;;;;;;;;;;;;;;;;;;;;
+7063700-56;Frais récupérés/acheteurs;70637000;7063700;false;7060000;;;;;;;;;;;;;;;;;;;;;
+7718000-60;Autres produits except.;77180000;7718000;false;7710000;;;;;;;;;;;;;;;;;;;;;

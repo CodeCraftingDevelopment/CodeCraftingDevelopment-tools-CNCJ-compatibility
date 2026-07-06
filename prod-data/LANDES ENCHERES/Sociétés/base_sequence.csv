@@ -1,0 +1,72 @@
+﻿importId;company.importId;codeSelect;name;sequenceTypeSelect;sequenceLettersTypeSelect;nextNum;padding;prefixe;suffixe;toBeAdded;yearlyResetOk
+S001;C001;invoice;Facture de vente;NUMBERS;UPPERCASE;1;5;FC%YY;;1;1
+S002;C001;move;Ecriture Vente;NUMBERS;UPPERCASE;1;7;VTE%YY;;1;1
+S003;C001;accountingReport;Reporting comptable;NUMBERS;UPPERCASE;1;4;REPCPT%YY;;1;1
+S004;C001;reconcile;Réconciliation comptable;NUMBERS;UPPERCASE;1;4;RECON%YY%M;;1;1
+S005;C001;reconcileGroupDraft;Lettrage non définitif;LETTERS;LOWERCASE;1;4;;;1;0
+S006;C001;reconcileGroupFinal;Lettrage définitif;LETTERS;UPPERCASE;1;4;;;1;0
+S007;C001;fixedAsset;N° Immobilisations;NUMBERS;UPPERCASE;1;3;IMMO%YYYY;;1;1
+S008;C001;paymentSession;N° Session paiement;NUMBERS;UPPERCASE;1;5;PMTS%YY;;1;1
+S009;C001;paymentVoucher;N° de paiement enc. virement ;NUMBERS;UPPERCASE;1;6;ENCVIR%YY;;1;1
+S010;C001;paymentVoucherReceiptNo;N° de reçu;NUMBERS;UPPERCASE;1;4;RECU%YY;;1;1
+S011;C001;debit;Prélèvement (facture et echeanciers hors mensu);NUMBERS;UPPERCASE;1;4;PRLFAC%YY;;1;1
+S012;C001;debitReject;Rejet des prélèvements;NUMBERS;UPPERCASE;1;4;PRLREJ%YY;;1;1
+S013;C001;depositSlip;Bordereau de remise;NUMBERS;UPPERCASE;1;4;BR%YY%FM;;1;1
+S014;C001;chequeReject;Rejet chèques;NUMBERS;UPPERCASE;1;4;REJCHQ%YY;;1;1
+S015;C001;paymentSchedule;N° écheancier;NUMBERS;UPPERCASE;1;4;ECH%YY;;1;1
+S016;C001;subrogationRelease;Quittance subrogative;NUMBERS;UPPERCASE;1;4;QS%YY%FM;;1;1
+S017;C001;irrecoverable;Passage en irrécouvrable;NUMBERS;UPPERCASE;1;4;IRRECO%YY;;1;1
+S018;C001;accountClearance;Apurement des trop-perçus;NUMBERS;UPPERCASE;1;4;APURMT%YY;;1;1
+S019;C001;moveLineExport;Export comptable;NUMBERS;UPPERCASE;1;4;EXPCPT%YY;;1;1
+S020;C001;reimbursement;Proposition remboursement;NUMBERS;UPPERCASE;1;4;REMB%YY;;1;1
+S021;C001;noteBills;Relevé de factures;NUMBERS;UPPERCASE;1;3;NB%YYYY;;1;1
+S022;C001;analyticReport;Rapport Analytique;NUMBERS;UPPERCASE;1;4;ANAREP_%YY_;;1;1
+S023;C001;purchaseInterface;Interface achat;NUMBERS;UPPERCASE;1;4;INTACH%YY;;1;1
+S024;C001;refundInterface;Interface avoir;NUMBERS;UPPERCASE;1;4;INTAVO%YY;;1;1
+S025;C001;saleInterface;Interface vente;NUMBERS;UPPERCASE;1;4;INTVEN%YY;;1;1
+S026;C001;treasuryInterface;Interface trésorerie;NUMBERS;UPPERCASE;1;4;INTTRE%YY;;1;1
+S027;C001;move;Ecriture;NUMBERS;UPPERCASE;1;7;%YY;;1;1
+S028;C001;move;Ecriture Avoir Ventes;NUMBERS;UPPERCASE;1;7;AVC%YY;;1;1
+S029;C001;move;Ecriture Avoir Achats;NUMBERS;UPPERCASE;1;7;AVF%YY;;1;1
+S030;C001;move;Ecriture BA;NUMBERS;UPPERCASE;1;7;BA%YY;;1;1
+S031;C001;move;Ecriture BT;NUMBERS;UPPERCASE;1;7;BT%YY;;1;1
+S032;C001;move;Ecriture des à nouveaux;NUMBERS;UPPERCASE;1;7;AN%FM%YY;;1;1
+S033;C001;move;Ecriture clôture;NUMBERS;UPPERCASE;1;7;CLOT%FM%YY;;1;1
+S034;C001;move;Ecriture d'OD automatique;NUMBERS;UPPERCASE;1;7;ODA%YY;;1;1
+S035;C001;move;Ecriture d'OD manuelle;NUMBERS;UPPERCASE;1;7;ODM%YY;;1;1
+S036;C001;move;Ecriture d'OD situation;NUMBERS;UPPERCASE;1;7;SIT%FM%YY;;1;1
+S037;C001;invoice;Facture d'achat;NUMBERS;UPPERCASE;1;7;FF%YY;;1;1
+S038;C001;mission;Mission;NUMBERS;UPPERCASE;1;4;VVEH%YY;;1;1
+S039;C001;move;Espèces;NUMBERS;UPPERCASE;1;7;ESP%YY;;1;1
+S040;C001;transport_order_deposit;Ordre de transport - Dépôt;NUMBERS;UPPERCASE;1;4;OD%YY;;1;1
+S041;C001;transport_order_pickup_order;Ordre de transport - Enlèvement;NUMBERS;UPPERCASE;1;4;OE%YY;;1;1
+S042;C001;transport_order_transfer;Ordre de transport - Transfert;NUMBERS;UPPERCASE;1;4;TR%YY;;1;1
+S043;C001;deposit;Bon de dépôt;NUMBERS;UPPERCASE;1;4;BD%YY;;1;1
+S044;C001;pickup_order;Bon d'enlèvement;NUMBERS;UPPERCASE;1;4;BE%YY;;1;1
+S045;C001;receipt;Bon d'entrée;NUMBERS;UPPERCASE;1;4;ENT%YY;;1;1
+S046;C001;return;Bon de restitution;NUMBERS;UPPERCASE;1;4;BR%YY;;1;1
+S047;C001;delivery;Bon de retrait Acheteur;NUMBERS;UPPERCASE;1;4;RA%YY;;1;1
+S048;C001;transit_form;Bon de transfert - Expédition;NUMBERS;UPPERCASE;1;5;TRSE%YY;;1;1
+S049;C001;transit_to;Bon de transfert - Réception;NUMBERS;UPPERCASE;1;5;TRSR%YY;;1;1
+S050;C001;Bordereau Acheteur;Bordereau Acheteur;NUMBERS;UPPERCASE;1;4;BA%YY%FM;;1;1
+S051;C001;Bordereau Vendeur;Bordereau Vendeur;NUMBERS;UPPERCASE;1;4;BV%YY%FM;;1;1
+S052;C001;invoice;Avoir client;NUMBERS;UPPERCASE;1;4;AC%YY;;1;1
+S053;C001;invoice;Avoir fournisseur;NUMBERS;UPPERCASE;1;4;AF%YY;;1;1
+S054;C001;move;Décomptes vendeurs;NUMBERS;UPPERCASE;1;7;DEC%YY;;1;1
+S055;C001;saleOrder;Devis;NUMBERS;UPPERCASE;1;6;DEV%Y;;1;1
+S056;C001;paymentVoucher;Encaissement BCA;NUMBERS;UPPERCASE;1;6;ENCBA%YY;;1;1
+S057;C001;paymentVoucher;Encaissement BCT;NUMBERS;UPPERCASE;1;6;ENCBT%YY;;1;1
+S058;C001;paymentVoucher;Décaissement BCA;NUMBERS;UPPERCASE;1;6;DECBA%YY;;1;1
+S059;C001;paymentVoucher;Décaissement BCT;NUMBERS;UPPERCASE;1;6;DECBT%YY;;1;1
+S060;C001;paymentVoucher;BOR Fournisseurs;NUMBERS;UPPERCASE;1;6;BORF%YY;;1;1
+S061;C001;paymentVoucher;Encaissement chèques;NUMBERS;UPPERCASE;1;6;ENCHQ%YY;;1;1
+S062;C001;paymentVoucher;Décaissement chèques;NUMBERS;UPPERCASE;1;6;DECHQ%YY;;1;1
+S063;C001;paymentVoucher;Encaissement carte bancaire;NUMBERS;UPPERCASE;1;6;ENCB%YY;;1;1
+S064;C001;paymentVoucher;Décaissement prélèvements;NUMBERS;UPPERCASE;1;6;PRLT%YY;;1;1
+S065;C001;paymentVoucher;Espèces;NUMBERS;UPPERCASE;1;6;ESP%YY;;1;1
+S066;C001;paymentVoucher;Encaissement produit;NUMBERS;UPPERCASE;1;6;PR%YY;;1;1
+S067;C001;paymentVoucher;Virement inter-dossier;NUMBERS;UPPERCASE;1;6;VID%YY;;1;1
+S068;C001;move;Débours exposés;NUMBERS;UPPERCASE;1;7;DE%YY;;1;1
+S069;C001;move;Produit;NUMBERS;UPPERCASE;1;7;PR%YY;;1;1
+S070;C001;accounting_bridge_import;Import compta homologuée;NUMBERS;UPPERCASE;1;7;ICH%YY;;1;1
+S071;C001;paymentVoucher;Virement interne;NUMBERS;UPPERCASE;1;6;VI%YY;;1;1
