@@ -203,9 +203,12 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
     const badges: Array<{ label: string; className: string }> = [];
 
     if (row.isSvv) {
-      // Pour un transfert SVV, le doublon (consolidation) et le conflit CNCJ sont des
-      // conséquences internes du mappage : on n'affiche que le badge SVV (+ forçage éventuel).
+      // Pour un transfert SVV, on masque le badge « doublon » (consolidation interne),
+      // mais on conserve le conflit CNCJ (la cible SVV est souvent un code homologué CNCJ).
       badges.push({ label: '🔁 Transfert SVV', className: 'bg-indigo-600 text-white' });
+      if (row.isStep6Conflict) {
+        badges.push({ label: 'Correction CNCJ', className: 'bg-orange-600 text-white' });
+      }
       if (row.isForced) {
         badges.push({ label: '🔒 Validation forcée', className: 'bg-blue-600 text-white' });
       }
@@ -335,7 +338,6 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
                 const finalCodeClasses = getFinalCodeClasses(row);
                 const { cardClass } = getCardStyles(row);
                 const badges = buildBadges(row);
-                const hasCncjCorrection = row.cncjCorrection !== '-' && row.cncjCorrection !== 'Erreur';
 
                 return (
                   <div
@@ -377,29 +379,31 @@ export const Step7FinalSummary: React.FC<Step7FinalSummaryProps> = ({
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-start gap-2 min-w-[10rem]">
-                            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-200 text-blue-800 uppercase">
-                              Correction doublon
-                            </span>
-                            <span className="font-mono text-sm">
-                              {row.isStep4Duplicate ? normalizeForDisplay(row.correctedCode) : '—'}
-                            </span>
-                          </div>
+                          {row.isStep4Duplicate && (
+                            <div className="flex items-start gap-2 min-w-[10rem]">
+                              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-200 text-blue-800 uppercase">
+                                Correction doublon
+                              </span>
+                              <span className="font-mono text-sm">{normalizeForDisplay(row.correctedCode)}</span>
+                            </div>
+                          )}
 
-                          <div className="flex items-start gap-2 min-w-[10rem]">
-                            <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-200 text-orange-800 uppercase">
-                              Correction CNCJ
-                            </span>
-                            <span className="font-mono text-sm">
-                              {row.cncjCorrection === 'Erreur' ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
-                                  ⚠️ Erreur
-                                </span>
-                              ) : (
-                                hasCncjCorrection ? normalizeForDisplay(row.cncjCorrection) : '—'
-                              )}
-                            </span>
-                          </div>
+                          {row.cncjCorrection !== '-' && (
+                            <div className="flex items-start gap-2 min-w-[10rem]">
+                              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-orange-200 text-orange-800 uppercase">
+                                Correction CNCJ
+                              </span>
+                              <span className="font-mono text-sm">
+                                {row.cncjCorrection === 'Erreur' ? (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
+                                    ⚠️ Erreur
+                                  </span>
+                                ) : (
+                                  normalizeForDisplay(row.cncjCorrection)
+                                )}
+                              </span>
+                            </div>
+                          )}
                         </>
                       )}
 

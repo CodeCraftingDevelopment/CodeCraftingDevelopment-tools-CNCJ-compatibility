@@ -295,9 +295,12 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         };
       });
 
-      const allAccounts = [...pcgAccountRows, ...clientAccountRows].sort((a, b) => a.code - b.code);
-      
-      allAccounts.forEach(account => {
+      // Respecter l'ordre du fichier PCG source (les comptes-vues alphanumériques restent à leur place),
+      // puis ajouter les comptes clients à créer à la suite.
+      pcgAccountRows.forEach(account => {
+        csvRows.push(account.row);
+      });
+      clientAccountRows.forEach(account => {
         csvRows.push(account.row);
       });
       

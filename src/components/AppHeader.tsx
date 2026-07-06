@@ -52,7 +52,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {variant === 'import' && (
         <div className="mt-6 flex items-center justify-center">
           <div className="px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium text-lg border-2 border-gray-300">
-            📁 Pour import FEC
+            📁 Integration PCG
           </div>
         </div>
       )}
