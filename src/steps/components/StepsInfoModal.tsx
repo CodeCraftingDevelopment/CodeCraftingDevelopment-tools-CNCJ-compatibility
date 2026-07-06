@@ -63,7 +63,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   <li>• <strong>Validation globale:</strong> "✨ Valider les suggestions" pour tout appliquer</li>
                   <li>• <strong>Modal de détails:</strong> "Voir les détails" pour consulter les calculs</li>
                   <li>• <strong>Export combiné:</strong> CSV avec suggestions étapes 4 + 6 (case à cocher)</li>
-                  <li>• <strong>Badges visuels:</strong> 🟡 Doublon / 🔴 CNCJ pour différencier les types</li>
+                  <li>• <strong>Origine des corrections:</strong> distinction par type — correction doublon (étape 4), conflit CNCJ (étape 6) ou les deux</li>
                 </ul>
               </div>
             </div>
@@ -108,11 +108,11 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   <ul className="text-xs text-gray-600 space-y-1">
                     {step.id === 'step1' && (
                       <>
-                        <li>• Importer 3 fichiers CSV obligatoires : comptes clients, comptes PCG et comptes CNCJ</li>
-                        <li>• Validation automatique des colonnes requises (numéro, titre, etc.)</li>
-                        <li>• Détection des erreurs de formatage et des données manquantes</li>
-                        <li>• Chargement séparé des comptes PCG et CNCJ dans leurs listes respectives</li>
-                        <li>• Vérification que tous les fichiers sont correctement chargés</li>
+                        <li>• <strong>2 fichiers obligatoires :</strong> comptes clients et « PCG avec CNCJ »</li>
+                        <li>• Les comptes CNCJ ne sont <strong>pas</strong> un fichier séparé : ils sont <strong>dérivés du PCG</strong> via la colonne <code>isCNCJ</code> (obligatoire, blocage si absente)</li>
+                        <li>• <strong>1 fichier optionnel :</strong> correspondances SVV (mappage des comptes de ventes volontaires)</li>
+                        <li>• Validation automatique des colonnes requises (numéro, titre, etc.) et détection des erreurs de formatage</li>
+                        <li>• Vérification que les fichiers obligatoires sont correctement chargés</li>
                       </>
                     )}
                     {step.id === 'step2' && (
@@ -218,6 +218,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                   <li>• <strong>Algorithme:</strong> Héritage PCG par préfixe (4 premiers chiffres), comptes de 5 digits minimum</li>
                   <li>• <strong>Calcul:</strong> Différence numérique minimale pour trouver le compte PCG le plus proche</li>
                   <li>• <strong>Logique:</strong> <code>code.substring(0, 4)</code> pour regrouper les comptes PCG (les comptes vues à 3-4 chiffres sont exclus)</li>
+                  <li>• <strong>Repli manuel:</strong> si aucun compte ne partage le préfixe, saisie manuelle du <code>referencePcgCode</code> à l'import (héritage depuis ce compte)</li>
                   <li>• <strong>Métadonnées:</strong> Héritage automatique des données du compte PCG correspondant</li>
                   <li>• <strong>Exportation:</strong> Finalisation des données complètes et corrigées</li>
                 </ul>
