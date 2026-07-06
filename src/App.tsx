@@ -21,6 +21,7 @@ import { Step8MetadataCompletion } from './steps/Step8MetadataCompletion';
 import { StepsInfoModal } from './steps/components/StepsInfoModal';
 import { setupTestHelpers } from './utils/testHelpers';
 import { AppHeader } from './components/AppHeader';
+import { FecVerification } from './components/FecVerification';
 import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConflictUtils';
 import { calculateSuggestionsWithDetails } from './utils/codeSuggestions';
 
@@ -35,6 +36,7 @@ const App: React.FC = () => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isStepsInfoOpen, setIsStepsInfoOpen] = useState(false);
   const [showImportFlow, setShowImportFlow] = useState(false);
+  const [showFecFlow, setShowFecFlow] = useState(false);
 
   const handleProjectLoaded = useCallback((newState: AppState) => {
     if (newState.clientAccounts.length > 0 &&
@@ -306,7 +308,7 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header - Only show when not in import flow */}
-        {!showImportFlow && (
+        {!showImportFlow && !showFecFlow && (
           <div className="text-center mb-8">
             <AppHeader state={state} dispatch={dispatch} onProjectLoaded={handleProjectLoaded} variant="home" />
 
@@ -331,11 +333,7 @@ const App: React.FC = () => {
                 </svg>
               </button>
               <button
-                onClick={() => {
-                  // Placeholder for new functionality (to be specified later)
-                  // TODO: Implement new production functionality
-                  console.log('Nouvelle fonctionnalité de production à implémenter');
-                }}
+                onClick={() => setShowFecFlow(true)}
                 className="group relative px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-80 flex items-center justify-between"
               >
                 <span>Vérification Fichier FEC</span>
@@ -347,7 +345,15 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Import Flow Content - Only show when "Pour import FEC" is clicked */}
+        {/* FEC Verification Flow - Only show when "Vérification Fichier FEC" is clicked */}
+        {showFecFlow && (
+          <FecVerification
+            pcgAccounts={state.generalAccounts}
+            onBack={() => setShowFecFlow(false)}
+          />
+        )}
+
+        {/* Import Flow Content - Only show when "Integration PCG" is clicked */}
         {showImportFlow && (
           <>
             <div className="text-center mb-8">
@@ -360,7 +366,7 @@ const App: React.FC = () => {
                 onClick={() => setShowImportFlow(false)}
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
               >
-                ← Retour au choix
+                ← Retour aux choix
               </button>
             </div>
             {/* Upload Errors */}
