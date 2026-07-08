@@ -5,19 +5,25 @@
 
 ---
 
-## 🚀 Version Actuelle : **v2.2.0** (2025-12-04)
+## 🚀 Version Actuelle : **v2.5.0** (2026-07-08)
 
-### Dernières fonctionnalités majeures
+### Dernières fonctionnalités majeures (2026-07-08)
+- **🏢 Code société** : champ `companyCode` dans l'en-tête, propagé état/persistance/étape 8 ; utilisé dans la colonne `company.code` de l'export.
+- **🔀 Export « accounting bridge »** (étape 8) : 6 colonnes `accountingbridgeAccount;axelorAccount.code;company.code;auxAccount.partnerSeq;pieceRef;active`, fichier `accounting-bridge-account-mapping.csv` ; export PCG renommé `account_account.csv`.
+- **🔎 Écran « Vérification Fichier FEC »** : parcours en 2 étapes (Chargement → Rapport), contrôle de conformité d'un FEC client (norme A47 A-1).
+- **💶 Contrôle + correction devise Axelor** : `Idevise = EUR` et `Montantdevise = |Débit ou Crédit|` ; correction en mémoire et téléchargement du FEC corrigé.
+- **🧭 Table de correspondances optionnelle** : reconnaît les comptes déjà mappés par une intégration PCG antérieure.
+- **📊 Export du rapport en Excel** (`.xlsx`, `xlsx-js-style`) et CSV.
+- **📄 FEC optionnel dans le flux Integration PCG** : complète les comptes clients (flag `fromFec`) ; à l'étape 8 les comptes à créer sont restreints à ceux présents dans le FEC.
+- **🔤 Renommage `isCNCJ` → `isCncj`** (casse Axelor) et fiabilisation du marquage CNCJ (code final exact uniquement).
+
+> ⚙️ Fichiers clés FEC : `src/utils/fecValidation.ts`, `src/utils/fecReportExcel.ts`, `src/components/FecVerification.tsx`, `src/components/FecAccountsUploader.tsx`.
+
+### Fonctionnalités précédentes (v2.2.0)
 - **🎯 Système de nommage intelligent** : Génération automatique `compte-processor-[client]-[date].ccp`
 - **💾 Persistance complète** : Sauvegarde/restauration des noms de fichiers personnalisés
 - **🔄 Modification manuelle** : Possibilité de modifier le nom avec sauvegarde automatique
 - **✅ Compatibilité étendue** : File System Access API + fallback classique
-- **🔧 Corrections critiques** : Noms de fichiers boîte de dialogue maintenant sauvegardés
-
-### Améliorations précédentes (v2.1.1)
-- **Persistance complète** : Sauvegarde/restauration des suggestions initiales avec calculs détaillés
-- **Modal fidèle** : Conservation des détails originaux après chargement de projet
-- **Compatibilité ascendante** : Fichiers projets v2.0.x toujours chargeables
 
 ---
 
@@ -915,4 +921,4 @@ Chargement projet v2.1.1 (sans fileName)
 
 ---
 
-*Ce document est maintenu à jour avec le projet. Dernière mise à jour : 20/11/2025*
+*Ce document est maintenu à jour avec le projet. Dernière mise à jour : 08/07/2026*

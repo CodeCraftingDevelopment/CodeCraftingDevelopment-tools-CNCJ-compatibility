@@ -31,6 +31,7 @@ describe('stepCleanup', () => {
     initialSuggestions: {},
     initialCncjSuggestions: {},
     clientName: '',
+    companyCode: '',
     fileName: '',
     ...overrides
   });

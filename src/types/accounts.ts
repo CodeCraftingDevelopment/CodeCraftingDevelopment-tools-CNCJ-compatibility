@@ -100,6 +100,8 @@ export interface AppState {
   initialCncjSuggestions: { [accountId: string]: SuggestionResult };
   // Nom du client pour le projet
   clientName: string;
+  // Code société (colonne company.code de l'export accounting-bridge)
+  companyCode: string;
   // Nom du fichier de sauvegarde persistant
   fileName: string;
 }
@@ -137,6 +139,7 @@ export type AppAction =
   | { type: 'SET_INITIAL_CNCJ_SUGGESTIONS'; payload: { [accountId: string]: SuggestionResult } }
   | { type: 'CLEAR_INITIAL_SUGGESTIONS' }
   | { type: 'SET_CLIENT_NAME'; payload: string }
+  | { type: 'SET_COMPANY_CODE'; payload: string }
   | { type: 'SET_FILE_NAME'; payload: string }
   | { type: 'SET_SVV_CORRESPONDENCES'; payload: { [compteEncheres: string]: string } }
   | { type: 'SET_SVV_FILE_INFO'; payload: FileMetadata | null }

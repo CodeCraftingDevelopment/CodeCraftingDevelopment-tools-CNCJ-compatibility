@@ -644,6 +644,8 @@ const App: React.FC = () => {
                   cncjCodes={cncjCodes}
                   cncjAccounts={state.cncjAccounts}
                   missingMetadata={state.missingMetadata}
+                  svvCorrespondences={state.svvCorrespondences}
+                  companyCode={state.companyCode}
                   onMetadataChange={handleMetadataChange}
                 />
                 <StepNavigation

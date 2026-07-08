@@ -122,6 +122,7 @@ export const ProjectPersistence: React.FC<ProjectPersistenceProps> = ({
       dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: newAppState.generalFileInfo });
       dispatch({ type: 'SET_CURRENT_STEP', payload: newAppState.currentStep });
       dispatch({ type: 'SET_CLIENT_NAME', payload: newAppState.clientName });
+      dispatch({ type: 'SET_COMPANY_CODE', payload: newAppState.companyCode });
       dispatch({ type: 'SET_FILE_NAME', payload: newAppState.fileName });
       
       // Réinitialiser le flag de modification manuelle pour permettre la génération automatique

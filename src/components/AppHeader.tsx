@@ -2,6 +2,7 @@ import React from 'react';
 import { AppState, AppDispatch } from '../types/accounts';
 import { ProjectPersistence } from './ProjectPersistence';
 import { ClientNameInput } from './ClientNameInput';
+import { CompanyCodeInput } from './CompanyCodeInput';
 import { APP_VERSION, formatVersion } from '../utils/version';
 
 interface AppHeaderProps {
@@ -42,10 +43,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         />
       </div>
 
-      <div className="flex justify-center mt-2">
+      <div className="flex justify-center items-center gap-6 mt-2 flex-wrap">
         <ClientNameInput
           clientName={state.clientName}
           onClientNameChange={(name) => dispatch({ type: 'SET_CLIENT_NAME', payload: name })}
+        />
+        <CompanyCodeInput
+          companyCode={state.companyCode}
+          onCompanyCodeChange={(code) => dispatch({ type: 'SET_COMPANY_CODE', payload: code })}
         />
       </div>
 

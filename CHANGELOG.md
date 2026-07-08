@@ -1,5 +1,45 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.5.0] - 2026-07-08
+
+### 🏢 **Code société + export « accounting bridge »**
+
+#### Added
+- **Champ « Code société »** (`companyCode`) dans l'en-tête, propagé dans l'état, la persistance projet (`.ccp`) et l'étape 8 (`CompanyCodeInput`).
+
+#### Changed
+- **Export des correspondances (étape 8)** : passage au format **« accounting bridge »** — 6 colonnes `accountingbridgeAccount;axelorAccount.code;company.code;auxAccount.partnerSeq;pieceRef;active` (séparateur `;`, CRLF), fichier renommé `correspondances-comptes.csv` → **`accounting-bridge-account-mapping.csv`**. Le tri se fait par code source croissant ; toute correspondance SVV sans compte client est incluse.
+- **Export PCG complet** renommé `comptes-pcg-complet.csv` → **`account_account.csv`**.
+- **Libellé** « Nom du client » → « Nom du projet » (`ClientNameInput`).
+
+### 🔎 **Vérification Fichier FEC — parcours complet + corrections Axelor**
+
+#### Added
+- **Parcours en 2 étapes** (Chargement → Rapport) pour l'écran « Vérification Fichier FEC », aligné visuellement sur le flux « Integration PCG » (barre de progression, cartes, modale d'aide `FecStepsInfoModal`).
+- **Contrôle devise Axelor** (`coherence-devise`) : chaque ligne doit avoir `Idevise = « EUR »` et `Montantdevise = valeur absolue du Débit (si > 0) sinon du Crédit`.
+- **Correction devise en mémoire** (`buildCorrectedFec`) : renseigne automatiquement `Idevise`/`Montantdevise`, recalcule le rapport et permet de télécharger le FEC corrigé.
+- **Table de correspondances optionnelle** (`parseAccountCorrespondences`) : les comptes déjà mappés par une intégration PCG antérieure sont reconnus comme conformes même s'ils sont absents du PCG chargé.
+- **Export du rapport au format Excel** (`.xlsx`, 2 feuilles Synthèse + Anomalies, statuts colorés) via `xlsx-js-style` ; export CSV également disponible (`buildFecReportCsv`).
+- **FEC optionnel dans le flux « Integration PCG »** : un FEC peut compléter la liste des comptes clients à l'étape 1 (`FecAccountsUploader`, flag `Account.fromFec`). À l'étape 8, les comptes à créer sont restreints aux comptes réellement présents dans le FEC.
+
+#### Changed
+- **Suggestion de compte PCG** (`findNearestPcgCode`) : privilégie désormais le compte parent/générique (racines à 4 puis 3 chiffres) au lieu du plus proche numériquement, avec affichage du libellé.
+- **Décodage FEC** : lecture UTF-8 avec repli automatique Windows-1252 (accents des FEC ANSI).
+- **Marquage CNCJ à l'étape 8** : un compte n'est marqué `isCncj=true` que si son code final exact figure dans la liste CNCJ de base (fin de la dérivation par code normalisé qui marquait à tort les comptes-vues/radicaux).
+- **importId des comptes créés** : décalage `CLIENTxxxx` pour éviter les collisions avec un PCG déjà intégré.
+- **Renommage `isCNCJ` → `isCncj`** dans tout le code (casse Axelor correcte).
+
+#### Removed
+- **Contrôle « lettrage sans DateLet »** : supprimé car non conforme à la norme FEC A47 A-1 (`EcritureLet` et `DateLet` sont optionnels et indépendants). Le format de `DateLet`, quand elle est renseignée, reste vérifié.
+
+#### 📋 Fichiers concernés
+- 🆕 `src/utils/fecReportExcel.ts`, `src/components/FecAccountsUploader.tsx`, `src/components/FecStepsInfoModal.tsx`, `src/components/CompanyCodeInput.tsx`
+- 🆕 tests : `src/test/fecReportExcel.test.ts`, ajouts dans `src/test/fecValidation.test.ts` (121 tests OK)
+- `src/utils/fecValidation.ts`, `src/components/FecVerification.tsx`, `src/components/AppHeader.tsx`, `src/components/ClientNameInput.tsx`, `src/components/ProjectPersistence.tsx`, `src/App.tsx`, `src/steps/Step8MetadataCompletion.tsx`, `src/steps/Step1FileUpload.tsx`, `src/components/NormalizationStep.tsx`, `src/types/accounts.ts`, `src/reducers/appReducer.ts`, `src/utils/accountUtils.ts`, `src/utils/projectPersistence.ts`
+- 🆕 dépendance : `xlsx-js-style ^1.2.0`
+
+---
+
 ## [2.2.1] - 2026-04-14
 
 ### 🐛 **Correction : exclusion des comptes vues de l'héritage PCG**

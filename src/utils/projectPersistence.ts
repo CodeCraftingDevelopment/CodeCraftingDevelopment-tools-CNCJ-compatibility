@@ -38,6 +38,7 @@ export interface ProjectFile {
     initialSuggestions: { [accountId: string]: SuggestionResult };
     initialCncjSuggestions: { [accountId: string]: SuggestionResult };
     clientName: string;
+    companyCode?: string;
     fileName: string;
   };
 }
@@ -100,6 +101,7 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       initialSuggestions: state.initialSuggestions || {},
       initialCncjSuggestions: state.initialCncjSuggestions || {},
       clientName: state.clientName,
+      companyCode: state.companyCode,
       fileName: state.fileName,
     };
 
@@ -404,6 +406,7 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     initialSuggestions: data.initialSuggestions || {},
     initialCncjSuggestions: data.initialCncjSuggestions || {},
     clientName: data.clientName || '',
+    companyCode: data.companyCode || '',
     fileName: data.fileName || '',
   };
 };

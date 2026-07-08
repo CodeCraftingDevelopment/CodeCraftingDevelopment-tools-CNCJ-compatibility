@@ -6,7 +6,7 @@ import { getDisplayCode } from '../utils/accountUtils';
 import { useMetadataImport } from '../hooks/useMetadataImport';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { DropZone } from '../components/DropZone';
-import { exportToCsv, escapeCsvCell } from '../utils/csvExportUtils';
+import { escapeCsvCell } from '../utils/csvExportUtils';
 import {
   normalizeForDisplay,
   computeFinalCode,
@@ -64,6 +64,8 @@ interface Step8MetadataCompletionProps {
   cncjCodes: Set<string>;
   cncjAccounts: Account[];
   missingMetadata: { [accountId: string]: AccountMetadata };
+  svvCorrespondences: { [compteEncheres: string]: string };
+  companyCode: string;
   onMetadataChange: (accountId: string, metadata: AccountMetadata) => void;
 }
 
@@ -81,6 +83,8 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   cncjCodes,
   cncjAccounts,
   missingMetadata,
+  svvCorrespondences,
+  companyCode,
   onMetadataChange
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -165,14 +169,35 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
   // Export des correspondances (logique de l'étape 7)
   const handleExport = () => {
-    const csvHeaders = ['account_title', 'original_client_code', 'final_code'];
-    
-    const csvRows = finalSummaryData.map(row => {
-      const finalCode = computeFinalCodeForSummary(row);
-      return [row.title, row.originalCode, normalizeForDisplay(finalCode)];
+    // Format « accounting bridge » : 6 colonnes, séparateur ';', sans guillemets, sans BOM, CRLF.
+    const csvHeaders = ['accountingbridgeAccount', 'axelorAccount.code', 'company.code', 'auxAccount.partnerSeq', 'pieceRef', 'active'];
+
+    // Mapping code client (source) -> code Axelor (cible), une ligne par compte client.
+    const rows: string[][] = finalSummaryData.map(row => {
+      const finalCode = normalizeForDisplay(computeFinalCodeForSummary(row));
+      return [row.originalCode, finalCode, companyCode, '', '', 'true'];
     });
-    
-    exportToCsv(csvHeaders, csvRows, 'correspondances-comptes.csv');
+
+    // Garantir que TOUTE correspondance du fichier SVV figure dans le mappage,
+    // même lorsque aucun compte client ne porte le code source (compte absent du plan client / FEC).
+    const presentSourceCodes = new Set(rows.map(row => row[0]));
+    Object.entries(svvCorrespondences).forEach(([sourceCode, targetCode]) => {
+      if (presentSourceCodes.has(sourceCode)) return;
+      rows.push([sourceCode, normalizeForDisplay(targetCode), companyCode, '', '', 'true']);
+      presentSourceCodes.add(sourceCode);
+    });
+
+    // Tri par code source croissant (comme le fichier de référence).
+    rows.sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0));
+
+    const csvContent = [csvHeaders.join(';'), ...rows.map(row => row.join(';'))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'accounting-bridge-account-mapping.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Export PCG complet (logique de l'étape 7)
@@ -329,7 +354,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'comptes-pcg-complet.csv';
+      a.download = 'account_account.csv';
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {

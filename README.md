@@ -17,6 +17,8 @@ Compte Processor est une application web React/TypeScript qui permet de :
 
 ## ✨ Fonctionnalités
 
+- **🆕 Vérification Fichier FEC** : Écran dédié de contrôle de conformité d'un FEC client (norme A47 A-1) — parcours en 2 étapes, contrôle et correction devise Axelor (`Idevise`/`Montantdevise`), export du rapport en Excel/CSV
+- **🆕 FEC optionnel à l'import** : Un FEC peut compléter la liste des comptes clients ; à l'étape 8, les comptes à créer sont restreints à ceux réellement présents dans le FEC
 - **Import CSV** : Support de plusieurs formats de fichiers CSV
 - **Détection de doublons** : Identification automatique des comptes en double
 - **Suggestions automatiques** : Génération intelligente de codes de remplacement (+1 sans dépasser la dizaine)
@@ -688,6 +690,18 @@ Le build est généré dans le dossier `dist/` et peut être déployé sur :
 - HTTPS recommandé pour la production
 
 ## 📝 Notes de version
+
+### v2.5.0 (2026-07-08)
+- 🏢 **Code société** : champ `companyCode` dans l'en-tête, persisté dans le projet et utilisé à l'export
+- 🔀 **Export « accounting bridge »** (étape 8) : 6 colonnes (`accountingbridgeAccount;axelorAccount.code;company.code;…`), fichier `accounting-bridge-account-mapping.csv` ; export PCG renommé `account_account.csv`
+- 🏷️ « Nom du client » → « Nom du projet »
+- 🔎 **Vérification Fichier FEC** : parcours en 2 étapes (Chargement → Rapport), contrôle de conformité (norme A47 A-1)
+- 💶 **Contrôle + correction devise Axelor** : `Idevise = EUR`, `Montantdevise = |Débit ou Crédit|`, correction en mémoire + téléchargement du FEC corrigé
+- 🧭 **Table de correspondances optionnelle** : reconnaissance des comptes déjà mappés par une intégration PCG antérieure
+- 📊 **Export du rapport** au format Excel (`.xlsx`) et CSV
+- 📄 **FEC optionnel à l'import** : complète les comptes clients (flag `fromFec`) ; comptes à créer restreints au FEC à l'étape 8
+- 🔤 **Renommage `isCNCJ` → `isCncj`** (casse Axelor) et fiabilisation du marquage CNCJ (code final exact uniquement)
+- 🧹 Suppression du contrôle « lettrage sans DateLet » (non conforme A47 A-1)
 
 ### v2.1.1 (2025-12-04)
 - 🔧 **Persistance des suggestions** : Sauvegarde et restauration complètes des calculs de suggestions

@@ -29,6 +29,7 @@ export const initialState: AppState = {
   initialSuggestions: {},
   initialCncjSuggestions: {},
   clientName: '',
+  companyCode: '',
   fileName: ''
 };
 
@@ -148,6 +149,8 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, initialSuggestions: {}, initialCncjSuggestions: {} };
     case 'SET_CLIENT_NAME':
       return { ...state, clientName: action.payload };
+    case 'SET_COMPANY_CODE':
+      return { ...state, companyCode: action.payload };
     case 'SET_FILE_NAME':
       return { ...state, fileName: action.payload };
     default:
