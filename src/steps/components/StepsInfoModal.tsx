@@ -109,7 +109,7 @@ export const StepsInfoModal: React.FC<StepsInfoModalProps> = ({ onClose }) => {
                     {step.id === 'step1' && (
                       <>
                         <li>• <strong>2 fichiers obligatoires :</strong> comptes clients et « PCG avec CNCJ »</li>
-                        <li>• Les comptes CNCJ ne sont <strong>pas</strong> un fichier séparé : ils sont <strong>dérivés du PCG</strong> via la colonne <code>isCNCJ</code> (obligatoire, blocage si absente)</li>
+                        <li>• Les comptes CNCJ ne sont <strong>pas</strong> un fichier séparé : ils sont <strong>dérivés du PCG</strong> via la colonne <code>isCncj</code> (obligatoire, blocage si absente)</li>
                         <li>• <strong>1 fichier optionnel :</strong> correspondances SVV (mappage des comptes de ventes volontaires)</li>
                         <li>• Validation automatique des colonnes requises (numéro, titre, etc.) et détection des erreurs de formatage</li>
                         <li>• Vérification que les fichiers obligatoires sont correctement chargés</li>

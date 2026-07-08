@@ -8,7 +8,7 @@ interface AppHeaderProps {
   state: AppState;
   dispatch: AppDispatch;
   onProjectLoaded: (newState: AppState) => void;
-  variant: 'home' | 'import';
+  variant: 'home' | 'import' | 'fec';
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -28,10 +28,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </span>
       </div>
       <p className="text-gray-600">
-        Import des comptes comptables client vers le plan comptable général et CNCJ
+        {variant === 'fec'
+          ? "Contrôle de conformité d'un fichier FEC client (norme A47 A-1)"
+          : 'Import des comptes comptables client vers le plan comptable général et CNCJ'}
       </p>
 
-      {/* Project Persistence Controls */}
+      {/* Persistance projet + nom client */}
       <div className="flex justify-center mt-4">
         <ProjectPersistence
           state={state}
@@ -40,7 +42,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         />
       </div>
 
-      {/* Client Name Input */}
       <div className="flex justify-center mt-2">
         <ClientNameInput
           clientName={state.clientName}
@@ -48,11 +49,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         />
       </div>
 
-      {/* Import Title - only in import variant */}
+      {/* Badge de titre selon le parcours */}
       {variant === 'import' && (
         <div className="mt-6 flex items-center justify-center">
           <div className="px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium text-lg border-2 border-gray-300">
             📁 Integration PCG
+          </div>
+        </div>
+      )}
+      {variant === 'fec' && (
+        <div className="mt-6 flex items-center justify-center">
+          <div className="px-6 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium text-lg border-2 border-gray-300">
+            🔎 Vérification Fichier FEC
           </div>
         </div>
       )}

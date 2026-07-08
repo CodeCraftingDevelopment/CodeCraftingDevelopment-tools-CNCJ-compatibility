@@ -1,13 +1,15 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Account } from '../types/accounts';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { Account, FileMetadata } from '../types/accounts';
 import { DropZone } from './DropZone';
+import { FileUploader } from './FileUploader';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
-import { parseCSVFile } from '../utils/accountUtils';
-import { validateFec, FecReport, FecCheck, CheckStatus } from '../utils/fecValidation';
+import { formatFileSize } from '../utils/fileUtils';
+import { validateFec, parseAccountCorrespondences, buildCorrectedFec, FecReport, FecCheck, CheckStatus } from '../utils/fecValidation';
+import { FecStepsInfoModal } from './FecStepsInfoModal';
+import { buildFecReportWorkbook } from '../utils/fecReportExcel';
 
 interface FecVerificationProps {
   pcgAccounts: Account[]; // PCG déjà chargé en session (via « Integration PCG »), s'il existe
-  onBack: () => void;
 }
 
 const STATUS_META: Record<CheckStatus, { icon: string; badge: string; ring: string }> = {
@@ -19,6 +21,94 @@ const STATUS_META: Record<CheckStatus, { icon: string; badge: string; ring: stri
 
 const formatAmount = (n: number): string =>
   n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Carte blanche identique aux étapes du flux Integration PCG
+const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="bg-white shadow rounded-lg p-6 mb-6">{children}</div>
+);
+
+type FecStepKey = 'load' | 'report';
+const FEC_STEPS: Array<{ key: FecStepKey; order: number; title: string; icon: string; description: string }> = [
+  { key: 'load', order: 1, title: 'Chargement des fichiers', icon: '📁', description: 'FEC (obligatoire), PCG et table de correspondances (optionnels)' },
+  { key: 'report', order: 2, title: 'Rapport de conformité', icon: '📊', description: 'Contrôles, corrections et export du rapport' }
+];
+
+// Barre de progression au même visuel que le flux Integration PCG
+const FecProgressBar: React.FC<{
+  currentStep: FecStepKey;
+  reportReady: boolean;
+  onStepClick: (key: FecStepKey) => void;
+  onShowInfo?: () => void;
+}> = ({ currentStep, reportReady, onStepClick, onShowInfo }) => {
+  const currentOrder = FEC_STEPS.find(s => s.key === currentStep)?.order ?? 1;
+  const current = FEC_STEPS.find(s => s.key === currentStep);
+
+  return (
+    <div className="mb-8 bg-white shadow rounded-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-gray-700">Progression</h3>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">Étape {currentOrder} / {FEC_STEPS.length}</span>
+          {onShowInfo && (
+            <button
+              type="button"
+              onClick={onShowInfo}
+              className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+              aria-label="Afficher l'aide sur les étapes"
+            >
+              ℹ️ Aide étapes
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          {FEC_STEPS.map((s, index) => {
+            const isCompleted = s.order < currentOrder;
+            const isCurrent = s.order === currentOrder;
+            const isClickable = s.key === 'load' || reportReady;
+
+            return (
+              <React.Fragment key={s.key}>
+                <div className="flex flex-col items-center flex-1">
+                  <button
+                    onClick={() => isClickable && onStepClick(s.key)}
+                    disabled={!isClickable}
+                    className={`
+                      w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
+                      ${isCompleted ? 'bg-green-500 text-white' : ''}
+                      ${isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-200' : ''}
+                      ${!isCompleted && !isCurrent ? 'bg-gray-200 text-gray-500' : ''}
+                      ${isClickable ? 'cursor-pointer hover:scale-110' : 'cursor-not-allowed'}
+                    `}
+                    aria-current={isCurrent ? 'step' : undefined}
+                  >
+                    {isCompleted ? '✓' : s.order}
+                  </button>
+                  <span className={`mt-2 text-xs text-center leading-tight ${isCurrent ? 'font-semibold text-blue-700' : 'text-gray-600'}`} aria-hidden="true">
+                    {s.icon}
+                  </span>
+                </div>
+
+                {index < FEC_STEPS.length - 1 && (
+                  <div className="flex-1 h-1 mx-2 mb-8">
+                    <div className={`h-full rounded transition-all duration-300 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm font-medium text-gray-900">{current?.title}</p>
+          <p className="text-xs text-gray-500 mt-1">{current?.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CheckCard: React.FC<{ check: FecCheck }> = ({ check }) => {
   const [expanded, setExpanded] = useState(false);
@@ -83,38 +173,74 @@ const CheckCard: React.FC<{ check: FecCheck }> = ({ check }) => {
   );
 };
 
-export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts, onBack }) => {
+const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="bg-white/70 rounded-lg px-3 py-2 border border-black/5">
+    <div className="text-[11px] uppercase tracking-wide text-gray-500">{label}</div>
+    <div className="text-sm font-semibold text-gray-900 font-mono">{value}</div>
+  </div>
+);
+
+export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts }) => {
+  // Plan comptable (réutilise le FileUploader du flux Integration PCG)
+  const [pcgFileInfo, setPcgFileInfo] = useState<FileMetadata | null>(null);
+  const [pcgLoadedAccounts, setPcgLoadedAccounts] = useState<Account[]>([]);
+  const [pcgErrors, setPcgErrors] = useState<string[]>([]);
+
+  // Table de correspondances (sortie de l'intégration PCG : code d'origine -> code final)
+  const [correspondences, setCorrespondences] = useState<Map<string, string> | null>(null);
+  const [corrInfo, setCorrInfo] = useState<{ name: string; count: number } | null>(null);
+  const [corrError, setCorrError] = useState<string | null>(null);
+
   // Fichier FEC
   const [fecText, setFecText] = useState<string | null>(null);
-  const [fecFileName, setFecFileName] = useState<string>('');
+  const [fecInfo, setFecInfo] = useState<{ name: string; size: string } | null>(null);
   const [fecLoading, setFecLoading] = useState(false);
   const [fecError, setFecError] = useState<string | null>(null);
+  const [fecCorrected, setFecCorrected] = useState(false); // true si la correction devise a été appliquée en mémoire
 
-  // Fichier PCG complet uploadé (optionnel) : prioritaire sur le PCG de session
-  const [pcgUploaded, setPcgUploaded] = useState<Array<{ number: string }> | null>(null);
-  const [pcgFileName, setPcgFileName] = useState<string>('');
-  const [pcgLoading, setPcgLoading] = useState(false);
-  const [pcgError, setPcgError] = useState<string | null>(null);
+  // PCG effectif : le fichier uploadé ici s'il existe, sinon celui de la session.
+  // On transmet aussi le libellé (title ou rawData.name) pour l'afficher dans les suggestions.
+  const effectivePcg = useMemo<Array<{ number: string; name?: string }>>(() => {
+    const src = pcgLoadedAccounts.length > 0 ? pcgLoadedAccounts : pcgAccounts;
+    return src.map(a => ({
+      number: a.number,
+      name: a.title ?? (typeof a.rawData?.name === 'string' ? a.rawData.name : undefined)
+    }));
+  }, [pcgLoadedAccounts, pcgAccounts]);
 
-  // PCG effectif : le fichier uploadé s'il existe, sinon celui de la session
-  const effectivePcg = useMemo<Array<{ number: string }>>(
-    () => pcgUploaded ?? pcgAccounts,
-    [pcgUploaded, pcgAccounts]
-  );
-
-  // Le rapport se recalcule dès que le FEC ou le PCG effectif change
+  // Le rapport se recalcule dès que le FEC, le PCG ou les correspondances changent
   const report = useMemo<FecReport | null>(
-    () => (fecText !== null ? validateFec(fecText, fecFileName, effectivePcg) : null),
-    [fecText, fecFileName, effectivePcg]
+    () =>
+      fecText !== null
+        ? validateFec(fecText, fecInfo?.name ?? 'fec', effectivePcg, { correspondences: correspondences ?? undefined })
+        : null,
+    [fecText, fecInfo, effectivePcg, correspondences]
   );
+
+  const handlePcgLoaded = useCallback((accounts: Account[], _source: string, fileInfo: FileMetadata) => {
+    setPcgFileInfo(fileInfo);
+    setPcgLoadedAccounts(accounts);
+  }, []);
+  const handlePcgCleared = useCallback(() => {
+    setPcgFileInfo(null);
+    setPcgLoadedAccounts([]);
+    setPcgErrors([]);
+  }, []);
 
   const handleFecFile = useCallback(async (file: File) => {
     setFecLoading(true);
     setFecError(null);
     setFecText(null);
-    setFecFileName(file.name);
+    setFecCorrected(false);
+    setFecInfo({ name: file.name, size: formatFileSize(file.size) });
     try {
-      const text = await file.text();
+      // Les FEC sont souvent encodés en ANSI/Windows-1252 (accents). On décode d'abord en UTF-8,
+      // et on bascule sur Windows-1252 si le résultat contient des caractères de remplacement.
+      const buffer = await file.arrayBuffer();
+      let text = new TextDecoder('utf-8').decode(buffer);
+      if (text.includes('�')) {
+        text = new TextDecoder('windows-1252').decode(buffer);
+      }
       setFecText(text);
     } catch (err) {
       setFecError(`Impossible de lire le fichier : ${err instanceof Error ? err.message : String(err)}`);
@@ -123,28 +249,95 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts, o
     }
   }, []);
 
-  const handlePcgFile = useCallback(async (file: File) => {
-    setPcgLoading(true);
-    setPcgError(null);
-    setPcgFileName(file.name);
+  const handleFecClear = useCallback(() => {
+    setFecText(null);
+    setFecInfo(null);
+    setFecError(null);
+    setFecCorrected(false);
+  }, []);
+
+  const handleCorrFile = useCallback(async (file: File) => {
+    setCorrError(null);
     try {
-      const result = await parseCSVFile(file, true);
-      if (result.accounts.length === 0) {
-        setPcgError('Aucun compte détecté dans ce fichier (colonne « code » attendue).');
-        setPcgUploaded(null);
+      const text = await file.text();
+      const map = parseAccountCorrespondences(text);
+      if (map.size === 0) {
+        setCorrError('Aucune correspondance détectée (colonnes attendues : original_client_code, final_code).');
+        setCorrespondences(null);
+        setCorrInfo(null);
       } else {
-        setPcgUploaded(result.accounts.map(a => ({ number: a.number })));
+        setCorrespondences(map);
+        setCorrInfo({ name: file.name, count: map.size });
       }
     } catch (err) {
-      setPcgError(`Impossible de lire le fichier : ${err instanceof Error ? err.message : String(err)}`);
-      setPcgUploaded(null);
-    } finally {
-      setPcgLoading(false);
+      setCorrError(`Impossible de lire le fichier : ${err instanceof Error ? err.message : String(err)}`);
+      setCorrespondences(null);
+      setCorrInfo(null);
     }
   }, []);
 
-  const pcgDnd = useDragAndDrop({ onDrop: handlePcgFile, acceptedTypes: ['.csv'] });
+  // Export du rapport complet (toutes les anomalies, sans le plafond d'affichage) au format Excel
+  const handleExportReport = useCallback(() => {
+    if (fecText === null) return;
+    const fullReport = validateFec(fecText, fecInfo?.name ?? 'fec', effectivePcg, {
+      maxIssues: Number.POSITIVE_INFINITY,
+      correspondences: correspondences ?? undefined
+    });
+    const buffer = buildFecReportWorkbook(fullReport);
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const base = (fecInfo?.name ?? 'fec').replace(/\.[^./\\]+$/, '');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rapport-fec-${base}.xlsx`;
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }, [fecText, fecInfo, effectivePcg, correspondences]);
+
+  // Applique la correction devise EN MÉMOIRE (Idevise = EUR, Montantdevise = |Débit ou Crédit|).
+  // Le rapport se recalcule automatiquement -> permet de re-contrôler que le fichier est conforme.
+  const handleCorrectDevise = useCallback(() => {
+    if (fecText === null) return;
+    setFecText(buildCorrectedFec(fecText));
+    setFecCorrected(true);
+  }, [fecText]);
+
+  // Télécharge le FEC actuellement en mémoire (corrigé si une correction a été appliquée)
+  const handleDownloadFec = useCallback(() => {
+    if (fecText === null) return;
+    const blob = new Blob([fecText], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const name = fecInfo?.name ?? 'fec.txt';
+    const ext = name.match(/\.[^./\\]+$/)?.[0] ?? '.txt';
+    const base = name.replace(/\.[^./\\]+$/, '');
+    const suffix = fecCorrected ? '-devise-corrige' : '';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${base}${suffix}${ext}`;
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }, [fecText, fecInfo, fecCorrected]);
+
+  const corrDnd = useDragAndDrop({ onDrop: handleCorrFile, acceptedTypes: ['.csv'] });
   const fecDnd = useDragAndDrop({ onDrop: handleFecFile, acceptedTypes: [] });
+
+  // Système d'étapes : 1 = chargement des fichiers, 2 = rapport de conformité
+  const [step, setStep] = useState<'load' | 'report'>('load');
+  const [showHelp, setShowHelp] = useState(false);
+  const reportReady = report !== null && !report.parseError;
+
+  // Revenir au chargement si le rapport n'est plus disponible (FEC retiré)
+  useEffect(() => {
+    if (step === 'report' && !reportReady) setStep('load');
+  }, [step, reportReady]);
 
   const globalMeta = report ? STATUS_META[report.globalStatus] : null;
   const globalLabel: Record<CheckStatus, string> = {
@@ -154,171 +347,297 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts, o
     skipped: '—'
   };
 
-  // Libellé de la source PCG utilisée pour le contrôle de cohérence
   const pcgSourceLabel =
-    pcgUploaded !== null
-      ? `Fichier « ${pcgFileName} » (${pcgUploaded.length} comptes)`
+    pcgLoadedAccounts.length > 0
+      ? `Fichier déposé (${pcgLoadedAccounts.length} comptes)`
       : pcgAccounts.length > 0
       ? `PCG chargé en session (${pcgAccounts.length} comptes)`
       : 'Aucun — le contrôle de cohérence des comptes sera ignoré';
 
+  // Statut de la carte fichier FEC (aligné sur le statut global du rapport)
+  const fecStatus: CheckStatus = report ? (report.parseError ? 'error' : report.globalStatus) : 'skipped';
+  const fecStatusMeta = STATUS_META[fecStatus];
+
+  // Bandeau d'erreurs commun (même style que les erreurs d'import PCG)
+  const bannerErrors = [...pcgErrors, ...(fecError ? [fecError] : [])];
+
   return (
     <>
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-3">
-          <span className="text-3xl" aria-hidden="true">🔎</span>
-          <h1 className="text-3xl font-bold text-gray-900">Vérification Fichier FEC</h1>
-        </div>
-        <p className="text-gray-600 mt-2">
-          Contrôle de conformité d'un fichier FEC client (norme A47 A-1)
-        </p>
-      </div>
+      <FecProgressBar
+        currentStep={step}
+        reportReady={reportReady}
+        onStepClick={(key) => setStep(key)}
+        onShowInfo={() => setShowHelp(true)}
+      />
 
-      <div className="mb-6">
-        <button
-          onClick={onBack}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+      {showHelp && <FecStepsInfoModal onClose={() => setShowHelp(false)} />}
+
+      {step === 'load' && (
+      <>
+      {/* Bandeau d'erreurs commun (identique au flux Integration PCG) */}
+      {bannerErrors.length > 0 && (
+        <div className="mb-6 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg p-4" role="alert">
+          <h3 className="text-sm font-semibold mb-2">Problèmes de chargement</h3>
+          <ul className="space-y-1 text-sm">
+            {bannerErrors.map((error, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="mt-0.5 text-orange-500">•</span>
+                <span>{error}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 1. Fichier FEC à vérifier */}
+      <Card>
+        <label className="block text-sm font-medium text-gray-700 mb-2">📄 Fichier FEC à vérifier</label>
+        <input
+          ref={fecDnd.fileInputRef}
+          type="file"
+          accept=".txt,.csv,.fec"
+          className="sr-only"
+          onChange={fecDnd.handlers.handleFileChange}
+          aria-label="Sélectionner un fichier FEC"
+        />
+        <DropZone
+          dragState={fecDnd.dragState}
+          loading={fecLoading}
+          fileInfo={fecInfo ? { name: fecInfo.name, size: fecInfo.size, rowCount: report?.stats.dataLines ?? 0, loadStatus: fecStatus === 'skipped' ? 'success' : fecStatus === 'ok' ? 'success' : fecStatus } : null}
+          onDragOver={fecDnd.handlers.handleDragOver}
+          onDragLeave={fecDnd.handlers.handleDragLeave}
+          onDrop={fecDnd.handlers.handleDrop}
+          onClick={!fecInfo ? fecDnd.handlers.handleButtonClick : undefined}
+          onKeyDown={(e) => fecDnd.handlers.handleKeyDown(e, !fecInfo ? fecDnd.handlers.handleButtonClick : undefined)}
+          ariaLabel={!fecInfo ? 'Déposer ou sélectionner un fichier FEC' : `Fichier sélectionné : ${fecInfo.name}`}
+          dataTestId="fec-dropzone"
         >
-          ← Retour aux choix
+          {!fecInfo && !fecLoading && (
+            <div className="space-y-2">
+              <div className="mx-auto w-10 h-10 text-gray-400">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <div className="text-sm text-gray-600">
+                <p className="font-medium text-xs sm:text-sm">Glissez-déposez votre fichier FEC</p>
+                <p className="text-xs">ou cliquez pour parcourir</p>
+              </div>
+            </div>
+          )}
+
+          {fecLoading && (
+            <div className="space-y-2">
+              <div className="mx-auto w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+              <p className="text-sm text-blue-600">Lecture du fichier…</p>
+            </div>
+          )}
+
+          {fecInfo && !fecLoading && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${fecStatusMeta.badge}`} aria-hidden="true">
+                    {fecStatusMeta.icon}
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{fecInfo.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {fecInfo.size}
+                      {report && !report.parseError && (
+                        <>
+                          {' • '}séparateur {report.delimiterLabel}
+                          {' • '}{report.stats.dataLines.toLocaleString('fr-FR')} lignes
+                          {' • '}{report.stats.ecritureCount.toLocaleString('fr-FR')} écritures
+                          {' • '}{report.header.length} colonnes
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleFecClear}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Retirer le fichier FEC"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={fecDnd.handlers.handleButtonClick}
+                  className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+                >
+                  Changer le fichier
+                </button>
+              </div>
+            </div>
+          )}
+        </DropZone>
+        <p className="mt-2 text-xs text-gray-500 text-center">
+          Format attendu : fichier FEC (norme A47 A-1) — 18 champs, séparateur tabulation ou « | »
+        </p>
+      </Card>
+
+      {/* 2. Plan comptable (optionnel) — réutilise le FileUploader du flux PCG */}
+      <Card>
+        <FileUploader
+          onFileLoaded={handlePcgLoaded}
+          onFileCleared={handlePcgCleared}
+          onError={setPcgErrors}
+          label="📊 PCG avec CNCJ et comptes clients (optionnel)"
+          source="general"
+          fileInfo={pcgFileInfo}
+          loadedAccounts={pcgLoadedAccounts}
+        />
+        <p className="text-xs text-gray-500">
+          Référentiel utilisé pour le contrôle de cohérence des comptes :{' '}
+          <span className="font-medium text-gray-700">{pcgSourceLabel}</span>
+        </p>
+      </Card>
+
+      {/* 3. Table de correspondances (optionnel) */}
+      <Card>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          🔗 Table de correspondances <span className="font-normal text-gray-400">(optionnel)</span>
+        </label>
+        <input
+          ref={corrDnd.fileInputRef}
+          type="file"
+          accept=".csv"
+          className="sr-only"
+          onChange={corrDnd.handlers.handleFileChange}
+          aria-label="Sélectionner la table de correspondances"
+        />
+        <DropZone
+          dragState={corrDnd.dragState}
+          fileInfo={corrInfo ? { name: corrInfo.name, size: '', rowCount: corrInfo.count, loadStatus: 'success' } : null}
+          onDragOver={corrDnd.handlers.handleDragOver}
+          onDragLeave={corrDnd.handlers.handleDragLeave}
+          onDrop={corrDnd.handlers.handleDrop}
+          onClick={!corrInfo ? corrDnd.handlers.handleButtonClick : undefined}
+          onKeyDown={(e) => corrDnd.handlers.handleKeyDown(e, !corrInfo ? corrDnd.handlers.handleButtonClick : undefined)}
+          ariaLabel="Déposer ou sélectionner la table de correspondances"
+          dataTestId="corr-dropzone"
+        >
+          <div className="py-4">
+            <div className="text-3xl mb-2" aria-hidden="true">🔗</div>
+            {corrInfo ? (
+              <p className="text-sm text-gray-700 font-medium">✓ {corrInfo.name} — {corrInfo.count} correspondances</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-700 font-medium">Déposez la table de correspondances ou cliquez</p>
+                <p className="text-xs text-gray-500 mt-1">correspondances-comptes.csv (code d'origine → code final CNCJ)</p>
+              </>
+            )}
+          </div>
+        </DropZone>
+        {corrInfo && (
+          <div className="flex justify-center mt-2">
+            <button
+              type="button"
+              onClick={corrDnd.handlers.handleButtonClick}
+              className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+            >
+              Changer le fichier
+            </button>
+          </div>
+        )}
+        {corrError && (
+          <div className="mt-2 bg-red-50 border border-red-200 text-red-800 rounded-lg p-2 text-xs" role="alert">
+            {corrError}
+          </div>
+        )}
+        <p className="mt-2 text-xs text-gray-500">
+          Les comptes du FEC déjà mappés vers le PCG (via l'intégration) ne seront pas signalés comme absents.
+        </p>
+      </Card>
+
+      {/* Passage au rapport */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          disabled={!reportReady}
+          onClick={() => setStep('report')}
+          className={`px-6 py-2 rounded-lg font-medium text-white transition-colors flex items-center gap-2 ${
+            reportReady ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+          }`}
+        >
+          Voir le rapport <span aria-hidden="true">→</span>
         </button>
       </div>
+      </>
+      )}
 
-      {/* Zones d'upload : d'abord le plan comptable (obligatoire), puis le FEC */}
-      <div className="space-y-5 mb-6">
-        {/* 1. Plan comptable PCG + CNCJ + comptes clients (obligatoire) */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <span className="mr-2 px-1.5 py-0.5 text-[11px] font-bold rounded bg-gray-700 text-white">1</span>
-            📊 PCG avec CNCJ et comptes clients <span className="font-normal text-gray-400">(optionnel)</span>
-          </label>
-          <input
-            ref={pcgDnd.fileInputRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            onChange={pcgDnd.handlers.handleFileChange}
-            aria-label="Sélectionner le plan comptable complet"
-          />
-          <DropZone
-            dragState={pcgDnd.dragState}
-            loading={pcgLoading}
-            fileInfo={pcgUploaded !== null ? { name: pcgFileName, size: '', rowCount: pcgUploaded.length, loadStatus: 'success' } : null}
-            onDragOver={pcgDnd.handlers.handleDragOver}
-            onDragLeave={pcgDnd.handlers.handleDragLeave}
-            onDrop={pcgDnd.handlers.handleDrop}
-            onClick={pcgDnd.handlers.handleButtonClick}
-            onKeyDown={(e) => pcgDnd.handlers.handleKeyDown(e, pcgDnd.handlers.handleButtonClick)}
-            ariaLabel="Déposer ou sélectionner le plan comptable complet"
-            dataTestId="pcg-dropzone"
-          >
-            <div className="py-4">
-              <div className="text-3xl mb-2" aria-hidden="true">📊</div>
-              {pcgLoading ? (
-                <p className="text-sm text-gray-600">Lecture en cours…</p>
-              ) : pcgUploaded !== null ? (
-                <p className="text-sm text-gray-700 font-medium">✓ {pcgFileName} — {pcgUploaded.length} comptes</p>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-700 font-medium">Déposez le plan comptable ou cliquez</p>
-                  <p className="text-xs text-gray-500 mt-1">.csv format Axelor (colonne « code ») — PCG avec CNCJ et comptes clients</p>
-                </>
-              )}
-            </div>
-          </DropZone>
-          {pcgError && (
-            <div className="mt-2 bg-red-50 border border-red-200 text-red-800 rounded-lg p-2 text-xs" role="alert">
-              {pcgError}
-            </div>
-          )}
-        </div>
-
-        {/* 2. Fichier FEC à vérifier (débloqué une fois le PCG chargé) */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <span className="mr-2 px-1.5 py-0.5 text-[11px] font-bold rounded bg-gray-700 text-white">2</span>
-            📄 Fichier FEC à vérifier
-          </label>
-          <input
-            ref={fecDnd.fileInputRef}
-            type="file"
-            accept=".txt,.csv,.fec"
-            className="hidden"
-            onChange={fecDnd.handlers.handleFileChange}
-            aria-label="Sélectionner un fichier FEC"
-          />
-          <DropZone
-            dragState={fecDnd.dragState}
-            loading={fecLoading}
-            onDragOver={fecDnd.handlers.handleDragOver}
-            onDragLeave={fecDnd.handlers.handleDragLeave}
-            onDrop={fecDnd.handlers.handleDrop}
-            onClick={fecDnd.handlers.handleButtonClick}
-            onKeyDown={(e) => fecDnd.handlers.handleKeyDown(e, fecDnd.handlers.handleButtonClick)}
-            ariaLabel="Déposer ou sélectionner un fichier FEC"
-            dataTestId="fec-dropzone"
-          >
-            <div className="py-4">
-              <div className="text-3xl mb-2" aria-hidden="true">📄</div>
-              {fecLoading ? (
-                <p className="text-sm text-gray-600">Lecture en cours…</p>
-              ) : fecFileName ? (
-                <>
-                  <p className="text-sm text-gray-700 font-medium">✓ {fecFileName}</p>
-                  {report && !report.parseError && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Séparateur : <span className="font-medium text-gray-600">{report.delimiterLabel}</span>
-                      {' · '}{report.stats.dataLines.toLocaleString('fr-FR')} lignes
-                      {' · '}{report.stats.ecritureCount.toLocaleString('fr-FR')} écritures
-                      {' · '}{report.stats.journalCount.toLocaleString('fr-FR')} journaux
-                      {' · '}{report.header.length} colonnes
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-700 font-medium">Déposez le FEC ou cliquez</p>
-                  <p className="text-xs text-gray-500 mt-1">.txt / .csv — séparateur tabulation ou « | »</p>
-                </>
-              )}
-            </div>
-          </DropZone>
-          {fecError && (
-            <div className="mt-2 bg-red-50 border border-red-200 text-red-800 rounded-lg p-2 text-xs" role="alert">
-              {fecError}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Source PCG utilisée */}
-      <div className="mb-6 text-xs text-gray-500">
-        Référentiel de comptes utilisé : <span className="font-medium text-gray-700">{pcgSourceLabel}</span>
+      {step === 'report' && (
+      <>
+      {/* Retour au chargement */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setStep('load')}
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+        >
+          ← Modifier les fichiers
+        </button>
       </div>
 
       {/* Rapport */}
       {report && (
-        <div className="space-y-6">
+        <Card>
           {report.parseError ? (
             <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4" role="alert">
               <h3 className="font-semibold mb-1">Fichier illisible</h3>
               <p className="text-sm">{report.parseError}</p>
             </div>
           ) : (
-            <>
-              {/* Bandeau de synthèse */}
+            <div className="space-y-6">
               {globalMeta && (
                 <div className={`border-2 rounded-xl p-5 ${globalMeta.ring}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl" aria-hidden="true">{globalMeta.icon}</span>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">{globalLabel[report.globalStatus]}</h2>
-                      <p className="text-sm text-gray-600">
-                        Séparateur détecté : {report.delimiterLabel}
-                      </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl" aria-hidden="true">{globalMeta.icon}</span>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">{globalLabel[report.globalStatus]}</h2>
+                        <p className="text-sm text-gray-600">Séparateur détecté : {report.delimiterLabel}</p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex flex-col sm:flex-row gap-2">
+                      {report.checks.find(c => c.id === 'coherence-devise')?.status !== 'ok' && (
+                        <button
+                          type="button"
+                          onClick={handleCorrectDevise}
+                          className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                        >
+                          <span aria-hidden="true">🛠️</span>
+                          Corriger Idevise / Montantdevise
+                        </button>
+                      )}
+                      {fecCorrected && (
+                        <button
+                          type="button"
+                          onClick={handleDownloadFec}
+                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                        >
+                          <span aria-hidden="true">⬇️</span>
+                          Télécharger le FEC corrigé
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleExportReport}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      >
+                        <span aria-hidden="true">⬇️</span>
+                        Exporter le rapport (Excel)
+                      </button>
                     </div>
                   </div>
 
-                  {/* Statistiques */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-5">
                     <Stat label="Lignes" value={report.stats.dataLines.toLocaleString('fr-FR')} />
                     <Stat label="Écritures" value={report.stats.ecritureCount.toLocaleString('fr-FR')} />
@@ -330,23 +649,17 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts, o
                 </div>
               )}
 
-              {/* Liste des contrôles */}
               <div className="space-y-3">
                 {report.checks.map(check => (
                   <CheckCard key={check.id} check={check} />
                 ))}
               </div>
-            </>
+            </div>
           )}
-        </div>
+        </Card>
+      )}
+      </>
       )}
     </>
   );
 };
-
-const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="bg-white/70 rounded-lg px-3 py-2 border border-black/5">
-    <div className="text-[11px] uppercase tracking-wide text-gray-500">{label}</div>
-    <div className="text-sm font-semibold text-gray-900 font-mono">{value}</div>
-  </div>
-);

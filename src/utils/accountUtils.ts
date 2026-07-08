@@ -197,7 +197,7 @@ export const compareAccounts = (
   matches: Account[];
   unmatchedClients: Account[];
 } => {
-  // Utiliser les codes CNCJ tels quels (données de référence avec isCNCJ=true)
+  // Utiliser les codes CNCJ tels quels (données de référence avec isCncj=true)
   const cncjNumbers = new Set(cncjAccounts.map(acc => acc.number));
   const matches: Account[] = [];
   const unmatchedClients: Account[] = [];
@@ -286,7 +286,8 @@ export const findAccountsNeedingNormalization = (
         originalNumber: account.number,
         normalizedNumber,
         title: account.title,
-        isSvv
+        isSvv,
+        fromFec: account.fromFec
       };
     });
 };

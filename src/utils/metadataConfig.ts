@@ -23,7 +23,7 @@ export const metadataFields = [
   { key: 'analyticDistributionRequiredOnMoveLines', label: 'Distribution analytique requise (écritures)', type: 'select', options: ['true', 'false'] },
   { key: 'analyticDistributionTemplate.importId', label: 'Modèle distribution analytique', type: 'text' },
   { key: 'statusSelect', label: 'Statut', type: 'text' },
-  { key: 'isCNCJ', label: 'CNCJ', type: 'select', options: ['true', 'false'] }
+  { key: 'isCncj', label: 'CNCJ', type: 'select', options: ['true', 'false'] }
 ] as const;
 
 export type MetadataField = typeof metadataFields[number];

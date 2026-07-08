@@ -54,6 +54,7 @@ interface Step8MetadataCompletionProps {
   clientAccounts: Account[];
   mergedClientAccounts: Account[];
   generalAccounts: Account[];
+  fecAccountCodes: string[];
   replacementCodes: { [key: string]: string };
   cncjReplacementCodes: { [key: string]: string };
   result: ProcessingResult | null;
@@ -70,6 +71,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   clientAccounts,
   mergedClientAccounts,
   generalAccounts,
+  fecAccountCodes,
   replacementCodes,
   cncjReplacementCodes,
   result,
@@ -86,7 +88,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({});
   const [showUnresolvedModal, setShowUnresolvedModal] = useState(false);
 
-  // Détection CNCJ : un compte dont le code final existe dans la référence CNCJ doit être marqué isCNCJ=true.
+  // Détection CNCJ : un compte dont le code final existe dans la référence CNCJ doit être marqué isCncj=true.
   // On normalise les deux côtés pour une comparaison fiable (7 chiffres).
   const normalizedCncjCodes = useMemo(
     () => new Set(Array.from(cncjCodes, code => normalizeForDisplay(code))),
@@ -189,7 +191,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
         'manageCutOffPeriod', 'hasAutomaticApplicationAccountingDate',
         'analyticDistributionAuthorized', 'analyticDistributionRequiredOnInvoiceLines',
         'analyticDistributionRequiredOnMoveLines', 'analyticDistributionTemplate.importId',
-        'statusSelect', 'isCNCJ'
+        'statusSelect', 'isCncj'
       ];
 
       const csvRows: string[][] = [];
@@ -248,15 +250,24 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             String(data.analyticDistributionRequiredOnMoveLines ?? ''),
             String(data['analyticDistributionTemplate.importId'] || ''),
             String(data.statusSelect || '1'),
-            isCncjCode(account.number) ? 'true' : String(data.isCNCJ ?? 'false')
+            // CNCJ = uniquement les comptes définis dans le fichier de base (flag du modèle),
+            // sans dérivation par code normalisé (qui marquait à tort les comptes-vues/radicaux).
+            String(data.isCncj ?? 'false')
           ]
         };
       });
 
+      // Décalage pour éviter les collisions d'importId avec les CLIENTxxxx déjà présents dans
+      // le PCG chargé (comptes créés lors d'une intégration précédente).
+      const maxExistingClientId = generalAccounts.reduce((max, account) => {
+        const match = String(account.rawData?.importId ?? '').match(/^CLIENT(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1], 10)) : max;
+      }, 0);
+
       // Comptes clients non présents dans PCG : réutiliser les métadonnées de l'étape
       // (héritage automatique + import manuel via referencePcgCode + éditions manuelles).
       const clientAccountRows = accountsNeedingMetadata.map((row, index) => {
-        const importId = `CLIENT${String(index + 1).padStart(4, '0')}`;
+        const importId = `CLIENT${String(maxExistingClientId + index + 1).padStart(4, '0')}`;
         const code = normalizeForDisplay(row.finalCode);
         // Libellé client, SAUF si le code est CNCJ : on garde le titre officiel CNCJ (jamais modifié)
         const name = isCncjCode(code)
@@ -290,7 +301,9 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
             String(inheritedData.analyticDistributionRequiredOnMoveLines ?? ''),
             String(inheritedData['analyticDistributionTemplate.importId'] || ''),
             String(inheritedData.statusSelect || '1'),
-            isCncjCode(code) ? 'true' : String(inheritedData.isCNCJ ?? 'false')
+            // CNCJ uniquement si le code final EXACT figure dans la liste de base (pas de normalisation,
+            // pas d'héritage) : un compte client n'est CNCJ que s'il retombe exactement sur un code CNCJ.
+            cncjCodes.has(code) ? 'true' : 'false'
           ]
         };
       });
@@ -449,8 +462,21 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     });
   }, [clientAccounts, generalAccounts, replacementCodes, cncjReplacementCodes, result, cncjConflictResult, missingMetadata]);
 
-  // Comptes qui nécessitent une attention (non présents dans PCG)
-  const accountsNeedingMetadata = metadataData.filter(row => !row.isInPcg);
+  // Codes présents dans le FEC + index id -> code d'origine (pour restreindre les comptes à créer)
+  const fecCodeSet = useMemo(() => new Set(fecAccountCodes), [fecAccountCodes]);
+  const clientCodeById = useMemo(
+    () => new Map(clientAccounts.map(a => [a.id, a.originalNumber || a.number])),
+    [clientAccounts]
+  );
+
+  // Comptes qui nécessitent une attention (non présents dans PCG).
+  // Si un FEC est chargé, on ne garde que les comptes réellement présents dans le FEC.
+  const accountsNeedingMetadata = metadataData.filter(row => {
+    if (row.isInPcg) return false;
+    if (fecCodeSet.size === 0) return true;
+    const code = clientCodeById.get(row.id);
+    return code !== undefined && fecCodeSet.has(code);
+  });
   const accountsWithClosestMatch = accountsNeedingMetadata.filter(row => row.hasClosestMatch);
   const accountsWithoutClosestMatch = accountsNeedingMetadata.filter(row => !row.hasClosestMatch);
   const accountsInPcg = metadataData.filter(row => row.isInPcg);
@@ -510,7 +536,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     { key: 'analyticDistributionRequiredOnMoveLines', label: 'Distribution analytique requise (écritures)', type: 'select', options: ['true', 'false'] },
     { key: 'analyticDistributionTemplate.importId', label: 'Modèle distribution analytique', type: 'text' },
     { key: 'statusSelect', label: 'Statut', type: 'text' },
-    { key: 'isCNCJ', label: 'CNCJ', type: 'select', options: ['true', 'false'] }
+    { key: 'isCncj', label: 'CNCJ', type: 'select', options: ['true', 'false'] }
   ];
 
   const handleMetadataFieldChange = (accountId: string, fieldKey: string, value: string) => {
@@ -548,7 +574,7 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
 
       const csvRows = accountsNeedingMetadata.map(row => {
         const metadataValues = metadataFields.map(field =>
-          field.key === 'isCNCJ' && isCncjCode(row.finalCode)
+          field.key === 'isCncj' && isCncjCode(row.finalCode)
             ? 'true'
             : (row.inheritedData[field.key] || '')
         );
@@ -587,8 +613,11 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
   return (
     <div className="space-y-4">
       {/* Statistiques */}
-      <StepStatsGrid columns={5}>
+      <StepStatsGrid columns={fecCodeSet.size > 0 ? 6 : 5}>
         <StepStat value={totalCount} label="Total comptes" color="blue" />
+        {fecCodeSet.size > 0 && (
+          <StepStat value={fecCodeSet.size} label="Comptes du FEC" color="indigo" />
+        )}
         <StepStat value={accountsWithClosestMatch.length} label="Avec correspondance proche" color="green" />
         <StepStat value={`← ${accountsWithClosestMatch.length + accountsWithoutClosestMatch.length} →`} label="Comptes avec métadonnées manquantes" color="orange" />
         <StepStat value={accountsWithoutClosestMatch.length} label="Sans correspondance" color="red" />
@@ -627,6 +656,13 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
           >
             👁 Consulter les lignes
           </button>
+        </div>
+      )}
+
+      {/* Indication : restriction aux comptes du FEC */}
+      {fecCodeSet.size > 0 && (
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 text-sm text-teal-800 text-center">
+          📄 Un fichier FEC est chargé : les comptes à créer sont restreints aux <span className="font-semibold">{fecCodeSet.size}</span> comptes réellement présents dans le FEC.
         </div>
       )}
 

@@ -24,6 +24,8 @@ export const initialState: AppState = {
   missingMetadata: {},
   svvCorrespondences: {},
   svvFileInfo: null,
+  fecFileInfo: null,
+  fecAccountCodes: [],
   initialSuggestions: {},
   initialCncjSuggestions: {},
   clientName: '',
@@ -44,6 +46,10 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, cncjFileInfo: action.payload };
     case 'SET_GENERAL_FILE_INFO':
       return { ...state, generalFileInfo: action.payload };
+    case 'SET_FEC_FILE_INFO':
+      return { ...state, fecFileInfo: action.payload };
+    case 'SET_FEC_ACCOUNT_CODES':
+      return { ...state, fecAccountCodes: action.payload };
     case 'SET_RESULT':
       return { ...state, result: action.payload, loading: false };
     case 'SET_LOADING':

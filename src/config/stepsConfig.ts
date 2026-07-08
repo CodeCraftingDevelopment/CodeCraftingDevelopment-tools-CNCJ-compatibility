@@ -28,13 +28,13 @@ export const STEPS_CONFIG: StepConfig[] = [
     order: 1,
     title: 'Chargement des fichiers',
     icon: '📁',
-    description: 'Importer les comptes clients et le fichier PCG avec CNCJ (colonne isCNCJ), plus les correspondances SVV optionnelles',
+    description: 'Importer les comptes clients et le fichier PCG avec CNCJ (colonne isCncj), plus les correspondances SVV optionnelles',
     badge: 'Step 1',
     badgeColor: 'green',
     canProceed: (state) => {
-      // Les comptes CNCJ sont dérivés du PCG : la colonne isCNCJ doit être présente (sinon bloquant)
+      // Les comptes CNCJ sont dérivés du PCG : la colonne isCncj doit être présente (sinon bloquant)
       const pcgHasCncjColumn = state.generalAccounts.some(
-        acc => acc.rawData !== undefined && Object.prototype.hasOwnProperty.call(acc.rawData, 'isCNCJ')
+        acc => acc.rawData !== undefined && Object.prototype.hasOwnProperty.call(acc.rawData, 'isCncj')
       );
       return state.clientAccounts.length > 0 &&
              state.generalAccounts.length > 0 &&

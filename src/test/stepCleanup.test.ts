@@ -26,6 +26,8 @@ describe('stepCleanup', () => {
     missingMetadata: { 'a-1': { parent_code: '108' } },
     svvCorrespondences: {},
     svvFileInfo: null,
+    fecFileInfo: null,
+    fecAccountCodes: [],
     initialSuggestions: {},
     initialCncjSuggestions: {},
     clientName: '',

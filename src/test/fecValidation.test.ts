@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateFec, parseFecAmount, isValidFecDate, suggestFecDate, FEC_COLUMNS } from '../utils/fecValidation'
+import { validateFec, buildFecReportCsv, buildCorrectedFec, parseAccountCorrespondences, extractFecAccounts, parseFecAmount, isValidFecDate, suggestFecDate, FEC_COLUMNS } from '../utils/fecValidation'
 import { parseCSVFile } from '../utils/accountUtils'
 
 const TAB = '\t'
@@ -37,9 +37,9 @@ describe('fecValidation - helpers', () => {
 
 describe('fecValidation - FEC conforme', () => {
   const fec = buildFec([
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0' }),
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '100,00' }),
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4457110', Debit: '0', Credit: '20,00' })
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0', Montantdevise: '120,00', Idevise: 'EUR' }),
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '100,00', Montantdevise: '100,00', Idevise: 'EUR' }),
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4457110', Debit: '0', Credit: '20,00', Montantdevise: '20,00', Idevise: 'EUR' })
   ])
 
   it('rapporte un statut global ok', () => {
@@ -81,6 +81,58 @@ describe('fecValidation - anomalies détectées', () => {
   })
 })
 
+describe('fecValidation - Montant devise / Idevise (Axelor)', () => {
+  it('accepte Idevise = EUR et Montantdevise = valeur absolue du débit/crédit', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0', Montantdevise: '120,00', Idevise: 'EUR' }),
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '120,00', Montantdevise: '120,00', Idevise: 'EUR' })
+    ])
+    const check = validateFec(fec, 'x').checks.find(c => c.id === 'coherence-devise')!
+    expect(check.status).toBe('ok')
+  })
+
+  it('signale Idevise vide et Montantdevise vide (cas compta euros non préparée)', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'RAN', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '1010000', Debit: '68869,73', Credit: '0' })
+    ])
+    const check = validateFec(fec, 'x').checks.find(c => c.id === 'coherence-devise')!
+    expect(check.status).toBe('error')
+    expect(check.issues[0].message).toContain('Idevise vide')
+    expect(check.issues[0].message).toContain('Montantdevise vide')
+    expect(check.issues[0].suggestion).toContain('EUR')
+    expect(check.issues[0].suggestion).toContain('68869.73')
+  })
+
+  it('signale une mauvaise devise et un montant devise incorrect', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '0', Credit: '120,00', Montantdevise: '99,00', Idevise: 'USD' })
+    ])
+    const check = validateFec(fec, 'x').checks.find(c => c.id === 'coherence-devise')!
+    expect(check.status).toBe('error')
+    expect(check.issues[0].message).toContain('« USD » ≠ « EUR »')
+    expect(check.issues[0].message).toContain('99.00 ≠ 120.00')
+  })
+
+  it('buildCorrectedFec renseigne EUR + Montantdevise et rend le FEC conforme', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'RAN', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '1010000', Debit: '68869,73', Credit: '0' }),
+      row({ JournalCode: 'RAN', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '1200000', Debit: '0', Credit: '68869,73' })
+    ])
+    const corrected = buildCorrectedFec(fec)
+    // Le contrôle devise doit désormais passer
+    const check = validateFec(corrected, 'x').checks.find(c => c.id === 'coherence-devise')!
+    expect(check.status).toBe('ok')
+    // Vérifier les valeurs écrites
+    const lines = corrected.split(/\r?\n/)
+    const cells1 = lines[1].split('\t')
+    expect(cells1[16]).toBe('68869,73') // Montantdevise = |Débit|
+    expect(cells1[17]).toBe('EUR')
+    const cells2 = lines[2].split('\t')
+    expect(cells2[16]).toBe('68869,73') // Montantdevise = |Crédit|
+    expect(cells2[17]).toBe('EUR')
+  })
+})
+
 describe('fecValidation - guillemets englobants', () => {
   it('signale une ligne entière encadrée de guillemets sans nettoyer le contenu', () => {
     // Reproduit le format du fichier client : chaque ligne est entourée d'un « " »
@@ -98,6 +150,59 @@ describe('fecValidation - guillemets englobants', () => {
     expect(quoteCheck.issues.some(i => i.message.includes('2 ligne'))).toBe(true)
     // La lecture n'est pas modifiée : la 1ʳᵉ et la dernière colonne restent faussées
     expect(report.checks.find(c => c.id === 'structure-colonnes')?.status).toBe('warning')
+  })
+})
+
+describe('fecValidation - extraction des comptes', () => {
+  it('extrait les comptes distincts du FEC (code + libellé), une fois chacun', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', CompteLib: 'Clients', Debit: '120', Credit: '0' }),
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', CompteLib: 'Ventes', Debit: '0', Credit: '120' }),
+      row({ JournalCode: 'VT', EcritureNum: '2', EcritureDate: '20250116', CompteNum: '4110000', CompteLib: 'Clients', Debit: '50', Credit: '0' })
+    ])
+    const accounts = extractFecAccounts(fec)
+    expect(accounts).toHaveLength(2) // 4110000 dédoublonné
+    expect(accounts.find(a => a.code === '4110000')?.label).toBe('Clients')
+    expect(accounts.find(a => a.code === '7010000')?.label).toBe('Ventes')
+  })
+})
+
+describe('fecValidation - export CSV du rapport', () => {
+  it('produit un CSV avec préambule, en-tête de colonnes et une ligne par anomalie', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0' }),
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '100,00' }) // déséquilibre
+    ])
+    const report = validateFec(fec, 'export.txt')
+    const csv = buildFecReportCsv(report)
+
+    expect(csv.charCodeAt(0)).toBe(0xfeff) // BOM UTF-8 pour Excel
+    expect(csv).toContain('Rapport de vérification FEC : export.txt')
+    expect(csv).toContain('Contrôle;Statut;Ligne;Message;Suggestion')
+    expect(csv).toContain('Équilibre global Débit = Crédit;Erreur')
+  })
+
+  it('exporte toutes les anomalies sans le plafond d\'affichage (maxIssues: Infinity)', () => {
+    // 150 écritures déséquilibrées -> l'affichage plafonne à 100, l'export doit tout contenir
+    const rows: string[] = []
+    for (let i = 1; i <= 150; i++) {
+      rows.push(row({ JournalCode: 'VT', EcritureNum: String(i), EcritureDate: '20250115', CompteNum: '4110000', Debit: '10,00', Credit: '0' }))
+    }
+    const fec = buildFec(rows)
+
+    const displayReport = validateFec(fec, 'big.txt')
+    const displayCheck = displayReport.checks.find(c => c.id === 'equilibre-ecriture')!
+    expect(displayCheck.issues.length).toBe(100)
+    expect(displayCheck.truncated).toBe(true)
+
+    const fullReport = validateFec(fec, 'big.txt', [], { maxIssues: Number.POSITIVE_INFINITY })
+    const fullCheck = fullReport.checks.find(c => c.id === 'equilibre-ecriture')!
+    expect(fullCheck.issues.length).toBe(150)
+    expect(fullCheck.truncated).toBe(false)
+
+    const csv = buildFecReportCsv(fullReport)
+    const balanceLines = csv.split('\r\n').filter(l => l.startsWith('Équilibre par écriture'))
+    expect(balanceLines.length).toBe(150)
   })
 })
 
@@ -129,7 +234,7 @@ describe('fecValidation - intégration upload PCG complet (format Axelor)', () =
     'isRetrievedOnPaymentSession', 'serviceType.code', 'manageCutOffPeriod',
     'hasAutomaticApplicationAccountingDate', 'analyticDistributionAuthorized',
     'analyticDistributionRequiredOnInvoiceLines', 'analyticDistributionRequiredOnMoveLines',
-    'analyticDistributionTemplate.importId', 'statusSelect', 'isCNCJ'
+    'analyticDistributionTemplate.importId', 'statusSelect', 'isCncj'
   ].join(';')
   const pcgRow = (importId: string, code: string, name: string): string =>
     [importId, code, '', name, 'AT001', 'true', '0', ...Array(16).fill(''), '1', 'false'].join(';')
@@ -160,16 +265,84 @@ describe('fecValidation - intégration upload PCG complet (format Axelor)', () =
 })
 
 describe('fecValidation - suggestions de correction', () => {
-  it('propose le compte PCG le plus proche pour un compte absent', () => {
+  it('élargit à la famille à 3 chiffres quand la racine à 4 chiffres est absente', () => {
     const fec = buildFec([
-      row({ JournalCode: 'AC', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '6261500', Debit: '10', Credit: '0' }),
+      row({ JournalCode: 'AC', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '6261000', Debit: '10', Credit: '0' }),
       row({ JournalCode: 'AC', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '6260000', Debit: '0', Credit: '10' })
     ])
-    // PCG contient 6261100 et 6260000 ; 6261500 (préfixe 6261) doit suggérer 6261100
-    const report = validateFec(fec, 'fec.txt', [{ number: '6261100' }, { number: '6260000' }])
+    // Famille 6261 sans racine 6261000 ; on doit remonter au générique à 3 chiffres 6260000.
+    const report = validateFec(fec, 'fec.txt', [{ number: '6261100' }, { number: '6261200' }, { number: '6260000' }])
     const pcg = report.checks.find(c => c.id === 'coherence-pcg')!
-    const issue = pcg.issues.find(i => i.message.includes('6261500'))!
-    expect(issue.suggestion).toContain('6261100')
+    const issue = pcg.issues.find(i => i.message.includes('6261000'))!
+    expect(issue.suggestion).toContain('6260000')
+    expect(issue.suggestion).not.toContain('6261100')
+  })
+
+  it('propose le générique de la famille à 3 chiffres quand la famille à 4 chiffres est vide', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '70670000', Debit: '10', Credit: '0' }),
+      row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '5300000', Debit: '0', Credit: '10' })
+    ])
+    // Aucun 7067xxx ; le générique de la famille 706 (7060000) doit être proposé.
+    const report = validateFec(fec, 'fec.txt', [{ number: '7060000', name: 'Prestations de services' }, { number: '7061100' }])
+    const issue = report.checks.find(c => c.id === 'coherence-pcg')!.issues.find(i => i.message.includes('70670000'))!
+    expect(issue.suggestion).toContain('7060000')
+    expect(issue.suggestion).toContain('Prestations de services')
+  })
+
+  it('parse la table de correspondances (original -> final)', () => {
+    const csv = '"account_title";"original_client_code";"final_code"\n' +
+      '"TVA Déductible";"44566310";"4456640"\n' +
+      '"Vente";"47031000";"4682030"'
+    const map = parseAccountCorrespondences(csv)
+    expect(map.size).toBe(2)
+    expect(map.get('44566310')).toBe('4456640')
+    expect(map.get('47031000')).toBe('4682030')
+  })
+
+  it('reconnaît un compte mappé même si son code final est absent du PCG chargé', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'AC', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '62282000', CompteLib: 'FRAIS SUR VENTES', Debit: '20', Credit: '0' }),
+      row({ JournalCode: 'AC', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '0', Credit: '20' })
+    ])
+    // Le code final 6228200 (compte créé par l'intégration) n'est PAS dans le PCG chargé (modèle),
+    // mais 62282000 est dans la table de correspondances -> il doit être reconnu, pas signalé absent.
+    const correspondences = new Map([['62282000', '6228200']])
+    const report = validateFec(fec, 'fec.txt', [{ number: '4110000', name: 'Clients' }, { number: '6228000', name: 'Divers' }], { correspondences })
+    const pcg = report.checks.find(c => c.id === 'coherence-pcg')!
+    expect(pcg.issues.some(i => i.message.includes('62282000'))).toBe(false)
+    expect(pcg.summary).toContain('via correspondance')
+  })
+
+  it('affiche le libellé du compte FEC manquant et celui du compte PCG suggéré', () => {
+    const fec = buildFec([
+      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '51213000', CompteLib: 'Comptes en francs', Debit: '10', Credit: '0' }),
+      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '5121000', CompteLib: 'Comptes en euros', Debit: '0', Credit: '10' })
+    ])
+    const report = validateFec(fec, 'fec.txt', [{ number: '5121000', name: 'Comptes en euros' }])
+    const issue = report.checks.find(c => c.id === 'coherence-pcg')!.issues.find(i => i.message.includes('51213000'))!
+    expect(issue.message).toContain('(Comptes en francs)')
+    expect(issue.suggestion).toContain('5121000')
+    expect(issue.suggestion).toContain('(Comptes en euros)')
+  })
+
+  it('privilégie le compte générique (parent) plutôt que le voisin numérique spécifique', () => {
+    // Cas réel LANDES : 51213000 « Comptes en francs » absent.
+    // Candidats préfixe 5121 : 5121000 (générique), 5121140 et 5121150 (banques spécifiques).
+    // Numériquement le plus proche serait 5121150, mais on doit proposer le générique 5121000.
+    const fec = buildFec([
+      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '51213000', Debit: '10', Credit: '0' }),
+      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20260101', CompteNum: '5121000', Debit: '0', Credit: '10' })
+    ])
+    const report = validateFec(fec, 'fec.txt', [
+      { number: '5121000' },
+      { number: '5121140' },
+      { number: '5121150' }
+    ])
+    const pcg = report.checks.find(c => c.id === 'coherence-pcg')!
+    const issue = pcg.issues.find(i => i.message.includes('51213000'))!
+    expect(issue.suggestion).toContain('5121000')
+    expect(issue.suggestion).not.toContain('5121150')
   })
 
   it('propose un reformatage pour une date d\'écriture reconnaissable', () => {
@@ -183,14 +356,13 @@ describe('fecValidation - suggestions de correction', () => {
     expect(issue.suggestion).toContain('20250131')
   })
 
-  it('propose la date d\'écriture pour un lettrage sans DateLet', () => {
+  it('n\'émet aucun contrôle de lettrage (EcritureLet/DateLet optionnels selon la norme)', () => {
     const fec = buildFec([
       row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '10', Credit: '0', EcritureLet: 'AAA' }),
-      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '5120000', Debit: '0', Credit: '10' })
+      row({ JournalCode: 'BQ', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '5120000', Debit: '0', Credit: '10', EcritureLet: '*1' })
     ])
     const report = validateFec(fec, 'fec.txt')
-    const letterCheck = report.checks.find(c => c.id === 'coherence-lettrage')!
-    expect(letterCheck.status).toBe('warning')
-    expect(letterCheck.issues[0].suggestion).toContain('20250115')
+    // Le contrôle « cohérence du lettrage » a été retiré (non normatif)
+    expect(report.checks.find(c => c.id === 'coherence-lettrage')).toBeUndefined()
   })
 })

@@ -13,6 +13,7 @@ export interface Account {
   source: 'client' | 'cncj' | 'general';
   originalNumber?: string; // Code original 8 chiffres du fichier d'import
   rawData?: Record<string, unknown>; // Données brutes du CSV (pour PCG avec 24 colonnes)
+  fromFec?: boolean; // true si le compte provient du fichier FEC optionnel (complément du fichier client)
 }
 
 export interface NormalizationAccount {
@@ -21,6 +22,7 @@ export interface NormalizationAccount {
   normalizedNumber: string;
   title?: string;
   isSvv?: boolean; // true si le code cible provient du mappage SVV (prioritaire sur la troncature)
+  fromFec?: boolean; // true si le compte provient du fichier FEC optionnel
 }
 
 export interface MergeInfo {
@@ -89,6 +91,10 @@ export interface AppState {
   // Mappage SVV pré-validé en amont : code d'origine (8 chiffres) -> correspondance (7 chiffres)
   svvCorrespondences: { [compteEncheres: string]: string };
   svvFileInfo: FileMetadata | null;
+  // Fichier FEC optionnel : ses comptes complètent la liste des comptes client
+  fecFileInfo: FileMetadata | null;
+  // Codes de tous les comptes présents dans le FEC (pour restreindre les comptes à créer à l'étape 8)
+  fecAccountCodes: string[];
   // Suggestions initiales pour conserver les détails des calculs
   initialSuggestions: { [accountId: string]: SuggestionResult };
   initialCncjSuggestions: { [accountId: string]: SuggestionResult };
@@ -105,6 +111,8 @@ export type AppAction =
   | { type: 'SET_CLIENT_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_CNCJ_FILE_INFO'; payload: FileMetadata | null }
   | { type: 'SET_GENERAL_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_FEC_FILE_INFO'; payload: FileMetadata | null }
+  | { type: 'SET_FEC_ACCOUNT_CODES'; payload: string[] }
   | { type: 'SET_RESULT'; payload: ProcessingResult | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERRORS'; payload: string[] }

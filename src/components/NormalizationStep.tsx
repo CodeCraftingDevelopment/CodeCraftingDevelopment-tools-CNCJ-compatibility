@@ -92,6 +92,12 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
           🔁 Les codes marqués <span className="font-semibold">SVV</span> proviennent du mappage pré-validé fourni (prioritaire sur la troncature automatique).
         </div>
       )}
+
+      {accountsNeedingNormalization.some(a => a.fromFec) && (
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 mb-6 text-sm text-teal-700 text-center">
+          📄 Les comptes marqués <span className="font-semibold">FEC</span> proviennent du fichier FEC optionnel (absents du fichier des comptes clients).
+        </div>
+      )}
       
       {/* Tableau avant/après */}
       <div className="overflow-x-auto max-h-64 overflow-y-auto mb-6">
@@ -108,6 +114,11 @@ export const NormalizationStep: React.FC<NormalizationStepProps> = ({
               <tr key={account.id} className="bg-orange-50">
                 <td className="border border-gray-300 px-4 py-2">
                   {account.title || 'Sans titre'}
+                  {account.fromFec && (
+                    <span className="ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-teal-100 text-teal-700 border border-teal-300 align-middle">
+                      📄 FEC
+                    </span>
+                  )}
                 </td>
                 <td className="border border-gray-300 px-4 py-2 font-mono text-red-600">
                   {account.originalNumber}

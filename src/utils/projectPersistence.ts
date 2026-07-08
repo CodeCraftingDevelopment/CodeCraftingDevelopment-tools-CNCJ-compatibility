@@ -33,6 +33,7 @@ export interface ProjectFile {
     missingMetadata: { [accountId: string]: AccountMetadata };
     svvCorrespondences?: { [compteEncheres: string]: string };
     svvFileInfo?: FileMetadata | null;
+    fecAccountCodes?: string[];
     currentStep: 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'step6' | 'step7' | 'stepFinal';
     initialSuggestions: { [accountId: string]: SuggestionResult };
     initialCncjSuggestions: { [accountId: string]: SuggestionResult };
@@ -94,6 +95,7 @@ export const saveProject = async (state: AppState, filename?: string, descriptio
       missingMetadata: state.missingMetadata,
       svvCorrespondences: state.svvCorrespondences,
       svvFileInfo: state.svvFileInfo,
+      fecAccountCodes: state.fecAccountCodes,
       currentStep: state.currentStep,
       initialSuggestions: state.initialSuggestions || {},
       initialCncjSuggestions: state.initialCncjSuggestions || {},
@@ -397,6 +399,8 @@ export const projectFileToAppState = (projectFile: ProjectFile): AppState => {
     missingMetadata: data.missingMetadata,
     svvCorrespondences: data.svvCorrespondences || {},
     svvFileInfo: data.svvFileInfo || null,
+    fecFileInfo: null, // Non persisté : les comptes FEC survivent via clientAccounts (fromFec)
+    fecAccountCodes: data.fecAccountCodes || [],
     initialSuggestions: data.initialSuggestions || {},
     initialCncjSuggestions: data.initialCncjSuggestions || {},
     clientName: data.clientName || '',

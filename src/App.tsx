@@ -26,10 +26,10 @@ import { autoCorrectCncjConflicts, processCncjConflicts } from './utils/cncjConf
 import { calculateSuggestionsWithDetails } from './utils/codeSuggestions';
 
 // Les comptes CNCJ ne sont plus fournis via un upload dédié : ils sont dérivés du fichier PCG
-// (lignes dont la colonne isCNCJ vaut true).
+// (lignes dont la colonne isCncj vaut true).
 const deriveCncjFromGeneral = (generalAccounts: Account[]): Account[] =>
   generalAccounts
-    .filter(acc => String(acc.rawData?.isCNCJ).toLowerCase() === 'true')
+    .filter(acc => String(acc.rawData?.isCncj).toLowerCase() === 'true')
     .map(acc => ({ ...acc, source: 'cncj' as const }));
 
 const App: React.FC = () => {
@@ -97,13 +97,18 @@ const App: React.FC = () => {
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: fileInfo });
       // Only update accounts if not in loading state
       if (fileInfo.loadStatus !== 'loading') {
-        dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: mergedAccounts });
+        // Préserver les comptes issus du FEC optionnel (complément), en évitant les doublons de code
+        const clientCodes = new Set(mergedAccounts.map(a => a.number));
+        const keptFec = state.clientAccounts.filter(a => a.fromFec && !clientCodes.has(a.number));
+        const combined = [...mergedAccounts, ...keptFec];
+
+        dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: combined });
         dispatch({ type: 'SET_MERGE_INFO', payload: mergeInfo });
 
-        // Traiter si le PCG est chargé (les comptes CNCJ sont dérivés du PCG via isCNCJ)
+        // Traiter si le PCG est chargé (les comptes CNCJ sont dérivés du PCG via isCncj)
         if (state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
             state.generalAccounts.length > 0) {
-          processClientAccounts(mergedAccounts, state.cncjAccounts, state.generalAccounts);
+          processClientAccounts(combined, state.cncjAccounts, state.generalAccounts);
         }
       }
     } else if (source === 'general') {
@@ -113,7 +118,7 @@ const App: React.FC = () => {
       if (fileInfo.loadStatus !== 'loading') {
         dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: accounts });
 
-        // Dériver les comptes CNCJ depuis la colonne isCNCJ du fichier PCG
+        // Dériver les comptes CNCJ depuis la colonne isCncj du fichier PCG
         const derivedCncj = deriveCncjFromGeneral(accounts);
         dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: derivedCncj });
 
@@ -132,7 +137,9 @@ const App: React.FC = () => {
 
   const handleFileCleared = useCallback((source: 'client' | 'general' | 'cncj') => {
     if (source === 'client') {
-      dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
+      // Conserver les comptes issus du FEC optionnel s'il y en a
+      const fecOnly = state.clientAccounts.filter(a => a.fromFec);
+      dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: fecOnly });
       dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
     } else if (source === 'general') {
       dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
@@ -146,7 +153,7 @@ const App: React.FC = () => {
     dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: {} });
     dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
     dispatch({ type: 'CLEAR_CNCJ_REPLACEMENT_CODES' });
-  }, []);
+  }, [state.clientAccounts]);
 
   const handleSvvLoaded = useCallback((correspondences: { [compteEncheres: string]: string }, fileInfo: FileMetadata) => {
     dispatch({ type: 'SET_SVV_FILE_INFO', payload: fileInfo });
@@ -159,12 +166,57 @@ const App: React.FC = () => {
     dispatch({ type: 'CLEAR_SVV_CORRESPONDENCES' });
   }, []);
 
+  // Fichier FEC optionnel : ses comptes complètent la liste des comptes client
+  const handleFecLoaded = useCallback((fecAccounts: Account[], fileInfo: FileMetadata) => {
+    dispatch({ type: 'CLEAR_ERRORS' });
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'step1' });
+    dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
+    dispatch({ type: 'SET_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: {} });
+    dispatch({ type: 'CLEAR_CNCJ_FORCED_VALIDATIONS' });
+    dispatch({ type: 'SET_FEC_FILE_INFO', payload: fileInfo });
+    // Mémoriser tous les codes présents dans le FEC (pour restreindre les comptes à créer à l'étape 8)
+    dispatch({ type: 'SET_FEC_ACCOUNT_CODES', payload: fecAccounts.map(a => a.number) });
+
+    // Combiner : comptes du fichier client + comptes FEC absents du fichier client
+    const clientFilePart = state.clientAccounts.filter(a => !a.fromFec);
+    const clientCodes = new Set(clientFilePart.map(a => a.number));
+    const addedFec = fecAccounts.filter(f => !clientCodes.has(f.number));
+    const combined = [...clientFilePart, ...addedFec];
+
+    dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: combined });
+
+    if (state.generalFileInfo && state.generalFileInfo.loadStatus !== 'loading' &&
+        state.generalAccounts.length > 0) {
+      processClientAccounts(combined, state.cncjAccounts, state.generalAccounts);
+    }
+  }, [state.clientAccounts, state.cncjAccounts, state.generalAccounts, state.generalFileInfo, processClientAccounts]);
+
+  const handleFecCleared = useCallback(() => {
+    const clientFilePart = state.clientAccounts.filter(a => !a.fromFec);
+    dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: clientFilePart });
+    dispatch({ type: 'SET_FEC_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_FEC_ACCOUNT_CODES', payload: [] });
+    dispatch({ type: 'SET_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_RESULT', payload: null });
+    dispatch({ type: 'SET_CNCJ_CONFLICT_CORRECTIONS', payload: {} });
+    dispatch({ type: 'CLEAR_REPLACEMENT_CODES' });
+    dispatch({ type: 'CLEAR_CNCJ_REPLACEMENT_CODES' });
+
+    if (state.generalAccounts.length > 0 && clientFilePart.length > 0) {
+      processClientAccounts(clientFilePart, state.cncjAccounts, state.generalAccounts);
+    }
+  }, [state.clientAccounts, state.cncjAccounts, state.generalAccounts, processClientAccounts]);
+
   const resetData = useCallback(() => {
     dispatch({ type: 'SET_CLIENT_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CNCJ_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_GENERAL_ACCOUNTS', payload: [] });
     dispatch({ type: 'SET_CLIENT_FILE_INFO', payload: null });
     dispatch({ type: 'SET_CNCJ_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_FEC_FILE_INFO', payload: null });
+    dispatch({ type: 'SET_FEC_ACCOUNT_CODES', payload: [] });
     dispatch({ type: 'SET_GENERAL_FILE_INFO', payload: null });
     dispatch({ type: 'SET_RESULT', payload: null });
     dispatch({ type: 'CLEAR_ERRORS' });
@@ -345,13 +397,24 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* FEC Verification Flow - Only show when "Vérification Fichier FEC" is clicked */}
-        {showFecFlow && (
-          <FecVerification
-            pcgAccounts={state.generalAccounts}
-            onBack={() => setShowFecFlow(false)}
-          />
-        )}
+        {/* FEC Verification Flow - toujours monté (masqué en CSS) pour conserver les données en mémoire */}
+        <div style={{ display: showFecFlow ? 'block' : 'none' }}>
+          <div className="text-center mb-8">
+            <AppHeader state={state} dispatch={dispatch} onProjectLoaded={handleProjectLoaded} variant="fec" />
+          </div>
+
+          {/* Back Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowFecFlow(false)}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+            >
+              ← Retour aux choix
+            </button>
+          </div>
+
+          <FecVerification pcgAccounts={state.generalAccounts} />
+        </div>
 
         {/* Import Flow Content - Only show when "Integration PCG" is clicked */}
         {showImportFlow && (
@@ -404,11 +467,14 @@ const App: React.FC = () => {
                   generalFileInfo={state.generalFileInfo}
                   svvFileInfo={state.svvFileInfo}
                   svvCorrespondences={state.svvCorrespondences}
+                  fecFileInfo={state.fecFileInfo}
                   loading={state.loading}
                   onFileLoaded={handleFileLoaded}
                   onFileCleared={handleFileCleared}
                   onSvvLoaded={handleSvvLoaded}
                   onSvvCleared={handleSvvCleared}
+                  onFecLoaded={handleFecLoaded}
+                  onFecCleared={handleFecCleared}
                   onError={handleError}
                   clientAccounts={state.clientAccounts}
                   generalAccounts={state.generalAccounts}
@@ -568,6 +634,7 @@ const App: React.FC = () => {
                   clientAccounts={state.clientAccounts}
                   mergedClientAccounts={mergedClientAccounts}
                   generalAccounts={state.generalAccounts}
+                  fecAccountCodes={state.fecAccountCodes}
                   replacementCodes={state.replacementCodes}
                   cncjReplacementCodes={state.cncjReplacementCodes}
                   result={state.result}
