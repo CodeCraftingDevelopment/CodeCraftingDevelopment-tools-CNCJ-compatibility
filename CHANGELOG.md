@@ -1,5 +1,22 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [2.5.1] - 2026-07-08
+
+### 🐛 **Correction : périmètre de l'export « accounting bridge »**
+
+#### Fixed
+- **Filtrage des correspondances** : l'export `accounting-bridge-account-mapping.csv` ne conserve désormais que les correspondances dont le **code cible 7 chiffres** est présent soit dans l'`account_account` généré (comptes PCG + comptes clients « à créer » filtrés FEC), soit dans les cibles du fichier SVV. Les comptes du plan client sans écriture FEC et sans compte cible réel ne « fuient » plus dans le mappage (ex. `79100000 → 7910000`).
+- **Comptes-vues** : correction d'un faux positif où les comptes-vues courts (`15`, `47`, `4081`…) étaient normalisés à 7 chiffres (`1500000`, `4700000`…) et faisaient passer à tort des cibles inexistantes. Le périmètre autorisé est désormais construit à partir du code **brut** de `account_account`, exactement tel qu'il y est écrit.
+- Les correspondances **SVV restent garanties** (inconditionnelles).
+
+#### 📊 Impact (jeu LANDES ENCHERES)
+- Bridge : **294 → 177** correspondances (117 fuites retirées) ; **57 correspondances SVV** conservées ; **0 cible orpheline** (les 154 cibles distinctes existent toutes en base).
+
+#### 📋 Fichiers concernés
+- `src/steps/Step8MetadataCompletion.tsx`
+
+---
+
 ## [2.5.0] - 2026-07-08
 
 ### 🏢 **Code société + export « accounting bridge »**

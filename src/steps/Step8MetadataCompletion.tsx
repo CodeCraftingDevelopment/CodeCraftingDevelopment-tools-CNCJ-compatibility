@@ -172,10 +172,24 @@ export const Step8MetadataCompletion: React.FC<Step8MetadataCompletionProps> = (
     // Format « accounting bridge » : 6 colonnes, séparateur ';', sans guillemets, sans BOM, CRLF.
     const csvHeaders = ['accountingbridgeAccount', 'axelorAccount.code', 'company.code', 'auxAccount.partnerSeq', 'pieceRef', 'active'];
 
-    // Mapping code client (source) -> code Axelor (cible), une ligne par compte client.
-    const rows: string[][] = finalSummaryData.map(row => {
+    // Codes réellement présents dans l'export account_account, EXACTEMENT tels qu'ils y sont écrits :
+    // - comptes PCG : code BRUT `account.number` (les comptes-vues courts « 15 », « 47 »… ne sont PAS
+    //   normalisés à l'export ; les normaliser ici ferait passer à tort des cibles 7 ch. comme « 1500000 »).
+    // - comptes clients « à créer » (accountsNeedingMetadata, filtré FEC) : code final normalisé (7 ch.).
+    const accountAccountCodes = new Set<string>();
+    generalAccounts.forEach(account => accountAccountCodes.add(account.number));
+    accountsNeedingMetadata.forEach(row => accountAccountCodes.add(normalizeForDisplay(row.finalCode)));
+    // Cibles 7 chiffres issues du fichier de correspondances SVV.
+    const svvTargetCodes = new Set(Object.values(svvCorrespondences).map(code => normalizeForDisplay(code)));
+    // On ne retient une correspondance que si son code cible sera dans account_account OU dans les cibles SVV.
+    const isAllowedTarget = (finalCode: string) => accountAccountCodes.has(finalCode) || svvTargetCodes.has(finalCode);
+
+    // Mapping code client (source) -> code Axelor (cible), filtré sur les cibles autorisées.
+    const rows: string[][] = [];
+    finalSummaryData.forEach(row => {
       const finalCode = normalizeForDisplay(computeFinalCodeForSummary(row));
-      return [row.originalCode, finalCode, companyCode, '', '', 'true'];
+      if (!isAllowedTarget(finalCode)) return;
+      rows.push([row.originalCode, finalCode, companyCode, '', '', 'true']);
     });
 
     // Garantir que TOUTE correspondance du fichier SVV figure dans le mappage,
