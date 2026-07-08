@@ -4,7 +4,7 @@ import { DropZone } from './DropZone';
 import { FileUploader } from './FileUploader';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { formatFileSize } from '../utils/fileUtils';
-import { validateFec, parseAccountCorrespondences, buildCorrectedFec, FecReport, FecCheck, CheckStatus } from '../utils/fecValidation';
+import { validateFec, parseAccountCorrespondences, buildCorrectedFec, buildDecimalCorrectedFec, buildTrimmedFec, convertFecToSemicolon, FEC_CONTROLS, FecReport, FecCheck, CheckStatus } from '../utils/fecValidation';
 import { FecStepsInfoModal } from './FecStepsInfoModal';
 import { buildFecReportWorkbook } from '../utils/fecReportExcel';
 
@@ -27,28 +27,20 @@ const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="bg-white shadow rounded-lg p-6 mb-6">{children}</div>
 );
 
-type FecStepKey = 'load' | 'report';
-const FEC_STEPS: Array<{ key: FecStepKey; order: number; title: string; icon: string; description: string }> = [
-  { key: 'load', order: 1, title: 'Chargement des fichiers', icon: '📁', description: 'FEC (obligatoire), PCG et table de correspondances (optionnels)' },
-  { key: 'report', order: 2, title: 'Rapport de conformité', icon: '📊', description: 'Contrôles, corrections et export du rapport' }
-];
-
-// Barre de progression au même visuel que le flux Integration PCG
+// Barre de progression : étape 0 = chargement, puis une étape par contrôle (rendu compact car nombreux).
 const FecProgressBar: React.FC<{
-  currentStep: FecStepKey;
-  reportReady: boolean;
-  onStepClick: (key: FecStepKey) => void;
+  stepIndex: number;   // 0 = chargement ; 1..N = numéro du contrôle courant
+  totalSteps: number;  // 1 (chargement) + N contrôles
+  title: string;
+  subtitle: string;
   onShowInfo?: () => void;
-}> = ({ currentStep, reportReady, onStepClick, onShowInfo }) => {
-  const currentOrder = FEC_STEPS.find(s => s.key === currentStep)?.order ?? 1;
-  const current = FEC_STEPS.find(s => s.key === currentStep);
-
+}> = ({ stepIndex, totalSteps, title, subtitle, onShowInfo }) => {
   return (
     <div className="mb-8 bg-white shadow rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-700">Progression</h3>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">Étape {currentOrder} / {FEC_STEPS.length}</span>
+          <span className="text-sm text-gray-500">Étape {stepIndex + 1} / {totalSteps}</span>
           {onShowInfo && (
             <button
               type="button"
@@ -62,49 +54,33 @@ const FecProgressBar: React.FC<{
         </div>
       </div>
 
-      <div className="relative">
-        <div className="flex items-center justify-between mb-2">
-          {FEC_STEPS.map((s, index) => {
-            const isCompleted = s.order < currentOrder;
-            const isCurrent = s.order === currentOrder;
-            const isClickable = s.key === 'load' || reportReady;
+      <div className="flex items-center">
+        {Array.from({ length: totalSteps }).map((_, i) => {
+          const completed = i < stepIndex;
+          const current = i === stepIndex;
+          return (
+            <React.Fragment key={i}>
+              <div
+                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300
+                  ${completed ? 'bg-green-500 text-white' : ''}
+                  ${current ? 'bg-blue-600 text-white ring-4 ring-blue-200' : ''}
+                  ${!completed && !current ? 'bg-gray-200 text-gray-500' : ''}`}
+                aria-current={current ? 'step' : undefined}
+                title={i === 0 ? 'Chargement des fichiers' : i === totalSteps - 1 ? 'Synthèse du rapport' : `Contrôle ${i} / ${totalSteps - 2}`}
+              >
+                {completed ? '✓' : i === 0 ? '📁' : i === totalSteps - 1 ? '📊' : i}
+              </div>
+              {i < totalSteps - 1 && (
+                <div className={`flex-1 h-1 mx-1 rounded transition-all duration-300 ${i < stepIndex ? 'bg-green-500' : 'bg-gray-200'}`} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
 
-            return (
-              <React.Fragment key={s.key}>
-                <div className="flex flex-col items-center flex-1">
-                  <button
-                    onClick={() => isClickable && onStepClick(s.key)}
-                    disabled={!isClickable}
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
-                      ${isCompleted ? 'bg-green-500 text-white' : ''}
-                      ${isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-200' : ''}
-                      ${!isCompleted && !isCurrent ? 'bg-gray-200 text-gray-500' : ''}
-                      ${isClickable ? 'cursor-pointer hover:scale-110' : 'cursor-not-allowed'}
-                    `}
-                    aria-current={isCurrent ? 'step' : undefined}
-                  >
-                    {isCompleted ? '✓' : s.order}
-                  </button>
-                  <span className={`mt-2 text-xs text-center leading-tight ${isCurrent ? 'font-semibold text-blue-700' : 'text-gray-600'}`} aria-hidden="true">
-                    {s.icon}
-                  </span>
-                </div>
-
-                {index < FEC_STEPS.length - 1 && (
-                  <div className="flex-1 h-1 mx-2 mb-8">
-                    <div className={`h-full rounded transition-all duration-300 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} />
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 text-center">
-          <p className="text-sm font-medium text-gray-900">{current?.title}</p>
-          <p className="text-xs text-gray-500 mt-1">{current?.description}</p>
-        </div>
+      <div className="mt-4 text-center">
+        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
       </div>
     </div>
   );
@@ -262,7 +238,7 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
       const text = await file.text();
       const map = parseAccountCorrespondences(text);
       if (map.size === 0) {
-        setCorrError('Aucune correspondance détectée (colonnes attendues : original_client_code, final_code).');
+        setCorrError('Aucune correspondance détectée (colonnes attendues : original_client_code/final_code, ou accountingbridgeAccount/axelorAccount.code).');
         setCorrespondences(null);
         setCorrInfo(null);
       } else {
@@ -307,6 +283,28 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
     setFecCorrected(true);
   }, [fecText]);
 
+  // Corrige le séparateur décimal des montants EN MÉMOIRE (virgule -> point, sur Débit/Crédit/Montantdevise).
+  // Requis pour l'import Axelor (BigDecimal). Le rapport se recalcule -> le contrôle repasse au vert.
+  const handleCorrectDecimal = useCallback(() => {
+    if (fecText === null) return;
+    setFecText(buildDecimalCorrectedFec(fecText));
+    setFecCorrected(true);
+  }, [fecText]);
+
+  // Convertit le séparateur de colonnes en « ; » EN MÉMOIRE (tabulation / « | » -> « ; »).
+  const handleConvertColumnSeparator = useCallback(() => {
+    if (fecText === null) return;
+    setFecText(convertFecToSemicolon(fecText));
+    setFecCorrected(true);
+  }, [fecText]);
+
+  // Détrime chaque colonne EN MÉMOIRE (retire les espaces de remplissage à largeur fixe).
+  const handleTrimColumns = useCallback(() => {
+    if (fecText === null) return;
+    setFecText(buildTrimmedFec(fecText));
+    setFecCorrected(true);
+  }, [fecText]);
+
   // Télécharge le FEC actuellement en mémoire (corrigé si une correction a été appliquée)
   const handleDownloadFec = useCallback(() => {
     if (fecText === null) return;
@@ -315,10 +313,31 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
     const name = fecInfo?.name ?? 'fec.txt';
     const ext = name.match(/\.[^./\\]+$/)?.[0] ?? '.txt';
     const base = name.replace(/\.[^./\\]+$/, '');
-    const suffix = fecCorrected ? '-devise-corrige' : '';
+    const suffix = fecCorrected ? '-corrige' : '';
     const link = document.createElement('a');
     link.href = url;
     link.download = `${base}${suffix}${ext}`;
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }, [fecText, fecInfo, fecCorrected]);
+
+  // Convertit le séparateur du FEC en « ; » (tabulation / « | » -> « ; ») et télécharge le fichier.
+  // Part du FEC en mémoire : inclut la correction devise si elle a été appliquée au préalable.
+  const handleDownloadFecSemicolon = useCallback(() => {
+    if (fecText === null) return;
+    const converted = convertFecToSemicolon(fecText);
+    const blob = new Blob([converted], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const name = fecInfo?.name ?? 'fec.txt';
+    const ext = name.match(/\.[^./\\]+$/)?.[0] ?? '.txt';
+    const base = name.replace(/\.[^./\\]+$/, '');
+    const suffix = fecCorrected ? '-corrige' : '';
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${base}${suffix}-separateur-pv${ext}`;
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -332,7 +351,19 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
   // Système d'étapes : 1 = chargement des fichiers, 2 = rapport de conformité
   const [step, setStep] = useState<'load' | 'report'>('load');
   const [showHelp, setShowHelp] = useState(false);
+  // Parcours des contrôles un par un dans le rapport
+  const [checkIndex, setCheckIndex] = useState(0);
   const reportReady = report !== null && !report.parseError;
+
+  // Parcours à étapes FIXES : FEC_CONTROLS (toujours les mêmes contrôles, dans le même ordre).
+  // Le contrôle courant = FEC_CONTROLS[checkIndex] ; son résultat est retrouvé dans le rapport par id.
+  // Index max = FEC_CONTROLS.length (dernière étape = Synthèse)
+  useEffect(() => {
+    if (checkIndex > FEC_CONTROLS.length) setCheckIndex(FEC_CONTROLS.length);
+  }, [checkIndex]);
+  const isSummary = checkIndex >= FEC_CONTROLS.length; // dernière étape : synthèse + exports
+  const currentControl = FEC_CONTROLS[checkIndex] ?? null;
+  const currentCheck = currentControl ? (report?.checks.find(c => c.id === currentControl.id) ?? null) : null;
 
   // Revenir au chargement si le rapport n'est plus disponible (FEC retiré)
   useEffect(() => {
@@ -346,6 +377,21 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
     error: 'Anomalies bloquantes détectées',
     skipped: '—'
   };
+
+  // Barre de progression : Chargement (étape 0) + un contrôle par étape. Total FIXE (14), connu d'avance.
+  const totalControls = FEC_CONTROLS.length;
+  const topTotal = totalControls + 2; // Chargement + 13 contrôles + Synthèse
+  const topStepIndex = step === 'load' ? 0 : checkIndex + 1;
+  const topTitle = step === 'load'
+    ? 'Chargement des fichiers'
+    : isSummary
+      ? 'Synthèse du rapport'
+      : `Contrôle ${checkIndex + 1} / ${totalControls} — ${currentControl?.label ?? ''}`;
+  const topSubtitle = step === 'load'
+    ? 'FEC (obligatoire), PCG et table de correspondances (optionnels)'
+    : isSummary
+      ? 'Statut global, statistiques et exports'
+      : currentCheck?.summary ?? 'En attente du chargement du FEC';
 
   const pcgSourceLabel =
     pcgLoadedAccounts.length > 0
@@ -364,9 +410,10 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
   return (
     <>
       <FecProgressBar
-        currentStep={step}
-        reportReady={reportReady}
-        onStepClick={(key) => setStep(key)}
+        stepIndex={topStepIndex}
+        totalSteps={topTotal}
+        title={topTitle}
+        subtitle={topSubtitle}
         onShowInfo={() => setShowHelp(true)}
       />
 
@@ -531,7 +578,7 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
             ) : (
               <>
                 <p className="text-sm text-gray-700 font-medium">Déposez la table de correspondances ou cliquez</p>
-                <p className="text-xs text-gray-500 mt-1">correspondances-comptes.csv (code d'origine → code final CNCJ)</p>
+                <p className="text-xs text-gray-500 mt-1">accounting-bridge-account-mapping.csv ou correspondances-comptes.csv (code d'origine → code final)</p>
               </>
             )}
           </div>
@@ -562,12 +609,12 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
         <button
           type="button"
           disabled={!reportReady}
-          onClick={() => setStep('report')}
+          onClick={() => { setCheckIndex(0); setStep('report'); }}
           className={`px-6 py-2 rounded-lg font-medium text-white transition-colors flex items-center gap-2 ${
             reportReady ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
           }`}
         >
-          Voir le rapport <span aria-hidden="true">→</span>
+          Suivant <span aria-hidden="true">→</span>
         </button>
       </div>
       </>
@@ -596,7 +643,7 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
             </div>
           ) : (
             <div className="space-y-6">
-              {globalMeta && (
+              {isSummary && globalMeta && (
                 <div className={`border-2 rounded-xl p-5 ${globalMeta.ring}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -607,16 +654,6 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
                       </div>
                     </div>
                     <div className="shrink-0 flex flex-col sm:flex-row gap-2">
-                      {report.checks.find(c => c.id === 'coherence-devise')?.status !== 'ok' && (
-                        <button
-                          type="button"
-                          onClick={handleCorrectDevise}
-                          className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
-                        >
-                          <span aria-hidden="true">🛠️</span>
-                          Corriger Idevise / Montantdevise
-                        </button>
-                      )}
                       {fecCorrected && (
                         <button
                           type="button"
@@ -625,6 +662,16 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
                         >
                           <span aria-hidden="true">⬇️</span>
                           Télécharger le FEC corrigé
+                        </button>
+                      )}
+                      {report.delimiter && report.delimiter !== ';' && (
+                        <button
+                          type="button"
+                          onClick={handleDownloadFecSemicolon}
+                          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                        >
+                          <span aria-hidden="true">⬇️</span>
+                          Télécharger le FEC (séparateur «&nbsp;;&nbsp;»)
                         </button>
                       )}
                       <button
@@ -649,10 +696,53 @@ export const FecVerification: React.FC<FecVerificationProps> = ({ pcgAccounts })
                 </div>
               )}
 
-              <div className="space-y-3">
-                {report.checks.map(check => (
-                  <CheckCard key={check.id} check={check} />
-                ))}
+              {/* Contrôle courant (étapes 2..14) — masqué sur l'étape Synthèse */}
+              {!isSummary && (
+                <div className="space-y-4">
+                  {currentCheck && <CheckCard key={currentCheck.id} check={currentCheck} />}
+
+                  {/* Correction en mémoire proposée selon le contrôle courant */}
+                  {currentCheck?.id === 'coherence-devise' && currentCheck.status !== 'ok' && (
+                    <button type="button" onClick={handleCorrectDevise} className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+                      <span aria-hidden="true">🛠️</span> Corriger Idevise / Montantdevise (en mémoire)
+                    </button>
+                  )}
+                  {currentCheck?.id === 'format-separateur-decimal' && currentCheck.status !== 'ok' && (
+                    <button type="button" onClick={handleCorrectDecimal} className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+                      <span aria-hidden="true">🛠️</span> Corriger le séparateur décimal — virgule → point (en mémoire)
+                    </button>
+                  )}
+                  {currentCheck?.id === 'format-separateur-colonnes' && currentCheck.status !== 'ok' && (
+                    <button type="button" onClick={handleConvertColumnSeparator} className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+                      <span aria-hidden="true">🛠️</span> Convertir le séparateur de colonnes en «&nbsp;;&nbsp;» (en mémoire)
+                    </button>
+                  )}
+                  {currentCheck?.id === 'format-espaces' && currentCheck.status !== 'ok' && (
+                    <button type="button" onClick={handleTrimColumns} className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+                      <span aria-hidden="true">🛠️</span> Détrimer chaque colonne (retirer les espaces) — en mémoire
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Navigation : contrôles puis Synthèse (dernière étape) */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  disabled={checkIndex === 0}
+                  onClick={() => setCheckIndex(i => Math.max(0, i - 1))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${checkIndex === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-500 text-white hover:bg-gray-600'}`}
+                >
+                  ← Précédent
+                </button>
+                <button
+                  type="button"
+                  disabled={checkIndex >= totalControls}
+                  onClick={() => setCheckIndex(i => Math.min(totalControls, i + 1))}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${checkIndex >= totalControls ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                >
+                  {checkIndex === totalControls - 1 ? 'Voir la synthèse →' : 'Suivant →'}
+                </button>
               </div>
             </div>
           )}

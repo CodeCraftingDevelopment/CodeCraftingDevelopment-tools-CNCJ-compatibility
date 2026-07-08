@@ -1,5 +1,29 @@
 # 📝 Changelog – Refactoring du système d'étapes
 
+## [3.0.0] - 2026-07-08
+
+### 🧭 **Vérification Fichier FEC — refonte en parcours de contrôles + préparation Axelor**
+
+#### Added
+- **Parcours à étapes fixes** : la barre de progression du haut affiche systématiquement **17 étapes** — 📁 Chargement · **15 contrôles** · 📊 Synthèse — matérialisées par des pastilles numérotées (vertes = franchies, bleue = en cours). La liste des contrôles est figée dans `FEC_CONTROLS` (`fecValidation.ts`) et un test garde-fou vérifie qu'elle reste alignée sur les contrôles réellement produits.
+- **Étape Synthèse dédiée** (dernière étape) : statut global, statistiques et exports (FEC corrigé, FEC séparateur `;`, rapport Excel) ne s'affichent plus en permanence mais uniquement en fin de parcours.
+- **Contrôle « Séparateur décimal des montants »** (`format-separateur-decimal`) : détecte les virgules décimales (l'import Axelor via `BigDecimal` exige le point) + correction en mémoire (`buildDecimalCorrectedFec`).
+- **Contrôle « Séparateur de colonnes (« ; » attendu) »** (`format-separateur-colonnes`) : erreur si le FEC n'est pas en `;` + correction en mémoire (`convertFecToSemicolon`).
+- **Contrôle « Espaces superflus dans les colonnes »** (`format-espaces`, avertissement) : détecte le remplissage à largeur fixe (exports DIVALTO) + correction « détrim de chaque colonne » (`buildTrimmedFec`).
+
+#### Changed
+- **Correction devise** (`buildCorrectedFec`) : écrit désormais `Montantdevise` avec un **point décimal** (au lieu d'une virgule) pour ne plus entrer en conflit avec le contrôle « séparateur décimal ». Les corrections devise / décimal / séparateur / trim se composent donc dans n'importe quel ordre → FEC conforme au bout de la chaîne.
+- **Parsing des correspondances** (`parseAccountCorrespondences`) rendu tolérant aux deux en-têtes : `original_client_code/final_code` et `accountingbridgeAccount/axelorAccount.code`.
+- Suffixe du FEC téléchargé : `-corrige`.
+
+#### Tests
+- **125 tests** (dont un test de chaîne complète `convertir « ; » → devise → décimal → détrim` ⇒ contrôles Axelor OK + global conforme, et le garde-fou `FEC_CONTROLS`).
+
+#### 📋 Fichiers concernés
+- `src/utils/fecValidation.ts`, `src/components/FecVerification.tsx`, `src/test/fecValidation.test.ts`
+
+---
+
 ## [2.5.1] - 2026-07-08
 
 ### 🐛 **Correction : périmètre de l'export « accounting bridge »**

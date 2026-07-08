@@ -41,6 +41,27 @@ const IDX = {
   Idevise: 17
 } as const;
 
+// Liste FIXE (en dur) des contrôles effectués par validateFec, dans l'ordre.
+// Sert de parcours d'étapes garanti : toujours les mêmes contrôles, systématiquement vérifiés,
+// indépendamment du contenu du FEC (le total d'étapes est donc connu d'avance).
+export const FEC_CONTROLS: ReadonlyArray<{ id: string; label: string }> = [
+  { id: 'structure-guillemets', label: 'Guillemets englobants' },
+  { id: 'structure-colonnes', label: 'Structure des 18 colonnes' },
+  { id: 'structure-largeur', label: 'Nombre de champs par ligne' },
+  { id: 'format-date-ecriture', label: "Format des dates d'écriture" },
+  { id: 'format-dates-optionnelles', label: 'Format des dates optionnelles' },
+  { id: 'format-montants', label: 'Montants Débit / Crédit numériques' },
+  { id: 'format-separateur-decimal', label: 'Séparateur décimal des montants (point attendu)' },
+  { id: 'format-separateur-colonnes', label: 'Séparateur de colonnes (« ; » attendu)' },
+  { id: 'format-espaces', label: 'Espaces superflus dans les colonnes' },
+  { id: 'champs-obligatoires', label: 'Champs obligatoires renseignés' },
+  { id: 'coherence-devise', label: 'Montant devise / Idevise (Axelor)' },
+  { id: 'equilibre-global', label: 'Équilibre global Débit = Crédit' },
+  { id: 'equilibre-ecriture', label: 'Équilibre par écriture (EcritureNum)' },
+  { id: 'coherence-date-ecriture', label: 'Date homogène par écriture' },
+  { id: 'coherence-pcg', label: 'Cohérence des comptes avec le PCG' }
+];
+
 const MAX_ISSUES = 100; // Plafond d'exemples listés par contrôle (évite les rapports illisibles)
 const BALANCE_TOLERANCE = 0.01; // Tolérance d'arrondi sur les équilibres (centime)
 
@@ -72,6 +93,7 @@ export interface FecStats {
 
 export interface FecReport {
   fileName: string;
+  delimiter: string;
   delimiterLabel: string;
   header: string[];
   globalStatus: CheckStatus;
@@ -253,13 +275,33 @@ const cell = (cells: string[], index: number): string => (cells[index] ?? '').tr
  */
 export const parseAccountCorrespondences = (text: string): Map<string, string> => {
   const map = new Map<string, string>();
-  for (const line of text.replace(/\r\n?/g, '\n').split('\n')) {
-    if (line.trim() === '') continue;
-    const cells = line.split(';').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
-    if (cells.length < 3) continue;
-    const original = cells[1];
-    const final = cells[2];
-    if (/^\d+$/.test(original) && /^\d+$/.test(final)) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim() !== '');
+  if (lines.length === 0) return map;
+
+  const unquote = (c: string) => c.trim().replace(/^"(.*)"$/, '$1');
+  const header = lines[0].split(';').map(c => unquote(c).toLowerCase());
+  const findCol = (names: string[]) => header.findIndex(h => names.includes(h));
+
+  // Deux formats reconnus par l'en-tête :
+  //  - historique  : account_title ; original_client_code ; final_code
+  //  - accounting bridge : accountingbridgeAccount ; axelorAccount.code ; company.code ; ...
+  let srcIdx = findCol(['original_client_code', 'accountingbridgeaccount']);
+  let tgtIdx = findCol(['final_code', 'axeloraccount.code']);
+  let startLine: number;
+  if (srcIdx >= 0 && tgtIdx >= 0) {
+    startLine = 1; // en-tête reconnu → on démarre aux données
+  } else {
+    // Repli : ancien comportement positionnel (col 1 = source, col 2 = cible), en-tête ignoré via le test numérique
+    srcIdx = 1;
+    tgtIdx = 2;
+    startLine = 0;
+  }
+
+  for (let i = startLine; i < lines.length; i++) {
+    const cells = lines[i].split(';').map(unquote);
+    const original = cells[srcIdx];
+    const final = cells[tgtIdx];
+    if (original && final && /^\d+$/.test(original) && /^\d+$/.test(final)) {
       map.set(original, final);
     }
   }
@@ -315,12 +357,63 @@ export const buildCorrectedFec = (text: string): string => {
     const debit = Math.abs(parseFecAmount(cells[IDX.Debit] ?? '') || 0);
     const credit = Math.abs(parseFecAmount(cells[IDX.Credit] ?? '') || 0);
     const expected = debit > 0 ? debit : credit;
-    cells[IDX.Montantdevise] = expected.toFixed(2).replace('.', ','); // décimale française comme Débit/Crédit
+    cells[IDX.Montantdevise] = expected.toFixed(2); // point décimal (compatible import Axelor / contrôle décimal)
     cells[IDX.Idevise] = 'EUR';
     return cells.join(delimiter);
   });
 
   return out.join(eol);
+};
+
+// Ré-écrit le FEC avec « ; » comme séparateur (au lieu de la tabulation ou « | » détectée).
+// En-tête + lignes de données converties ; fins de ligne et lignes vides préservées.
+// Si le fichier utilise déjà « ; », il est renvoyé tel quel.
+export const convertFecToSemicolon = (text: string): string => {
+  const parsed = parseFec(text);
+  if ('error' in parsed) return text;
+  const delimiter = parsed.delimiter;
+  if (delimiter === ';') return text;
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const out = lines.map(line => (line === '' ? line : line.split(delimiter).join(';')));
+  return out.join(eol);
+};
+
+// Détrime chaque colonne (retire les espaces en début/fin) sur l'en-tête et les lignes de données.
+// Utile pour les FEC à largeur fixe (exports DIVALTO). Séparateur et fins de ligne préservés.
+export const buildTrimmedFec = (text: string): string => {
+  const parsed = parseFec(text);
+  if ('error' in parsed) return text;
+  const delimiter = parsed.delimiter;
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const out = lines.map(line => (line.trim() === '' ? line : line.split(delimiter).map(c => c.trim()).join(delimiter)));
+  return out.join(eol);
+};
+
+// Corrige les montants pour l'import Axelor : sur Débit, Crédit et Montantdevise, détrime la valeur
+// et remplace la virgule décimale par un point (BigDecimal Axelor n'accepte ni espaces ni « , »).
+// Le séparateur de colonnes et le reste du fichier sont préservés.
+export const buildDecimalCorrectedFec = (text: string): string => {
+  const parsed = parseFec(text);
+  if ('error' in parsed) return text;
+  const delimiter = parsed.delimiter;
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  let headerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() !== '') { headerIdx = i; break; }
+  }
+  const amountCols = [IDX.Debit, IDX.Credit, IDX.Montantdevise];
+  const out2 = lines.map((line, i) => {
+    if (i <= headerIdx || line.trim() === '') return line;
+    const cells = line.split(delimiter);
+    for (const col of amountCols) {
+      if (cells[col] !== undefined) cells[col] = cells[col].trim().replace(',', '.');
+    }
+    return cells.join(delimiter);
+  });
+  return out2.join(eol);
 };
 
 export const validateFec = (
@@ -336,6 +429,7 @@ export const validateFec = (
   if ('error' in parsed) {
     return {
       fileName,
+      delimiter: '',
       delimiterLabel: '—',
       header: [],
       globalStatus: 'error',
@@ -345,7 +439,7 @@ export const validateFec = (
     };
   }
 
-  const { header, rows, delimiterLabel } = parsed;
+  const { header, rows, delimiter, delimiterLabel } = parsed;
   const checks: FecCheck[] = [];
 
   const makeCheck = (
@@ -534,6 +628,73 @@ export const validateFec = (
       amountIssues,
       `Tous les montants Débit et Crédit sont numériques.`,
       n => `${n} montant(s) non numérique(s).`
+    )
+  );
+
+  // 5b. Séparateur décimal des montants : l'import CSV Axelor lie les montants à un BigDecimal,
+  //     qui n'accepte QUE le point « . ». Une virgule décimale bloque l'import (NumberFormatException).
+  const decimalSepIssues: FecIssue[] = [];
+  for (const r of rows) {
+    const parts: string[] = [];
+    const d = cell(r.cells, IDX.Debit);
+    const c = cell(r.cells, IDX.Credit);
+    const m = cell(r.cells, IDX.Montantdevise);
+    if (d.includes(',')) parts.push(`Débit « ${d} »`);
+    if (c.includes(',')) parts.push(`Crédit « ${c} »`);
+    if (m.includes(',')) parts.push(`Montantdevise « ${m} »`);
+    if (parts.length > 0) {
+      decimalSepIssues.push({
+        line: r.line,
+        message: `Séparateur décimal « , » : ${parts.join(' ; ')}.`,
+        suggestion: `Remplacer la virgule décimale par un point « . » (exigence de l'import Axelor).`
+      });
+    }
+  }
+  checks.push(
+    makeCheck(
+      'format-separateur-decimal',
+      'Séparateur décimal des montants (point attendu)',
+      decimalSepIssues,
+      `Tous les montants utilisent le point « . » comme séparateur décimal.`,
+      n => `${n} ligne(s) avec une virgule décimale (l'import Axelor via BigDecimal exige le point « . »).`,
+      'error'
+    )
+  );
+
+  // 5c. Séparateur de colonnes : l'import CSV Axelor attend « ; ». Tabulation / « | » -> conversion requise.
+  const columnSepOk = delimiter === ';';
+  checks.push({
+    id: 'format-separateur-colonnes',
+    label: 'Séparateur de colonnes (« ; » attendu)',
+    status: columnSepOk ? 'ok' : 'error',
+    summary: columnSepOk
+      ? 'Le fichier utilise « ; » comme séparateur de colonnes.'
+      : `Séparateur détecté : ${delimiterLabel}. L'import Axelor attend « ; » — conversion requise.`,
+    issues: [],
+    truncated: false
+  });
+
+  // 5d. Espaces superflus : remplissage à largeur fixe (exports type DIVALTO) laissant des espaces en
+  //     début/fin de colonne. À nettoyer pour un import propre.
+  const paddingIssues: FecIssue[] = [];
+  for (const r of rows) {
+    const padded = r.cells.filter(c => c !== c.trim() && c.trim() !== '');
+    if (padded.length > 0) {
+      paddingIssues.push({
+        line: r.line,
+        message: `${padded.length} champ(s) avec espaces superflus (ex. « ${padded[0]} »).`,
+        suggestion: `Détrimer chaque colonne (retirer les espaces en début/fin).`
+      });
+    }
+  }
+  checks.push(
+    makeCheck(
+      'format-espaces',
+      'Espaces superflus dans les colonnes',
+      paddingIssues,
+      `Aucun espace superflu en début/fin de colonne.`,
+      n => `${n} ligne(s) avec des espaces superflus (remplissage à largeur fixe).`,
+      'warning'
     )
   );
 
@@ -784,6 +945,7 @@ export const validateFec = (
 
   return {
     fileName,
+    delimiter,
     delimiterLabel,
     header,
     globalStatus,

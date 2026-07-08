@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateFec, buildFecReportCsv, buildCorrectedFec, parseAccountCorrespondences, extractFecAccounts, parseFecAmount, isValidFecDate, suggestFecDate, FEC_COLUMNS } from '../utils/fecValidation'
+import { validateFec, buildFecReportCsv, buildCorrectedFec, buildDecimalCorrectedFec, buildTrimmedFec, convertFecToSemicolon, parseAccountCorrespondences, extractFecAccounts, parseFecAmount, isValidFecDate, suggestFecDate, FEC_COLUMNS, FEC_CONTROLS } from '../utils/fecValidation'
 import { parseCSVFile } from '../utils/accountUtils'
 
 const TAB = '\t'
@@ -37,15 +37,15 @@ describe('fecValidation - helpers', () => {
 
 describe('fecValidation - FEC conforme', () => {
   const fec = buildFec([
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0', Montantdevise: '120,00', Idevise: 'EUR' }),
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '100,00', Montantdevise: '100,00', Idevise: 'EUR' }),
-    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4457110', Debit: '0', Credit: '20,00', Montantdevise: '20,00', Idevise: 'EUR' })
-  ])
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120.00', Credit: '0', Montantdevise: '120.00', Idevise: 'EUR' }),
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '100.00', Montantdevise: '100.00', Idevise: 'EUR' }),
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4457110', Debit: '0', Credit: '20.00', Montantdevise: '20.00', Idevise: 'EUR' })
+  ]).replace(/\t/g, ';') // séparateur « ; » attendu par l'import Axelor
 
   it('rapporte un statut global ok', () => {
     const report = validateFec(fec, 'test.txt')
     expect(report.parseError).toBeUndefined()
-    expect(report.delimiterLabel).toBe('tabulation')
+    expect(report.delimiterLabel).toBe('point-virgule « ; »')
     expect(report.stats.dataLines).toBe(3)
     expect(report.stats.ecritureCount).toBe(1)
     expect(report.stats.totalDebit).toBeCloseTo(120)
@@ -54,6 +54,54 @@ describe('fecValidation - FEC conforme', () => {
     expect(report.checks.find(c => c.id === 'equilibre-global')?.status).toBe('ok')
     expect(report.checks.find(c => c.id === 'equilibre-ecriture')?.status).toBe('ok')
     expect(report.checks.find(c => c.id === 'coherence-pcg')?.status).toBe('skipped')
+    expect(report.checks.find(c => c.id === 'format-separateur-decimal')?.status).toBe('ok') // montants en point
+    expect(report.globalStatus).toBe('ok')
+  })
+
+  it('produit exactement les contrôles fixes FEC_CONTROLS, dans le même ordre', () => {
+    // Garde-fou : la liste d'étapes en dur (FEC_CONTROLS) doit rester alignée sur les contrôles réels.
+    const report = validateFec(fec, 'test.txt')
+    expect(report.checks.map(c => c.id)).toEqual(FEC_CONTROLS.map(c => c.id))
+  })
+})
+
+describe('fecValidation - séparateur décimal (import Axelor)', () => {
+  const fecComma = buildFec([
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '4110000', Debit: '120,00', Credit: '0', Montantdevise: '120,00', Idevise: 'EUR' }),
+    row({ JournalCode: 'VT', EcritureNum: '1', EcritureDate: '20250115', CompteNum: '7010000', Debit: '0', Credit: '120,00', Montantdevise: '120,00', Idevise: 'EUR' })
+  ])
+
+  it('signale une virgule décimale comme erreur (BigDecimal Axelor exige le point)', () => {
+    const report = validateFec(fecComma, 'virgule.txt')
+    const check = report.checks.find(c => c.id === 'format-separateur-decimal')!
+    expect(check.status).toBe('error')
+    expect(check.issues.length).toBe(2)
+  })
+
+  it('buildDecimalCorrectedFec convertit la virgule en point et rend le contrôle conforme', () => {
+    const corrected = buildDecimalCorrectedFec(fecComma)
+    const cells = corrected.split(/\r?\n/)[1].split(TAB)
+    expect(cells[11]).toBe('120.00') // Débit
+    expect(cells[16]).toBe('120.00') // Montantdevise
+    expect(validateFec(corrected, 'x').checks.find(c => c.id === 'format-separateur-decimal')?.status).toBe('ok')
+  })
+
+  it('chaîne complète « ; » + devise + décimal + détrim -> tous les contrôles Axelor OK et global conforme', () => {
+    // FEC « | », montants virgule, Montantdevise vide, EcritureNum padé (cas réel export DIVALTO)
+    const fecPipe = [
+      FEC_COLUMNS.join('|'),
+      ['RAN', 'A nouveaux', '      19610', '20260101', '1010000', 'Capital', '', '', '', '20260101', 'AN', '68869,73', '0', '', '', '20260101', '', ''].join('|'),
+      ['RAN', 'A nouveaux', '      19610', '20260101', '1200000', 'Résultat', '', '', '', '20260101', 'AN', '0', '68869,73', '', '', '20260101', '', ''].join('|')
+    ].join('\n')
+
+    const prepared = buildTrimmedFec(buildDecimalCorrectedFec(buildCorrectedFec(convertFecToSemicolon(fecPipe))))
+    const report = validateFec(prepared, 'prepare.txt')
+    const status = (id: string) => report.checks.find(c => c.id === id)?.status
+    expect(status('format-separateur-colonnes')).toBe('ok')
+    expect(status('coherence-devise')).toBe('ok')
+    expect(status('format-separateur-decimal')).toBe('ok')
+    expect(status('format-espaces')).toBe('ok')
+    expect(prepared.split('\n')[1].split(';')[2]).toBe('19610') // EcritureNum détrimé
     expect(report.globalStatus).toBe('ok')
   })
 })
@@ -125,10 +173,10 @@ describe('fecValidation - Montant devise / Idevise (Axelor)', () => {
     // Vérifier les valeurs écrites
     const lines = corrected.split(/\r?\n/)
     const cells1 = lines[1].split('\t')
-    expect(cells1[16]).toBe('68869,73') // Montantdevise = |Débit|
+    expect(cells1[16]).toBe('68869.73') // Montantdevise = |Débit| (point décimal)
     expect(cells1[17]).toBe('EUR')
     const cells2 = lines[2].split('\t')
-    expect(cells2[16]).toBe('68869,73') // Montantdevise = |Crédit|
+    expect(cells2[16]).toBe('68869.73') // Montantdevise = |Crédit| (point décimal)
     expect(cells2[17]).toBe('EUR')
   })
 })
